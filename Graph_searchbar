@@ -97,7 +97,7 @@
         <div className="max-w-xl mx-auto mt-16 font-sans">
           <div className="text-center mb-6">
             <h1 className="text-5xl font-bold tracking-tight text-neutral-900 dark:text-white">Bharat Praman</h1>
-            <p className="text-x text-neutral-500 mt-1">I have no strings </p>
+            <p className="text-x text-neutral-500 mt-1">| Politics is all about Connections | </p>
           </div>
 
           <div ref={containerRef} className="relative">
