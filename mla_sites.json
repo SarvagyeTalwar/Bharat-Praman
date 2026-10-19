@@ -1,0 +1,126 @@
+{
+  "Andhra Pradesh": {
+    "slug": "AndhraPradesh2024",
+    "year": 2024
+  },
+  "Arunachal Pradesh": {
+    "slug": "ArunachalPradesh2024",
+    "year": 2024
+  },
+  "Assam": {
+    "slug": "Assam2026",
+    "year": 2026
+  },
+  "Bihar": {
+    "slug": "Bihar2025",
+    "year": 2025
+  },
+  "Chattisgarh": {
+    "slug": "Chhattisgarh2023",
+    "year": 2023
+  },
+  "Delhi": {
+    "slug": "Delhi2025",
+    "year": 2025
+  },
+  "Goa": {
+    "slug": "goa2022",
+    "year": 2022
+  },
+  "Gujarat": {
+    "slug": "Gujarat2022",
+    "year": 2022
+  },
+  "Haryana": {
+    "slug": "Haryana2024",
+    "year": 2024
+  },
+  "Himachal Pradesh": {
+    "slug": "HimachalPradesh2022",
+    "year": 2022
+  },
+  "Jammu And Kashmir": {
+    "slug": "JammuKashmir2024",
+    "year": 2024
+  },
+  "Jharkhand": {
+    "slug": "Jharkhand2024",
+    "year": 2024
+  },
+  "Karnataka": {
+    "slug": "Karnataka2023",
+    "year": 2023
+  },
+  "Kerala": {
+    "slug": "Kerala2026",
+    "year": 2026
+  },
+  "Madhya Pradesh": {
+    "slug": "MadhyaPradesh2023",
+    "year": 2023
+  },
+  "Maharashtra": {
+    "slug": "Maharashtra2024",
+    "year": 2024
+  },
+  "Manipur": {
+    "slug": "manipur2022",
+    "year": 2022
+  },
+  "Meghalaya": {
+    "slug": "Meghalaya2023",
+    "year": 2023
+  },
+  "Mizoram": {
+    "slug": "Mizoram2023",
+    "year": 2023
+  },
+  "Nagaland": {
+    "slug": "Nagaland2023",
+    "year": 2023
+  },
+  "Odisha": {
+    "slug": "Odisha2024",
+    "year": 2024
+  },
+  "Puducherry": {
+    "slug": "Puducherry2026",
+    "year": 2026
+  },
+  "Punjab": {
+    "slug": "punjab2022",
+    "year": 2022
+  },
+  "Rajasthan": {
+    "slug": "Rajasthan2023",
+    "year": 2023
+  },
+  "Sikkim": {
+    "slug": "Sikkim2024",
+    "year": 2024
+  },
+  "Tamil Nadu": {
+    "slug": "TamilNadu2021",
+    "year": 2021
+  },
+  "Telangana": {
+    "slug": "Telangana2023",
+    "year": 2023
+  },
+  "Tripura": {
+    "slug": "Tripura2023",
+    "year": 2023
+  },
+  "Uttarakhand": {
+    "slug": "uttarakhand2022",
+    "year": 2022
+  },
+  "Uttar Pradesh": {
+    "slug": "uttarpradesh2022",
+    "year": 2022
+  },
+  "West Bengal": {
+    "slug": "WestBengal2026",
+    "year": 2026
+  }
+}
