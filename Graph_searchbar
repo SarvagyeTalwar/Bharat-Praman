@@ -94,6 +94,8 @@
       };
 
       return (
+       <div className="min-h-screen flex flex-col justify-between p-8 font-sans">
+
         <div className="max-w-xl mx-auto mt-16 font-sans">
           <div className="text-center mb-6">
             <h1 className="text-5xl font-bold tracking-tight text-neutral-900 dark:text-white">Bharat Praman</h1>
@@ -188,6 +190,41 @@
               {selectedMessage}
             </div>
           )}
+        </div>
+
+        {/* Footer Section */}
+          <footer className="w-full text-center py-6 mt-12 border-t border-neutral-200 dark:border-neutral-900 space-y-2">
+            <p className="text-xs text-neutral-400">
+              with love by{' '}
+              <a
+                href="https://github.com/SarvagyeTalwar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-neutral-200 hover:text-white underline decoration-neutral-600 hover:decoration-white transition-colors"
+              >
+                Lorem Ipsum
+              </a>
+            </p>
+
+            <div className="flex justify-center items-center gap-3 text-xs text-neutral-400">
+              <a href="#privacy" className="hover:text-white transition-colors underline decoration-neutral-700 underline-offset-4">
+                Privacy Policy
+              </a>
+              <span>•</span>
+              <a href="#terms" className="hover:text-white transition-colors underline decoration-neutral-700 underline-offset-4">
+                Terms of Service
+              </a>
+              <span>•</span>
+              <a href="#attribution" className="hover:text-white transition-colors underline decoration-neutral-700 underline-offset-4">
+                Data Attribution
+              </a>
+            </div>
+
+            <p className="text-[11px] text-neutral-400">
+              All Bharat Praman graph queries and metadata are processed for research and informational purposes.
+            </p>
+          </footer>
+
         </div>
       );
     }
