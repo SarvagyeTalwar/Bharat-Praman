@@ -13,6 +13,14 @@ def _load(name):
 TOPICS = {t["topic_id"]: t for t in _load("topics.json")}
 AUTHORITIES = _load("authorities.json")
 TEMPLATES = _load("templates.json")
+BANK = _load("question_bank.json")
+
+# Set to True once a person has checked every question in question_bank.json.
+ONLY_REVIEWED = False
+MIN_SCORE = 60
+STOPWORDS = set("a an the is are was were of to in on for and or me my i he she his her him they their it its "
+                "how many much what which who whom when where why did does do has have had can could will would "
+                "please give show list tell about with from by this that these those any all get".split())
 
 # VERIFY against an official source before relying on this default.
 DEFAULT_TERM_START = {"LOK_SABHA": "2024-06-04"}
@@ -124,7 +132,8 @@ def normalize_person(entity_id, props, cons_labels=None, cons_props=None):
 
 def fmt_date(iso):
     try:
-        return date.fromisoformat(iso).strftime("%d %B %Y")
+        d = date.fromisoformat(iso)
+        return "{} {}".format(d.day, d.strftime("%B %Y"))
     except (TypeError, ValueError):
         return str(iso)
 
@@ -196,3 +205,48 @@ def build_response(person, topic_id, district_override=None, today=None):
                       "first_appeal_by": (reply_due + timedelta(days=30)).isoformat()},
         "notes": notes,
     }
+
+
+try:
+    from rapidfuzz import fuzz
+
+    def _score(q, doc):
+        return fuzz.WRatio(q, doc)
+except ImportError:  # works without the library, just less well with typos
+    from difflib import SequenceMatcher
+
+    def _score(q, doc):
+        words, qs = doc.split(), q.split()
+        if not qs:
+            return 0
+        hits = sum(1 for w in qs if any(SequenceMatcher(None, w, d).ratio() >= 0.75 for d in words))
+        return 60 + 40 * hits / len(qs) if hits else 0
+
+
+def suggest(person, topic_id, query="", district_override=None, limit=5):
+    """Ready-made questions for a topic. Empty query lists the topic's questions; otherwise fuzzy matches."""
+    if topic_id not in TOPICS:
+        raise RtiError("Unknown topic: " + str(topic_id))
+    house = person.get("house")
+    if house is None:
+        raise RtiError("Cannot tell which house this member belongs to.")
+    ctx = _Keep(
+        mp_name=person.get("name") or "[name]", mp_title=MEMBER_TITLE[house],
+        area=person.get("constituency") or person.get("state") or "[area]",
+        house_name=HOUSE_NAME[house], district=person.get("district") or district_override or "[district]",
+    )
+    pool = [b for b in BANK if b["reviewed"] or not ONLY_REVIEWED]
+    here = [b for b in pool if b["topic_id"] == topic_id]
+    item = lambda b: {"id": b["id"], "topic_id": b["topic_id"], "text": b["text"].format_map(ctx)}
+    words = query.lower().split()
+    q = " ".join(w for w in words if w not in STOPWORDS)
+    if not q:
+        return {"matches": [item(b) for b in here], "other_topics": []}
+    score = lambda b: max(_score(q, b["text"].lower()), _score(q, b["keywords"].lower()))
+    ranked = sorted(((score(b), b) for b in here), key=lambda x: -x[0])
+    matches = [item(b) for s, b in ranked if s >= MIN_SCORE][:limit]
+    other = []
+    if not matches:
+        other = sorted({TOPICS[b["topic_id"]]["label"] for b in pool
+                        if b["topic_id"] != topic_id and score(b) >= MIN_SCORE})
+    return {"matches": matches, "other_topics": other}

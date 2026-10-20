@@ -68,6 +68,15 @@ def rti_for_topic(entity_id: str, topic_id: str, district: Optional[str] = None)
         raise HTTPException(status_code=422, detail=str(e))
 
 
+@app.get("/politicians/{entity_id}/rti/{topic_id}/suggest")
+def suggest(entity_id: str, topic_id: str, q: str = "", district: Optional[str] = None):
+    person = person_or_404(entity_id)
+    try:
+        return engine.suggest(person, topic_id, q, district)
+    except engine.RtiError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
 @app.get("/rti-page")
 def rti_page():
     return FileResponse(Path(__file__).resolve().parent / "rti_page.html")
