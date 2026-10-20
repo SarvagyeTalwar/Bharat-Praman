@@ -1,0 +1,47 @@
+{
+  "LOK_SABHA_SECRETARIAT": {
+    "name": "Lok Sabha Secretariat",
+    "level": "CENTRAL",
+    "website": "https://loksabha.nic.in",
+    "pio_designation": null,
+    "pio_address": null,
+    "portal_url": "https://rtionline.gov.in",
+    "on_rtionline": null,
+    "fee": 10,
+    "payment_mode": null,
+    "appellate_authority": {"name": null, "address": null},
+    "source_url": null,
+    "last_verified": null,
+    "verified": false
+  },
+  "RAJYA_SABHA_SECRETARIAT": {
+    "name": "Rajya Sabha Secretariat",
+    "level": "CENTRAL",
+    "website": "https://rajyasabha.nic.in",
+    "pio_designation": null,
+    "pio_address": null,
+    "portal_url": "https://rtionline.gov.in",
+    "on_rtionline": null,
+    "fee": 10,
+    "payment_mode": null,
+    "appellate_authority": {"name": null, "address": null},
+    "source_url": null,
+    "last_verified": null,
+    "verified": false
+  },
+  "DISTRICT_AUTHORITY": {
+    "name": "District Collector / District Magistrate, {district}",
+    "level": "DISTRICT",
+    "website": null,
+    "pio_designation": "Public Information Officer, Office of the District Collector",
+    "pio_address": null,
+    "portal_url": null,
+    "on_rtionline": false,
+    "fee": null,
+    "payment_mode": null,
+    "appellate_authority": {"name": null, "address": null},
+    "source_url": null,
+    "last_verified": null,
+    "verified": false
+  }
+}

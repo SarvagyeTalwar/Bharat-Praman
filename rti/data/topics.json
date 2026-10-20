@@ -1,0 +1,29 @@
+[
+  {
+    "topic_id": "MPLADS_PROJECTS",
+    "label": "MPLADS projects and fund usage",
+    "description": "Works recommended, funds sanctioned and released, and completion status under MPLADS",
+    "already_on_profile": false,
+    "profile_section": null,
+    "needs_district": true,
+    "authority_by_house": {"LOK_SABHA": "DISTRICT_AUTHORITY", "RAJYA_SABHA": "DISTRICT_AUTHORITY"}
+  },
+  {
+    "topic_id": "ATTENDANCE",
+    "label": "Attendance and parliamentary activity",
+    "description": "Sittings attended, questions asked and committee participation. Set already_on_profile to true if your profile shows this.",
+    "already_on_profile": false,
+    "profile_section": null,
+    "needs_district": false,
+    "authority_by_house": {"LOK_SABHA": "LOK_SABHA_SECRETARIAT", "RAJYA_SABHA": "RAJYA_SABHA_SECRETARIAT"}
+  },
+  {
+    "topic_id": "ALLOWANCES",
+    "label": "Salary and allowances",
+    "description": "Category-wise totals of salary, allowances and travel entitlements paid",
+    "already_on_profile": false,
+    "profile_section": null,
+    "needs_district": false,
+    "authority_by_house": {"LOK_SABHA": "LOK_SABHA_SECRETARIAT", "RAJYA_SABHA": "RAJYA_SABHA_SECRETARIAT"}
+  }
+]
