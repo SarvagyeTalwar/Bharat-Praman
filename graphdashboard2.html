@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bharat Praman — Political Knowledge Graph</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Space Mono, Instrument Serif & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- React 18 & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Framer Motion -->
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Retro Warm Paper Background with Dotted Grid */
+    body {
+      background-color: #fbf8f1;
+      background-image: radial-gradient(#d8d0c2 1.25px, transparent 1.25px);
+      background-size: 22px 22px;
+      color: #1c1917;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    .font-serif-vintage {
+      font-family: 'Instrument Serif', Georgia, serif;
+    }
+
+    .font-mono-retro {
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* Custom Tactile Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f5f0e6;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c8beac;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a89e8c;
+    }
+  </style>
+</head>
+<body class="min-h-screen selection:bg-amber-200 selection:text-stone-900">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+    const { motion, AnimatePresence } = window.Motion;
+
+    // --- Embedded SVGs ---
+    const SearchIcon = ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+      </svg>
+    );
+
+    const ArrowRightIcon = ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+      </svg>
+    );
+
+    const UserIcon = ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+      </svg>
+    );
+
+    const BellIcon = ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+      </svg>
+    );
+
+    const HelpCircleIcon = ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" />
+      </svg>
+    );
+
+    const MessageSquareIcon = ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    );
+
+    const XIcon = ({ size = 14, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+      </svg>
+    );
+
+    const ZapIcon = ({ size = 20, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      </svg>
+    );
+
+    const NetworkIcon = ({ size = 20, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="9" y="2" width="6" height="6" rx="1" />
+        <rect x="2" y="16" width="6" height="6" rx="1" />
+        <rect x="16" y="16" width="6" height="6" rx="1" />
+        <path d="M5 16v-4h14v4" />
+        <path d="M12 8v4" />
+      </svg>
+    );
+
+    const DatabaseIcon = ({ size = 20, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <ellipse cx="12" cy="5" rx="9" ry="3" />
+        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+      </svg>
+    );
+
+    const LinkedinIcon = ({ size = 15, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.8v8.37h-2.8v-8.37M7.86 6.54a1.64 1.64 0 1 0 0 3.28 1.64 1.64 0 0 0 0-3.28Z" />
+      </svg>
+    );
+
+    const SparklesIcon = ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
+      </svg>
+    );
+
+    // --- Search Component with Retro Neobrutalist Polish ---
+    function BharatPramanSearch({ items, onActionSelect, externalQueryTrigger }) {
+      const [isOpen, setIsOpen] = useState(false);
+      const [query, setQuery] = useState('');
+      const [activeSection, setActiveSection] = useState('All');
+      const [activeIndex, setActiveIndex] = useState(0);
+      const inputRef = useRef(null);
+
+      // Handle external clicks from sample pills
+      useEffect(() => {
+        if (externalQueryTrigger) {
+          setQuery(externalQueryTrigger);
+          setIsOpen(true);
+        }
+      }, [externalQueryTrigger]);
+
+      const availableSections = useMemo(() => {
+        const sections = Array.from(new Set(items.map((i) => i.section)));
+        return ['All', ...sections];
+      }, [items]);
+
+      useEffect(() => {
+        if (isOpen) {
+          const timeout = setTimeout(() => inputRef.current?.focus(), 60);
+          return () => clearTimeout(timeout);
+        }
+      }, [isOpen]);
+
+      useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+          if (
+            e.key.toLowerCase() === 'f' &&
+            !isOpen &&
+            document.activeElement?.tagName !== 'INPUT' &&
+            document.activeElement?.tagName !== 'TEXTAREA'
+          ) {
+            e.preventDefault();
+            setIsOpen(true);
+          }
+          if (e.key === 'Escape' && isOpen) {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(false);
+          }
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown, true);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
+      }, [isOpen]);
+
+      const filteredItems = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return items.filter((item) => {
+          const label = item.title.toLowerCase();
+          const subtitle = (item.subtitle || '').toLowerCase();
+          const matchesQuery = !q || label.includes(q) || subtitle.includes(q);
+          const matchesSection = activeSection === 'All' || item.section === activeSection;
+          return matchesQuery && matchesSection;
+        });
+      }, [query, activeSection, items]);
+
+      useEffect(() => {
+        setActiveIndex(0);
+      }, [query, activeSection]);
+
+      const groupedSections = useMemo(() => {
+        const groups = {};
+        filteredItems.forEach((item) => {
+          if (!groups[item.section]) groups[item.section] = [];
+          groups[item.section].push(item);
+        });
+
+        return Object.entries(groups).map(([name, items]) => ({
+          name,
+          items,
+        }));
+      }, [filteredItems]);
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (filteredItems.length > 0) {
+            setActiveIndex((prev) => (prev + 1) % filteredItems.length);
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (filteredItems.length > 0) {
+            setActiveIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
+          }
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const selectedItem = filteredItems[activeIndex];
+          if (selectedItem) {
+            selectedItem.action();
+            onActionSelect?.(selectedItem);
+            setIsOpen(false);
+          }
+        }
+      };
+
+      const sharedTransition = {
+        type: 'tween',
+        ease: 'easeOut',
+        duration: 0.16,
+      };
+
+      return (
+        <div className="w-full">
+          {/* Collapsed Search Trigger Bar */}
+          <motion.button
+            key="trigger"
+            layoutId="search-box"
+            onClick={() => setIsOpen(true)}
+            className="group flex h-14 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-stone-900 bg-white px-5 py-3 text-stone-700 shadow-[4px_4px_0px_0px_#1c1917] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#1c1917] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#1c1917] transition-all cursor-pointer"
+            transition={sharedTransition}
+          >
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-100 text-stone-900 border border-stone-300 group-hover:bg-amber-100 group-hover:border-amber-400 transition-colors">
+                <SearchIcon size={16} />
+              </span>
+              <span className="text-sm font-semibold text-stone-700 group-hover:text-stone-950 font-mono-retro">
+                Ask a question about MLAs, MPs or Ministries...
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <kbd className="rounded border-2 border-stone-800 bg-stone-100 px-2 py-0.5 text-xs font-mono-retro font-bold text-stone-900 shadow-[1.5px_1.5px_0px_0px_#1c1917]">
+                F
+              </kbd>
+            </div>
+          </motion.button>
+
+          {/* Full Screen Overlay with Correct Layering */}
+          <AnimatePresence>
+            {isOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                {/* Backdrop: Warm translucent wash */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-stone-900/35 backdrop-blur-[2px]"
+                  onClick={() => setIsOpen(false)}
+                />
+
+                {/* Sharp Center-Aligned Pop-Up Modal */}
+                <motion.div
+                  key="palette"
+                  layoutId="search-box"
+                  transition={sharedTransition}
+                  className="relative z-10 flex h-auto max-h-[520px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] shadow-[8px_8px_0px_0px_#1c1917]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Header with Search Input & Filter Pills */}
+                  <div className="flex items-center border-b-2 border-stone-800 bg-[#f7f3ea] px-4 py-3">
+                    <span className="pr-3 text-stone-700">
+                      <SearchIcon size={17} />
+                    </span>
+
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      className="w-full bg-transparent text-sm font-semibold text-stone-900 placeholder-stone-400 outline-none font-mono-retro"
+                      placeholder="Type query (e.g., Lok Sabha, Freedom Fighter, Terms)..."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                    />
+
+                    {/* Clear Button */}
+                    {query && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuery('');
+                          inputRef.current?.focus();
+                        }}
+                        className="p-1 mr-1.5 text-stone-400 hover:text-stone-900 transition-colors"
+                      >
+                        <XIcon size={14} />
+                      </button>
+                    )}
+
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-1 border-l-2 border-stone-300 pl-2.5 ml-1">
+                      {availableSections.map((sec) => (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => setActiveSection(sec)}
+                          className={`px-2 py-0.5 text-xs font-mono-retro font-bold rounded transition-all ${
+                            activeSection === sec
+                              ? 'bg-stone-900 text-stone-50 shadow-[1.5px_1.5px_0px_0px_#78716c]'
+                              : 'text-stone-600 hover:text-stone-950 hover:bg-stone-200'
+                          }`}
+                        >
+                          {sec}
+                        </button>
+                      ))}
+
+                      <kbd className="ml-1 rounded border border-stone-400 bg-white px-1.5 py-0.5 text-[10px] font-mono-retro font-bold text-stone-600 shadow-sm">
+                        ESC
+                      </kbd>
+                    </div>
+                  </div>
+
+                  {/* Results List */}
+                  <div className="custom-scrollbar flex-1 overflow-y-auto p-3 max-h-[380px] bg-[#fdfdfb]">
+                    {filteredItems.length === 0 ? (
+                      <div className="py-12 text-center text-xs font-mono-retro text-stone-500">
+                        // No matching graph entities found for "{query}"
+                      </div>
+                    ) : (
+                      <div className="space-y-3.5 py-1">
+                        {groupedSections.map((section) => (
+                          <div key={section.name} className="space-y-1.5">
+                            <h3 className="px-2.5 py-1 text-[11px] font-mono-retro font-bold tracking-wider text-stone-500 uppercase flex items-center gap-2">
+                              <span>■ {section.name}</span>
+                              <span className="flex-1 h-px bg-stone-200"></span>
+                            </h3>
+                            <div className="space-y-1">
+                              {section.items.map((item) => {
+                                const globalIndex = filteredItems.findIndex(
+                                  (fi) => fi.id === item.id
+                                );
+                                const isActive = globalIndex === activeIndex;
+
+                                return (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    className={`group flex w-full items-center justify-between rounded-lg px-3.5 py-2.5 text-left transition-all ${
+                                      isActive
+                                        ? 'bg-amber-100/70 text-stone-950 border border-stone-900 shadow-[2px_2px_0px_0px_#1c1917]'
+                                        : 'text-stone-700 hover:bg-stone-100 border border-transparent'
+                                    }`}
+                                    onMouseEnter={() => setActiveIndex(globalIndex)}
+                                    onClick={() => {
+                                      item.action();
+                                      onActionSelect?.(item);
+                                      setIsOpen(false);
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <span className={`p-1 rounded ${isActive ? 'bg-amber-200 text-stone-900' : 'bg-stone-100 text-stone-500 group-hover:text-stone-800'}`}>
+                                        {item.icon}
+                                      </span>
+                                      <div>
+                                        <div className="font-bold text-sm leading-tight text-stone-900">
+                                          {item.title}
+                                        </div>
+                                        {item.subtitle && (
+                                          <div className="text-xs font-mono-retro text-stone-500 mt-0.5">
+                                            {item.subtitle}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      {item.tag && (
+                                        <span className="text-[10px] uppercase px-1.5 py-0.5 rounded border border-stone-300 bg-white text-stone-700 font-mono-retro font-bold tracking-wider">
+                                          {item.tag}
+                                        </span>
+                                      )}
+                                      {item.shortcut && (
+                                        <kbd className="rounded border border-stone-300 bg-white px-1.5 py-0.5 text-[10px] font-mono-retro font-bold text-stone-600 shadow-sm">
+                                          {item.shortcut}
+                                        </kbd>
+                                      )}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modal Footer Tip */}
+                  <div className="border-t border-stone-200 bg-stone-100/80 px-4 py-2 text-[11px] font-mono-retro text-stone-500 flex justify-between items-center">
+                    <span>Use ↑ ↓ to navigate</span>
+                    <span>Press ↵ to select</span>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    // --- Bharat Praman Dataset ---
+    const bharatPramanItems = [
+      {
+        id: '1',
+        title: 'Lok Sabha',
+        subtitle: '543 connected constituency nodes',
+        section: 'Nodes',
+        tag: 'NODE',
+        icon: <ArrowRightIcon size={16} />,
+        action: () => console.log('Lok Sabha'),
+      },
+      {
+        id: '2',
+        title: 'INC (Indian National Congress)',
+        subtitle: 'Connected to 48 legislative nodes',
+        section: 'Nodes',
+        tag: 'NODE',
+        icon: <ArrowRightIcon size={16} />,
+        action: () => console.log('INC'),
+      },
+      {
+        id: '3',
+        title: 'Constituency Records',
+        subtitle: 'Connected to 543 geographic nodes',
+        section: 'Nodes',
+        tag: 'CONCEPT',
+        icon: <ArrowRightIcon size={16} />,
+        action: () => console.log('Constituency'),
+      },
+      {
+        id: '4',
+        title: 'Is Freedom Fighter',
+        subtitle: '112 historical lineage connections',
+        section: 'Relations',
+        tag: 'RELATION',
+        icon: <ArrowRightIcon size={16} />,
+        action: () => console.log('Is Freedom Fighter'),
+      },
+      {
+        id: '5',
+        title: 'No of Terms Served',
+        subtitle: 'Indexed across 543 member tenures',
+        section: 'Relations',
+        tag: 'RELATION',
+        icon: <ArrowRightIcon size={16} />,
+        action: () => console.log('No of Terms'),
+      },
+      
+    ];
+
+    // --- Team Data (3 Members) ---
+    const TEAM_MEMBERS = [
+      {
+        id: '1',
+        name: 'Sarvagye Talwar',
+        role: 'Frontend & UX Designer',
+        bio: 'Specializing in Graph Databases, Graph RAG systems, and knowledge graph engineering for Indian political data.',
+        linkedin: 'https://www.linkedin.com/in/sarvagye-talwar-361b10354/',
+        initials: 'ST'
+      },
+      {
+        id: '2',
+        name: 'Aaishni Shukla',
+        role: 'AI & Graph RAG Engineer',
+        bio: 'Focusing on LLM retrieval pipelines, multi-hop query optimization, and sub-second semantic search indexing.',
+        linkedin: 'https://www.linkedin.com/in/aaishni-shukla-35991543a/',
+        initials: 'AS'
+      },
+      {
+        id: '3',
+        name: 'Subham Ranjan Dhal',
+        role: 'Frontend & UI/UX Designer',
+        bio: 'Crafting visual systems that make complex political data feel approachable. Focused on typography, layout, and seamless user experiences.',
+        linkedin: 'https://www.linkedin.com/in/subham-ranjan-dhal-669183403/',
+        initials: 'SRD'
+      }
+    ];
+
+    // Quick Prompt Suggestions
+    const SAMPLE_QUERIES = [
+      { label: 'Lok Sabha', query: 'Lok Sabha', icon: '🏛️' },
+      { label: 'Freedom Fighter Lineage', query: 'Freedom Fighter', icon: '📜' },
+      { label: 'Terms Served', query: 'Terms', icon: '⏱️' },
+      { label: 'Constituencies', query: 'Constituency', icon: '🗺️' },
+    ];
+
+    // --- Main Page Component ---
+    function App() {
+      const [selectedMessage, setSelectedMessage] = useState(null);
+      const [activeSampleQuery, setActiveSampleQuery] = useState('');
+
+      const triggerQuery = (queryText) => {
+        setActiveSampleQuery(queryText);
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col justify-between">
+          {/* Top Gazette Nav Strip */}
+          <header className="w-full border-b-2 border-stone-900 bg-[#f4eee2] px-6 py-2.5">
+            <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-mono-retro font-bold text-stone-800">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                <span>BHARAT PRAMAN // KNOWLEDGE GRAPH v2.4</span>
+              </div>
+              <div className="flex items-center gap-4 text-[11px]">
+                <a href="#why-us" className="hover:underline">WHY US</a>
+                <span>•</span>
+                <a href="#about-us" className="hover:underline">ABOUT TEAM</a>
+                <span>•</span>
+                <a href="https://github.com/SarvagyeTalwar" target="_blank" rel="noopener noreferrer" className="hover:underline">GITHUB ↗</a>
+              </div>
+            </div>
+          </header>
+
+          {/* Hero & Search Section */}
+          <main className="w-full max-w-3xl mx-auto mt-10 sm:mt-16 px-6 flex flex-col items-center">
+            {/* Logo and Headings */}
+            <div className="text-center mb-6 flex flex-col items-center w-full">
+              {/* Handwritten Hindi Logo */}
+              <div className="mb-1 flex justify-center w-full">
+                <img
+                  src="bharat_praman_logo.png"
+                  alt="भारत प्रमाण"
+                  className="h-28 sm:h-36 md:h-44 w-auto max-w-full object-contain select-none transition-transform hover:scale-105 duration-200"
+                />
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-950 uppercase font-mono-retro">
+                Bharat Praman
+              </h1>
+              
+              <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-md border border-stone-300 bg-[#f4eee2] shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-600"></span>
+                <p className="text-xs sm:text-sm text-stone-800 font-mono-retro font-bold tracking-tight">
+                  Politics is all about Connections
+                </p>
+              </div>
+            </div>
+
+            {/* Centered Search Component — full width of max-w-3xl container */}
+            <div className="w-full">
+              <BharatPramanSearch
+                items={bharatPramanItems}
+                externalQueryTrigger={activeSampleQuery}
+                onActionSelect={(item) =>
+                  setSelectedMessage(`Selected: "${item.title}" [${item.section}]`)
+                }
+              />
+            </div>
+
+            {/* Clickable Quick Sample Queries */}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 w-full text-xs">
+              <span className="font-mono-retro text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1">
+                <SparklesIcon size={12} className="text-amber-600" />
+                Try queries:
+              </span>
+              {SAMPLE_QUERIES.map((sample) => (
+                <button
+                  key={sample.label}
+                  type="button"
+                  onClick={() => triggerQuery(sample.query)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white/90 px-3 py-1 text-xs font-medium text-stone-700 shadow-sm hover:border-stone-800 hover:bg-amber-100 hover:text-stone-950 transition-all cursor-pointer"
+                >
+                  <span>{sample.icon}</span>
+                  <span>{sample.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Selected Action Feedback Banner */}
+            {selectedMessage && (
+              <div className="mt-6 w-full p-3 border-2 border-stone-800 bg-[#fdfdfb] text-xs font-mono-retro text-stone-900 rounded-xl text-center shadow-[3px_3px_0px_0px_#1c1917]">
+                ✓ {selectedMessage}
+              </div>
+            )}
+          </main>
+
+
+
+          {/* Section: Why Us */}
+          <section id="why-us" className="w-full max-w-4xl mx-auto mt-20 px-6 pt-12 border-t-2 border-dashed border-stone-300">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-stone-950 mt-2 tracking-tight">
+                Why Bharat Praman?
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 mt-2.5 leading-relaxed">
+                Relational tables only see rows. We built a native graph database paired with <strong>Graph RAG</strong> so ordinary citizens and researchers can query minute details of any MP or MLA in milliseconds.
+              </p>
+            </div>
+
+            
+
+            {/* Benchmark Showcase: ChatGPT vs Bharat Praman */}
+            <div className="mt-10 rounded-2xl border-2 border-stone-900 bg-white shadow-[4px_4px_0px_0px_#1c1917] overflow-hidden">
+              {/* Header Strip */}
+              <div className="bg-[#f4eee2] border-b-2 border-stone-900 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-amber-600"></span>
+                  <span className="text-xs font-mono-retro font-bold text-stone-900 uppercase">
+                    Latency Benchmark // Minister Query Test
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono-retro font-bold px-2 py-0.5 rounded border border-stone-400 bg-white text-stone-700">
+                   COMPARISON
+                </span>
+              </div>
+
+              {/* Sample Question Box */}
+              <div className="p-5 border-b-2 border-stone-200 bg-stone-50/70">
+                <div className="text-[11px] font-mono-retro font-bold text-stone-500 uppercase tracking-wider mb-1">
+                  Sample Query Asked:
+                </div>
+                <div className="text-sm sm:text-base font-extrabold text-stone-900 font-mono-retro">
+                  "Which constituencies did Rajnath Singh represent in Lok Sabha, how many terms has he served, and what ministerial portfolios did he hold across his tenure?"
+                </div>
+              </div>
+
+              {/* Comparison Grid: ChatGPT vs Bharat Praman */}
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y-2 md:divide-y-0 md:divide-x-2 divide-stone-900">
+                {/* Column 1: ChatGPT */}
+                <div className="p-5 sm:p-6 bg-stone-50/40 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-md bg-stone-200 text-stone-700 flex items-center justify-center font-mono-retro font-bold text-xs">
+                          AI
+                        </span>
+                        <h4 className="font-extrabold text-sm text-stone-900">Standard LLM (ChatGPT-4)</h4>
+                      </div>
+                      <span className="px-2 py-0.5 rounded border border-rose-300 bg-rose-50 text-rose-700 text-xs font-mono-retro font-bold">
+                        ⏱️ ~9.0 Seconds
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-stone-600 leading-relaxed mb-4">
+                      Reads through generic training data, hallucinating timeline details or missing older constituency switches. Must generate full conversational tokens sequentially.
+                    </p>
+
+                    <div className="p-3 rounded-xl border border-stone-300 bg-white font-mono-retro text-xs text-stone-600 space-y-1.5">
+                      <div className="text-[10px] text-stone-400 font-bold uppercase">// Response Stream (Slow)</div>
+                      <p className="line-clamp-3 text-stone-700 italic">
+                        "Rajnath Singh has had a prominent career in Indian politics. He has been elected to the Lok Sabha from Lucknow... He was also elected earlier... Generating response token by token..."
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-stone-200 flex items-center justify-between text-xs font-mono-retro">
+                    <span className="text-stone-500">Latency: <strong className="text-rose-600 font-bold">9,200 ms</strong></span>
+                    <span className="text-rose-600 font-bold text-[11px]">1,000× Slower</span>
+                  </div>
+                </div>
+
+                {/* Column 2: Bharat Praman */}
+                <div className="p-5 sm:p-6 bg-amber-50/30 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-md bg-amber-500 text-stone-950 flex items-center justify-center font-mono-retro font-bold text-xs">
+                          BP
+                        </span>
+                        <h4 className="font-extrabold text-sm text-stone-900">Bharat Praman (Graph RAG)</h4>
+                      </div>
+                      <span className="px-2 py-0.5 rounded border-2 border-emerald-600 bg-emerald-100 text-emerald-800 text-xs font-mono-retro font-bold animate-pulse">
+                        ⚡ 9 Milliseconds
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-stone-600 leading-relaxed mb-4">
+                      Direct node-to-node graph traversal with zero SQL join lag. Traverses <strong>Minister</strong> &rarr; <strong>Constituencies</strong> &rarr; <strong>Terms</strong> &rarr; <strong>Portfolios</strong> with 100% verified citation accuracy.
+                    </p>
+
+                    <div className="p-3 rounded-xl border-2 border-stone-800 bg-white font-mono-retro text-xs space-y-1.5 shadow-[2px_2px_0px_0px_#1c1917]">
+                      <div className="text-[10px] text-emerald-700 font-bold uppercase flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+                        Graph Traversal Complete (&lt; 9ms)
+                      </div>
+                      <div className="text-stone-800 space-y-1 text-[11px]">
+                        <div>• <strong>Constituencies:</strong> Lucknow (2014, 2019, 2024), Ghaziabad (2009)</div>
+                        <div>• <strong>Terms in Lok Sabha:</strong> 4 Consecutive Terms</div>
+                        <div>• <strong>Key Portfolios:</strong> Defence (2019–Present), Home Affairs (2014–19), Agriculture (2003–04)</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-stone-200 flex items-center justify-between text-xs font-mono-retro">
+                    <span className="text-stone-500">Latency: <strong className="text-emerald-700 font-bold">9 ms</strong></span>
+                    <span className="text-emerald-800 font-bold text-[11px] bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
+                      ⚡ 1,000× Faster Retrieval
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section: About Us (3 Team Members) */}
+          <section id="about-us" className="w-full max-w-4xl mx-auto mt-20 px-6 pt-12 border-t-2 border-dashed border-stone-300">
+            <div className="text-center max-w-xl mx-auto mb-10">
+              <span className="inline-block text-[11px] font-mono-retro uppercase tracking-widest px-2.5 py-1 rounded border border-stone-400 bg-stone-200/70 text-stone-800 font-bold">
+                RESEARCHERS & FOUNDERS
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-stone-950 mt-2 tracking-tight">
+                About Us
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 mt-2">
+                We are a team of 3 researchers and engineers building transparency for Indian democracy through graph intelligence.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {TEAM_MEMBERS.map((member) => (
+                <div
+                  key={member.id}
+                  className="p-6 rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] flex flex-col justify-between shadow-[4px_4px_0px_0px_#1c1917] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#1c1917] transition-all"
+                >
+                  <div>
+                    {/* Header with avatar, badge & initials */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-stone-900 text-stone-50 font-mono-retro font-bold text-sm flex items-center justify-center border-2 border-stone-700 shadow-sm">
+                        {member.initials}
+                      </div>
+                      <span className="text-[10px] font-mono-retro font-bold px-2 py-0.5 rounded border border-stone-300 bg-stone-100 text-stone-600">
+                        {member.id} 
+                      </span>
+                    </div>
+
+                    <h4 className="text-base font-extrabold text-stone-900 leading-tight">
+                      {member.name}
+                    </h4>
+                    <p className="text-xs font-mono-retro font-semibold text-amber-800 mt-1">
+                      {member.role}
+                    </p>
+
+                    <p className="text-xs text-stone-600 mt-3 leading-relaxed">
+                      {member.bio}
+                    </p>
+                  </div>
+
+                  {/* LinkedIn Connect Button */}
+                  <div className="mt-6 pt-4 border-t-2 border-stone-200 flex items-center justify-between">
+                    <span className="text-[11px] font-mono-retro text-stone-500 font-bold">NETWORK</span>
+                    <a
+                      href={member.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-stone-900 bg-stone-100 hover:bg-stone-900 hover:text-white text-xs font-bold text-stone-900 transition-colors shadow-sm"
+                    >
+                      <LinkedinIcon size={13} />
+                      <span>LinkedIn ↗</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Bharat Praman Footer */}
+          <footer className="w-full text-center py-10 mt-24 border-t-2 border-stone-900 bg-[#f4eee2] px-6 space-y-3">
+            <p className="text-xs font-mono-retro text-stone-600">
+              with love by{' '}
+              <a
+                href="https://github.com/SarvagyeTalwar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-stone-950 underline decoration-stone-400 hover:decoration-stone-950 transition-colors"
+              >
+                Lorem Ipsum
+              </a>
+            </p>
+
+            <div className="flex flex-wrap justify-center items-center gap-3 text-xs font-mono-retro font-medium text-stone-600">
+              <a
+                href="privacypolicy.html"
+                className="hover:text-stone-950 transition-colors underline decoration-stone-300 underline-offset-4"
+              >
+                Privacy Policy
+              </a>
+              <span>•</span>
+              <a
+                href="termsofservice.html"
+                className="hover:text-stone-950 transition-colors underline decoration-stone-300 underline-offset-4"
+              >
+                Terms of Service
+              </a>
+
+            </div>
+
+            <p className="text-[11px] font-mono-retro text-stone-500 max-w-xl mx-auto">
+              All Bharat Praman graph queries and metadata are processed for research, transparency, and public informational purposes.
+            </p>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
+
