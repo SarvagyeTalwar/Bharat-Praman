@@ -250,5 +250,75 @@
   "text": "Please provide the location (village, ward or locality) of each asset created or work undertaken under MPLADS for {area} in the period.",
   "keywords": "location village ward where was money spent assets created",
   "reviewed": false
+ },
+ {
+  "id": "ALW-13",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for air travel in each financial year within the period.",
+  "keywords": "yearly flights expense travel per year financial year air travel total",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-14",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the number of journeys claimed by {mp_name} in each class of travel (air, rail first class, other rail classes) in the period.",
+  "keywords": "class of travel business class first class ac class economy",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-15",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount recovered or refunded from {mp_name} on account of excess or disallowed claims in the period.",
+  "keywords": "recovery refund excess claim disallowed wrongly paid returned",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-16",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for travel on official committee duty, separately from other travel, in the period.",
+  "keywords": "committee travel official duty travel tour allowance committee tour",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-17",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the number of days for which {mp_name} was paid daily allowance for committee meetings, separately from sittings of the House.",
+  "keywords": "committee daily allowance meeting allowance committee da",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-18",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for office equipment, computers and furniture under any entitlement in the period.",
+  "keywords": "computer laptop furniture equipment office equipment gadgets",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-13",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the number of divisions (recorded votes) held in the {house_name} in the period, and the number in which {mp_name} voted, with the dates.",
+  "keywords": "voting votes voted division recorded vote voting record",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-14",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the list of calling attention, short duration discussion and adjournment motion notices given by {mp_name} in the period, with the subject of each.",
+  "keywords": "notices adjournment motion calling attention short duration discussion notices given",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-13",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the number of works recommended by {mp_name} in each financial year in the period, with the total amount sanctioned for each year.",
+  "keywords": "year wise yearly financial year annual works per year",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-14",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the amount of interest earned on MPLADS funds held for {mp_name} by the District Authority in the period, and how it was used.",
+  "keywords": "interest interest earned bank interest funds account",
+  "reviewed": false
  }
 ]
