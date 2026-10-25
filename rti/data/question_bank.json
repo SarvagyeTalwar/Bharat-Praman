@@ -1,0 +1,324 @@
+[
+ {
+  "id": "ATT-01",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the number of sittings of the {house_name} held in the period, and the number of sittings for which {mp_name} ({area}) signed the attendance register.",
+  "keywords": "attendance sittings present how many days signed register absent",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-02",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the date-wise list of sittings on which {mp_name} signed the attendance register in the period.",
+  "keywords": "date wise attendance days present which days",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-03",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the number of sittings for which leave of absence was granted to {mp_name} in the period.",
+  "keywords": "leave of absence absent leave granted",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-04",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the number of questions (starred and unstarred) asked by {mp_name} in the period, with the date and subject of each.",
+  "keywords": "questions asked starred unstarred parliament questions",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-05",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the number of occasions on which {mp_name} took part in debates in the {house_name} in the period, with the date and subject of each.",
+  "keywords": "debates speeches participation spoke speaking",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-06",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the list of matters raised by {mp_name} through Zero Hour, special mentions or Rule 377 in the period, with the date and subject of each.",
+  "keywords": "zero hour rule 377 special mention raised issue",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-07",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the list of private members' bills and resolutions introduced by {mp_name} in the period, with the date of introduction and current status.",
+  "keywords": "private member bill bills introduced resolution",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-08",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the list of committees of which {mp_name} was a member in the period, and the number of committee meetings attended.",
+  "keywords": "committees committee meetings standing committee member of committee",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-09",
+  "topic_id": "ATTENDANCE",
+  "text": "For each committee of which {mp_name} was a member in the period, please provide the number of meetings held and the number attended by {mp_name}.",
+  "keywords": "committee attendance meetings attended meetings held",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-10",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide details of any suspension or other disciplinary action taken against {mp_name} by the {house_name} in the period, with the date and reason.",
+  "keywords": "suspended suspension disciplinary action privilege motion",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-11",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the list of official parliamentary delegations or study visits to which {mp_name} was nominated in the period, with dates and places.",
+  "keywords": "delegation foreign visit study tour official visit",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-12",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the number of sittings of the {house_name} held in the period, and how many were adjourned or disrupted, as recorded by the Secretariat.",
+  "keywords": "disruptions adjourned sittings held productivity washed out",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-01",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} in the period under each head: salary, constituency allowance, office expense allowance and daily allowance.",
+  "keywords": "total salary allowances how much paid income earnings",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-02",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the month-wise amount of salary paid to {mp_name} in the period.",
+  "keywords": "monthly salary month wise salary pay",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-03",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount of daily allowance paid to {mp_name} in the period and the number of days for which it was paid.",
+  "keywords": "daily allowance da sitting allowance",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-04",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the month-wise amount of constituency allowance paid to {mp_name} in the period.",
+  "keywords": "constituency allowance",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-05",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the month-wise amount of office expense allowance paid to {mp_name} in the period.",
+  "keywords": "office expense allowance office allowance",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-06",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the number of air journeys claimed by {mp_name} in the period and the total amount paid for them.",
+  "keywords": "air travel flights flight tickets travel allowance airfare",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-07",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the number of rail journeys claimed by {mp_name} in the period and the total amount paid for them.",
+  "keywords": "train rail travel railway pass rail coupons",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-08",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for road journeys (mileage or travel allowance) in the period.",
+  "keywords": "road travel mileage car travel road mileage",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-09",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid for telephone, internet and other communication facilities of {mp_name} in the period.",
+  "keywords": "phone bill telephone internet communication",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-10",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for secretarial assistance in the period, as category totals.",
+  "keywords": "pa salary personal assistant staff secretarial assistance",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-11",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the number of travel coupons or warrants issued to {mp_name} in the period and the number used.",
+  "keywords": "free pass coupon warrant travel coupons companion",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-12",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the rules or orders under which salary and allowances of Members of the {house_name} are fixed, with the current rate for each head.",
+  "keywords": "salary rules rates entitlement how much do mps get pay scale",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-01",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the list of all works recommended under MPLADS by {mp_name}, {mp_title}, for {area}, with the name of each work, date of recommendation and estimated cost.",
+  "keywords": "works recommended projects list mplads funds development",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-02",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "For each such work, please state the amount sanctioned, the amount released to the implementing agency, and the date of release.",
+  "keywords": "sanctioned released amount funds release money spent",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-03",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please state the current status of each such work (not started, in progress or completed), with the date of completion where applicable.",
+  "keywords": "status completed pending in progress finished",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-04",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide copies of the recommendation letters sent by {mp_name} to the District Authority in the period.",
+  "keywords": "recommendation letter mp letter recommended works",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-05",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the name of the implementing agency and the work order or contract value for each such work.",
+  "keywords": "contractor implementing agency tender work order contract",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-06",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the utilisation certificates submitted for each completed work, with the date of submission.",
+  "keywords": "utilisation certificate uc expenditure proof",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-07",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please state the amount of MPLADS funds for {mp_name} that remains unspent with the District Authority as on the date of this application.",
+  "keywords": "unspent balance pending funds lapsed remaining money",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-08",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the list of works recommended by {mp_name} that were not sanctioned or were rejected, with the reason for each.",
+  "keywords": "rejected works not sanctioned why rejected refused",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-09",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the list of works recommended in areas inhabited by Scheduled Castes and Scheduled Tribes, with the cost of each.",
+  "keywords": "sc st areas dalit tribal scheduled caste",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-10",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the inspection reports for such works prepared by the District Authority or any officer deputed by it.",
+  "keywords": "inspection report quality check site visit monitoring",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-11",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the list of such works recommended more than one year ago that remain incomplete, with the reason for the delay.",
+  "keywords": "delayed pending works incomplete stalled late",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-12",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the location (village, ward or locality) of each asset created or work undertaken under MPLADS for {area} in the period.",
+  "keywords": "location village ward where was money spent assets created",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-13",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for air travel in each financial year within the period.",
+  "keywords": "yearly flights expense travel per year financial year air travel total",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-14",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the number of journeys claimed by {mp_name} in each class of travel (air, rail first class, other rail classes) in the period.",
+  "keywords": "class of travel business class first class ac class economy",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-15",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount recovered or refunded from {mp_name} on account of excess or disallowed claims in the period.",
+  "keywords": "recovery refund excess claim disallowed wrongly paid returned",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-16",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for travel on official committee duty, separately from other travel, in the period.",
+  "keywords": "committee travel official duty travel tour allowance committee tour",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-17",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the number of days for which {mp_name} was paid daily allowance for committee meetings, separately from sittings of the House.",
+  "keywords": "committee daily allowance meeting allowance committee da",
+  "reviewed": false
+ },
+ {
+  "id": "ALW-18",
+  "topic_id": "ALLOWANCES",
+  "text": "Please provide the total amount paid to {mp_name} for office equipment, computers and furniture under any entitlement in the period.",
+  "keywords": "computer laptop furniture equipment office equipment gadgets",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-13",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the number of divisions (recorded votes) held in the {house_name} in the period, and the number in which {mp_name} voted, with the dates.",
+  "keywords": "voting votes voted division recorded vote voting record",
+  "reviewed": false
+ },
+ {
+  "id": "ATT-14",
+  "topic_id": "ATTENDANCE",
+  "text": "Please provide the list of calling attention, short duration discussion and adjournment motion notices given by {mp_name} in the period, with the subject of each.",
+  "keywords": "notices adjournment motion calling attention short duration discussion notices given",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-13",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the number of works recommended by {mp_name} in each financial year in the period, with the total amount sanctioned for each year.",
+  "keywords": "year wise yearly financial year annual works per year",
+  "reviewed": false
+ },
+ {
+  "id": "MPL-14",
+  "topic_id": "MPLADS_PROJECTS",
+  "text": "Please provide the amount of interest earned on MPLADS funds held for {mp_name} by the District Authority in the period, and how it was used.",
+  "keywords": "interest interest earned bank interest funds account",
+  "reviewed": false
+ }
+]

@@ -1,0 +1,26 @@
+{
+  "MPLADS_PROJECTS": {
+    "subject": "MPLADS works recommended by {mp_name}, {mp_title}, {area}",
+    "questions": [
+      "Please provide the list of all works recommended under MPLADS by {mp_name}, {mp_title}, for {area}, with the name of each work, date of recommendation and estimated cost.",
+      "For each such work, please state the amount sanctioned, the amount released to the implementing agency, and the date of release.",
+      "Please state the current status of each work (not started, in progress or completed), with the date of completion where applicable.",
+      "Please state the total MPLADS funds released and the unspent balance for this Member in the same period, as per your records."
+    ]
+  },
+  "ATTENDANCE": {
+    "subject": "Attendance and parliamentary activity of {mp_name}, {mp_title}",
+    "questions": [
+      "Please provide the number of sittings of the {house_name} held in the period, and the number of sittings for which {mp_name} ({area}) signed the attendance register.",
+      "Please provide the number of questions (starred and unstarred) asked by {mp_name} in the period, with the date and subject of each.",
+      "Please provide the list of committees of which {mp_name} was a member in the period, and the number of committee meetings attended."
+    ]
+  },
+  "ALLOWANCES": {
+    "subject": "Salary and allowances paid to {mp_name}, {mp_title}",
+    "questions": [
+      "Please provide the total amount paid to {mp_name} in the period under each head: salary, constituency allowance, office expense allowance and daily allowance.",
+      "Please provide the total number of journeys and total amount paid under travel entitlements (air, rail and road) for {mp_name} in the period, as category-wise totals."
+    ]
+  }
+}
