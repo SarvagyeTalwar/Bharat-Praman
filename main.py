@@ -22,6 +22,8 @@ from neo4j import GraphDatabase, READ_ACCESS, unit_of_work
 from neo4j.exceptions import DriverError, Neo4jError
 from pydantic import BaseModel, Field
 
+from glossary import search as glossary_search, lookup as glossary_lookup
+
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
@@ -311,6 +313,25 @@ def health():
         return {"status": "ok", "neo4j": "connected"}
     except (Neo4jError, DriverError):
         raise HTTPException(status_code=503, detail="Neo4j is not reachable.")
+
+
+@app.get("/api/glossary")
+def glossary_list(
+    q: str = Query(default="", max_length=120),
+    ministry: str | None = Query(default=None, max_length=80),
+    limit: int = Query(default=200, ge=1, le=2000),
+):
+    """Return the acronym glossary, optionally filtered by text or ministry."""
+    items = glossary_search(q, ministry, limit)
+    return {"items": items, "count": len(items)}
+
+
+@app.get("/api/glossary/{acronym}")
+def glossary_get(acronym: str, ministry: str | None = Query(default=None, max_length=80)):
+    item = glossary_lookup(acronym, ministry)
+    if not item:
+        raise HTTPException(status_code=404, detail=f"Acronym '{acronym}' not found.")
+    return {"acronym": acronym, **item}
 
 
 @app.get("/api/metadata")

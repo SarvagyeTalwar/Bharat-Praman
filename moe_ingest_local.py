@@ -16,9 +16,9 @@ HERE = Path(__file__).resolve().parent
 load_dotenv(find_dotenv())
 load_dotenv(HERE / "BACKEND" / ".env")
 
-NEO4J_URI = os.getenv("NEO4J_URI")
-NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+NEO4J_URI = (os.getenv("NEO4J_URI1") or os.getenv("NEO4J_URI") or "").strip()
+NEO4J_USERNAME = os.getenv("NEO4J_USERNAME1") or os.getenv("NEO4J_USERNAME")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD1") or os.getenv("NEO4J_PASSWORD")
 
 DEFAULT_PDF = Path(r"C:\Users\aarya\OneDrive\Desktop\Bharat Praman\moe24-25.pdf")
 MAX_CHARS = 1200
@@ -93,6 +93,7 @@ def setup_schema(dim):
                   OPTIONS {{indexConfig: {{`vector.dimensions`: {dim}, `vector.similarity_function`: 'cosine'}}}}""").consume()
         s.run(f"CREATE CONSTRAINT moe_local_chunk_id IF NOT EXISTS FOR (c:{LABEL}) REQUIRE c.id IS UNIQUE").consume()
         s.run("CREATE CONSTRAINT moe_local_doc_id IF NOT EXISTS FOR (d:MoELocalDoc) REQUIRE d.id IS UNIQUE").consume()
+        s.run(f"CREATE FULLTEXT INDEX moe_chunk_text_fulltext IF NOT EXISTS FOR (c:{LABEL}) ON EACH [c.text]").consume()
 
 
 def main(pdf_path):
