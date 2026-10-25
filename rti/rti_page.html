@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File an RTI Application — Bharat Praman</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Space Mono, Instrument Serif, Plus Jakarta Sans, Source Serif 4 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+
+  <!-- React 18 & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Framer Motion -->
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+  <!-- jsPDF for Client-side Official PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Retro Warm Paper Background with Dotted Grid */
+    body {
+      background-color: #fbf8f1;
+      background-image: radial-gradient(#d8d0c2 1.25px, transparent 1.25px);
+      background-size: 22px 22px;
+      color: #1c1917;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    .font-serif-vintage {
+      font-family: 'Instrument Serif', Georgia, serif;
+    }
+
+    .font-mono-retro {
+      font-family: 'Space Mono', monospace;
+    }
+
+    .letter {
+      font-family: 'Source Serif 4', Georgia, serif;
+      line-height: 1.7;
+    }
+
+    /* Custom Tactile Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f5f0e6;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c8beac;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a89e8c;
+    }
+  </style>
+</head>
+<body class="min-h-screen selection:bg-amber-200 selection:text-stone-900 flex flex-col justify-between">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { motion, AnimatePresence } = window.Motion;
+
+    // SVG icon equivalent to IoCheckmarkCircle
+    const CheckmarkCircleIcon = ({ size = 22, className = "" }) => (
+      <svg width={size} height={size} viewBox="0 0 512 512" fill="currentColor" className={className}>
+        <path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z" />
+      </svg>
+    );
+
+    // Interactive Copy Toast Component with Progress Wipe & Spring Morph
+    function InlineCopyToast({ textToCopy, label = "RTI Letter", copyDuration = 2000 }) {
+      const [copied, setCopied] = useState(false);
+
+      const handleCopy = async () => {
+        if (!textToCopy) return;
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          setCopied(true);
+          setTimeout(() => {
+            setCopied(false);
+          }, copyDuration);
+        } catch (err) {
+          console.error("Clipboard copy failed: ", err);
+        }
+      };
+
+      return (
+        <motion.div
+          layout="position"
+          transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+          className="relative flex h-14 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-stone-900 bg-[#fdfdfb] px-3 shadow-[3px_3px_0px_0px_#1c1917]"
+        >
+          <AnimatePresence>
+            {copied && (
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: '0%' }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: copyDuration / 1000,
+                  ease: 'linear',
+                }}
+                className="absolute inset-0 bg-emerald-100 border-r-2 border-emerald-600"
+              />
+            )}
+          </AnimatePresence>
+
+          <div className="z-10 flex w-full items-center justify-between gap-3">
+            <AnimatePresence mode="popLayout">
+              {!copied ? (
+                <motion.div
+                  key="copy"
+                  initial={{ opacity: 0, filter: 'blur(4px)', scale: 0.95 }}
+                  animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+                  exit={{ opacity: 0, filter: 'blur(4px)', scale: 0.95 }}
+                  transition={{
+                    type: 'spring',
+                    bounce: 0,
+                    duration: 0.4,
+                  }}
+                  className="flex w-full items-center justify-between"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-sm">📋</span>
+                    <span className="text-xs font-mono-retro font-bold tracking-wide text-stone-700 uppercase truncate">
+                      {label}
+                    </span>
+                  </div>
+
+                  <motion.button
+                    type="button"
+                    onClick={handleCopy}
+                    whileHover={{ y: -1, scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 350,
+                      damping: 18,
+                    }}
+                    className="relative cursor-pointer overflow-hidden rounded-lg border border-stone-900 bg-white px-3 py-1.5 text-xs font-mono-retro font-bold text-stone-900 shadow-[1.5px_1.5px_0px_0px_#1c1917] hover:bg-stone-50 transition-colors shrink-0"
+                  >
+                    <motion.span
+                      initial={{ x: '-120%' }}
+                      whileHover={{ x: '120%' }}
+                      transition={{ duration: 0.6, ease: 'easeInOut' }}
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-amber-200/50 to-transparent"
+                    />
+
+                    <span className="relative z-10 flex items-center gap-1">
+                      <span>Copy Full Text</span>
+                    </span>
+                  </motion.button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="copied"
+                  initial={{ opacity: 0, filter: 'blur(4px)', scale: 1.1 }}
+                  animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+                  exit={{ opacity: 0, filter: 'blur(4px)', scale: 1.1 }}
+                  transition={{
+                    type: 'spring',
+                    bounce: 0,
+                    duration: 0.4,
+                  }}
+                  className="flex w-full items-center justify-center gap-2 text-stone-950 font-mono-retro font-bold text-xs uppercase tracking-wider"
+                >
+                  <CheckmarkCircleIcon size={20} className="text-emerald-700" />
+                  <span className="text-emerald-950 font-black">Full Text Copied!</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      );
+    }
+
+    // Fluid Animated Category Tabs with Spring Pill & Blur Transition
+    function FluidTabs({ tabs, activeId, onChange }) {
+      return (
+        <div className="relative inline-flex flex-wrap items-center gap-1.5 sm:gap-2 rounded-2xl border-2 border-stone-900 bg-[#f4eee2] p-1.5 shadow-[3px_3px_0px_0px_#1c1917]">
+          {tabs.map((tab) => {
+            const id = tab.topic_id || tab.id;
+            const isActive = activeId === id;
+
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onChange?.(id)}
+                className="group relative rounded-xl px-3.5 py-2 sm:px-4 sm:py-2.5 outline-none select-none cursor-pointer transition-colors"
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="active-pill"
+                    transition={{
+                      type: 'spring',
+                      stiffness: 280,
+                      damping: 25,
+                      mass: 0.8,
+                    }}
+                    className="absolute inset-0 rounded-xl border-2 border-stone-900 bg-white shadow-[2px_2px_0px_0px_#1c1917]"
+                  />
+                )}
+
+                <motion.div
+                  transition={{
+                    duration: 0.3,
+                    ease: 'easeOut',
+                  }}
+                  animate={{
+                    filter: isActive
+                      ? ['blur(0px)', 'blur(3px)', 'blur(0px)']
+                      : 'blur(0px)',
+                  }}
+                  className={`relative z-10 flex items-center gap-2 font-mono-retro text-xs sm:text-sm transition-colors duration-200 ${
+                    isActive
+                      ? 'font-bold text-stone-950'
+                      : 'font-semibold text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  <motion.div
+                    animate={{ scale: isActive ? 1.08 : 1 }}
+                    transition={{
+                      scale: { type: 'spring', stiffness: 300, damping: 15 },
+                    }}
+                    className="flex shrink-0 items-center justify-center text-sm sm:text-base"
+                  >
+                    {tab.icon}
+                  </motion.div>
+
+                  <span className="tracking-tight whitespace-nowrap">
+                    {tab.label}
+                  </span>
+                </motion.div>
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Read ?id= from URL, or fall back to a demo politician so the page always works
+    const ID = new URLSearchParams(window.location.search).get("id") || "demo-mp";
+
+    // ═══════════════════════════════════════════════════════════════
+    //  MOCK DATA — Offline Ready Demo for Bharat Praman
+    // ═══════════════════════════════════════════════════════════════
+    const MOCK_TOPICS = [
+      { topic_id: "mplads",     label: "MPLADS Funds", icon: "🏛️" },
+      { topic_id: "attendance", label: "Parliament Attendance", icon: "⏱️" },
+      { topic_id: "travel",     label: "Travel & TA/DA", icon: "✈️" },
+      { topic_id: "assets",     label: "Assets Declared", icon: "📑" },
+    ];
+
+    const MOCK_POLITICIANS = {
+      "demo-mp": { name: "Rahul Talwar, MP (Lok Sabha)", constituency: "Rampuri Nagar" },
+    };
+
+    const today = new Date();
+    const replyDue = new Date(today); replyDue.setDate(today.getDate() + 30);
+    const appealBy = new Date(replyDue); appealBy.setDate(replyDue.getDate() + 30);
+
+    const MOCK_QUESTIONS = {
+      mplads: [
+        { id: "m1", text: "Please provide a complete list of all works sanctioned under MPLADS during the financial years 2024-25 and 2025-26, along with the sanctioned amount, released amount, and utilisation certificate status for each work." },
+        { id: "m2", text: "Please provide the total amount of MPLADS funds allocated, released, and utilised for the said MP during the last five financial years (year-wise)." },
+        { id: "m3", text: "Please provide copies of all utilisation certificates submitted by the District Authority for MPLADS works recommended by the said MP during 2024-25." },
+        { id: "m4", text: "Please state the number of MPLADS works that are incomplete or delayed beyond the prescribed timeline, with reasons for the delay." },
+      ],
+      attendance: [
+        { id: "a1", text: "Please provide the total number of sittings of the Lok Sabha during the last five sessions and the number of sittings attended by the said MP in each session." },
+        { id: "a2", text: "Please provide details of all questions (starred and unstarred) raised by the said MP during the last three sessions of Parliament." },
+        { id: "a3", text: "Please provide the number of Private Member Bills introduced by the said MP since the commencement of the current Lok Sabha." },
+      ],
+      travel: [
+        { id: "t1", text: "Please provide details of all domestic and international travel undertaken by the said MP at government expense during the last two financial years, including dates, destinations, and total expenditure." },
+        { id: "t2", text: "Please provide the total amount of Travelling Allowance and Daily Allowance drawn by the said MP during the current financial year." },
+      ],
+      assets: [
+        { id: "as1", text: "Please provide a copy of the latest statement of assets and liabilities filed by the said MP as required under the Representation of the People Act." },
+      ],
+    };
+
+    function buildTemplate(topicId, politician) {
+      const name = politician.name;
+      const dateStr = today.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+      const questions = (MOCK_QUESTIONS[topicId] || []).slice(0, 2);
+      const qLines = questions.map((q, i) => (i + 1) + ". " + q.text).join("\n\n");
+
+      return {
+        text:
+`To,
+The Central Public Information Officer (CPIO),
+Ministry of Statistics and Programme Implementation,
+Sardar Patel Bhavan, Parliament Street,
+New Delhi – 110001
+
+Date: ${dateStr}
+
+Subject: Application under Section 6(1) of the Right to Information Act, 2005
+
+Sir/Madam,
+
+Under Section 6(1) of the Right to Information Act, 2005, I request the following certified information regarding ${name}:
+
+${qLines}
+
+I am paying the prescribed fee of Rs. 10 by Indian Postal Order / Demand Draft / Online Portal (strike out whichever is not applicable).
+
+I state that I am a citizen of India.
+
+Yours faithfully,
+{applicant_name}
+{applicant_address}
+{applicant_contact}`,
+        user_fields: ["applicant_name", "applicant_address", "applicant_contact"],
+      };
+    }
+
+    function getMockRTIData(politicianId, topicId, district) {
+      const politician = MOCK_POLITICIANS[politicianId] || { name: "Hon'ble MP (ID: " + politicianId + ")", constituency: district || "N/A" };
+      return {
+        politician,
+        template: buildTemplate(topicId, politician),
+        missing_fields: [],
+        authority: {
+          name: "CPIO, Ministry of Statistics & Programme Implementation",
+          address: "Sardar Patel Bhavan, Parliament Street, New Delhi – 110001",
+          portal_url: "https://rtionline.gov.in/",
+          fee: 10,
+          verified: false,
+        },
+        deadlines: {
+          reply_due: replyDue.toISOString(),
+          first_appeal_by: appealBy.toISOString(),
+        },
+        notes: [
+          "Verify the exact PIO address for your specific state or ministry at rtionline.gov.in before mailing.",
+          "For state-level Vidhan Sabha matters, apply to the State PIO under local state RTI rules.",
+        ],
+      };
+    }
+
+    function getMockSuggestions(topicId, query) {
+      const all = MOCK_QUESTIONS[topicId] || [];
+      const q = (query || "").toLowerCase().trim();
+      if (!q) return { matches: all, other_topics: [] };
+      const matches = all.filter(m => m.text.toLowerCase().includes(q));
+      const otherTopics = matches.length === 0
+        ? Object.keys(MOCK_QUESTIONS).filter(t => t !== topicId && (MOCK_QUESTIONS[t] || []).some(m => m.text.toLowerCase().includes(q)))
+        : [];
+      return { matches, other_topics: otherTopics };
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  RULE LISTS — Real-time RTI Act compliance auditor
+    // ═══════════════════════════════════════════════════════════════
+    const ALREADY = [
+      { words: ["asset", "property", "wealth", "liabilit", "loan", "debt"], text: "Assets and liabilities are already publicly accessible on the Bharat Praman profile via election affidavits." },
+      { words: ["criminal", "fir", "case", "convict"], text: "Criminal cases declared in election affidavits are already indexed on the profile." },
+      { words: ["education", "qualification", "degree"], text: "Educational qualifications are already public on the candidate's profile." },
+      { words: ["how old", "born", "birth"], text: "Age and birth records are already shown on the politician's knowledge graph node." },
+      { words: ["party"], text: "Party affiliation and historical coalition records are already visible on the profile." },
+    ];
+    const PRIVATE = ["wife", "husband", "spouse", "son", "daughter", "family", "child", "mother", "father", "brother", "sister", "phone", "mobile", "home address", "aadhaar", "pan card", "bank account", "medical", "health", "caste", "religion"];
+    const OPINION = ["corrupt", "honest", "best mp", "worst mp", "good mp", "bad mp", "do you think"];
+
+    const hit = (text, words) => words.some(w => new RegExp("\\b" + w).test(text));
+
+    function checkQuestion(q) {
+      const t = q.toLowerCase().trim();
+      if (!t) return null;
+      for (const r of ALREADY) if (hit(t, r.words)) return { kind: "already", text: r.text + " You don't need to file an RTI for this." };
+      if (hit(t, PRIVATE)) return { kind: "private", text: "RTI Section 8(1)(j) exempts personal details of private individuals and family members. Rephrase to ask about public funds, official attendance, or allowances instead." };
+      if (hit(t, OPINION)) return { kind: "opinion", text: "RTI applications can only seek certified government records, not subjective opinions or character judgments. Rephrase as a specific record request with dates." };
+      return { kind: "ok", text: "Question complies with RTI guidelines! Specify date ranges and exact records for the fastest PIO disposal." };
+    }
+
+    const fmt = (iso) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+
+    // ═══════════════════════════════════════════════════════════════
+    //  APP COMPONENT — Retro Neobrutalist Workstation
+    // ═══════════════════════════════════════════════════════════════
+    function App() {
+      const [topics] = useState(MOCK_TOPICS);
+      const [topic, setTopic] = useState("mplads");
+      const [data, setData] = useState(null);
+      const [err, setErr] = useState(null);
+      const [district, setDistrict] = useState("");
+      const [user, setUser] = useState({ applicant_name: "", applicant_address: "", applicant_contact: "" });
+      const [draft, setDraft] = useState("");
+      const [q, setQ] = useState("");
+      const [copied, setCopied] = useState(false);
+      const [sugg, setSugg] = useState({ matches: [], other_topics: [] });
+
+      const load = (t, d) => {
+        setTopic(t);
+        setErr(null);
+        try {
+          setData(getMockRTIData(ID, t, d));
+        } catch (e) {
+          setErr(e.message);
+        }
+      };
+
+      // Load initial topic on mount
+      useEffect(() => {
+        load("mplads", "");
+      }, []);
+
+      // Interpolate user details into letter draft
+      useEffect(() => {
+        if (!data || !data.template) return;
+        let t = data.template.text;
+        data.template.user_fields.forEach(f => {
+          if (user[f]) {
+            t = t.split("{" + f + "}").join(user[f]);
+          }
+        });
+        setDraft(t);
+      }, [data, user]);
+
+      const download = () => {
+        if (window.jspdf && window.jspdf.jsPDF) {
+          try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+              unit: 'mm',
+              format: 'a4',
+              orientation: 'portrait'
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            const maxLineWidth = pageWidth - (margin * 2);
+
+            // Document Header
+            doc.setFont('times', 'bold');
+            doc.setFontSize(13);
+            doc.text('FORM A — APPLICATION UNDER RTI ACT, 2005', pageWidth / 2, 22, { align: 'center' });
+            
+            doc.setFont('times', 'italic');
+            doc.setFontSize(9.5);
+            doc.text('[Application for seeking certified information under Section 6(1) of RTI Act, 2005]', pageWidth / 2, 28, { align: 'center' });
+
+            // Official divider rule
+            doc.setLineWidth(0.4);
+            doc.setDrawColor(30, 30, 30);
+            doc.line(margin, 31, pageWidth - margin, 31);
+
+            // Content text
+            doc.setFont('times', 'normal');
+            doc.setFontSize(11);
+            
+            const paragraphs = (draft || '').split('\n');
+            let cursorY = 38;
+            const lineHeight = 5.8;
+
+            for (let p of paragraphs) {
+              if (p.trim() === '') {
+                cursorY += lineHeight * 0.7;
+                continue;
+              }
+              
+              const lines = doc.splitTextToSize(p, maxLineWidth);
+              for (let line of lines) {
+                if (cursorY > pageHeight - margin - 12) {
+                  doc.addPage();
+                  cursorY = margin;
+                }
+
+                // Bold key legal keywords / sections
+                if (
+                  line.startsWith('Subject:') ||
+                  line.startsWith('Date:') ||
+                  line.startsWith('To,') ||
+                  line.startsWith('Sir/Madam,') ||
+                  line.startsWith('Yours faithfully,')
+                ) {
+                  doc.setFont('times', 'bold');
+                  doc.text(line, margin, cursorY);
+                  doc.setFont('times', 'normal');
+                } else {
+                  doc.text(line, margin, cursorY);
+                }
+                cursorY += lineHeight;
+              }
+            }
+
+            // Official Footer on all pages
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+              doc.setPage(i);
+              doc.setFont('times', 'italic');
+              doc.setFontSize(8.5);
+              doc.setTextColor(110, 110, 110);
+              doc.text(
+                `Bharat Praman Citizen RTI Docket • Page ${i} of ${totalPages}`,
+                pageWidth / 2,
+                pageHeight - 12,
+                { align: 'center' }
+              );
+              doc.setTextColor(0, 0, 0);
+            }
+
+            doc.save(`RTI_Application_${(topic || 'DOCKET').toUpperCase()}.pdf`);
+            return;
+          } catch (err) {
+            console.error("PDF generation failed: ", err);
+          }
+        }
+
+        // Fallback to text download if PDF library is unavailable
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([draft], { type: "text/plain;charset=utf-8" }));
+        a.download = `RTI_Application_${topic.toUpperCase()}.txt`;
+        a.click();
+      };
+
+      const insertQuestion = (text) => {
+        const n = (draft.match(/^\d+\. /gm) || []).length + 1;
+        setDraft(draft.replace(/\n\nI am paying/, "\n" + n + ". " + text.trim() + "\n\nI am paying"));
+      };
+
+      useEffect(() => {
+        if (!data || !data.template || !topic) return;
+        const t = setTimeout(() => {
+          setSugg(getMockSuggestions(topic, q));
+        }, 120);
+        return () => clearTimeout(t);
+      }, [q, topic, data]);
+
+      const verdict = checkQuestion(q);
+
+      return (
+        <div className="min-h-screen flex flex-col justify-between">
+          {/* Top Gazette Nav Strip */}
+          <header className="w-full border-b-2 border-stone-900 bg-[#f4eee2] px-6 py-2.5">
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-mono-retro font-bold text-stone-800">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                <span>BHARAT PRAMAN // CITIZEN RTI DOCKET v1.2</span>
+              </div>
+              <div className="flex items-center gap-4 text-[11px]">
+                <a href="graphdashboard2.html" className="hover:underline flex items-center gap-1 font-bold">
+                  ← BACK TO KNOWLEDGE GRAPH DASHBOARD
+                </a>
+                <span>•</span>
+                <a href="termsofservice.html" className="hover:underline">TERMS</a>
+                <span>•</span>
+                <a href="privacypolicy.html" className="hover:underline">PRIVACY</a>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Application Container */}
+          <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1">
+            
+            {/* Header / Hero Intro Banner */}
+            <div className="mb-8">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                
+                {!new URLSearchParams(window.location.search).get("id") && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border-2 border-amber-800 bg-amber-100 text-amber-950 font-mono-retro text-xs font-bold shadow-[2px_2px_0px_0px_#78350f]">
+                    
+                    
+                  </div>
+                )}
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-stone-950 uppercase font-mono-retro">
+                File an RTI Application<sup>*</sup>
+              </h1>
+
+              {data && (
+                <div className="mt-3 flex flex-wrap items-center gap-2.5 text-xs font-mono-retro">
+                  <span className="text-stone-500 font-bold">ENTITY:</span>
+                  <span className="px-2.5 py-1 rounded-md border border-stone-900 bg-white font-bold text-stone-900 shadow-[2px_2px_0px_0px_#1c1917]">
+                    🏛️ {data.politician.name}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-md border border-stone-300 bg-[#f4eee2] text-stone-700">
+                    Constituency: <strong>{data.politician.constituency}</strong>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Topic Navigation with Fluid Animated Tabs */}
+            <div className="mb-6">
+              <div className="text-[11px] font-mono-retro font-bold text-stone-500 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+                <span>■ Select RTI Inquiry Category:</span>
+                <span className="flex-1 h-px bg-stone-200"></span>
+              </div>
+              <FluidTabs
+                tabs={topics}
+                activeId={topic}
+                onChange={(newTopicId) => load(newTopicId, district)}
+              />
+            </div>
+
+            {err && (
+              <div className="mb-6 rounded-xl border-2 border-rose-900 bg-rose-50 p-4 font-mono-retro text-xs text-rose-900 shadow-[3px_3px_0px_0px_#9f1239]">
+                ⚠ {err}
+              </div>
+            )}
+
+            {/* 3-Column Responsive Interactive Workspace */}
+            <div className="grid grid-cols-1 lg:grid-cols-[20rem_1fr_16rem] gap-6 items-start">
+              
+              {/* ═══════════════════════════════════════════════════════════
+                  COLUMN 1: Law Compliance Checker & Suggested Queries
+                 ═══════════════════════════════════════════════════════════ */}
+              <aside className="space-y-4 order-2 lg:order-1">
+                
+                {/* Question Validator Box */}
+                <div className="rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] shadow-[4px_4px_0px_0px_#1c1917] overflow-hidden">
+                  <div className="bg-[#f4eee2] border-b-2 border-stone-900 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-xs font-mono-retro font-bold text-stone-900 uppercase flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-amber-600"></span>
+                      Legal Auditor
+                    </span>
+                  </div>
+
+                  <div className="p-4 space-y-3">
+                    <p className="text-xs text-stone-600 leading-relaxed">
+                      Type your proposed question to check if it complies with RTI Act provisions:
+                    </p>
+
+                    <textarea
+                      rows="3"
+                      value={q}
+                      onChange={e => setQ(e.target.value)}
+                      placeholder="e.g., Provide details of works sanctioned under MPLADS in 2024..."
+                      className="w-full rounded-xl border-2 border-stone-900 bg-white p-3 font-mono-retro text-xs text-stone-900 placeholder-stone-400 shadow-[2px_2px_0px_0px_#1c1917] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+
+                    {/* Verdict Display */}
+                    {verdict && (
+                      <div className={`rounded-xl border-2 p-3 font-mono-retro text-xs leading-relaxed space-y-2 ${
+                        verdict.kind === 'ok' ? 'bg-emerald-50 border-emerald-800 text-emerald-950 shadow-[2px_2px_0px_0px_#065f46]' :
+                        verdict.kind === 'already' ? 'bg-sky-50 border-sky-800 text-sky-950 shadow-[2px_2px_0px_0px_#075985]' :
+                        verdict.kind === 'private' ? 'bg-rose-50 border-rose-800 text-rose-950 shadow-[2px_2px_0px_0px_#9f1239]' :
+                        'bg-amber-50 border-amber-800 text-amber-950 shadow-[2px_2px_0px_0px_#92400e]'
+                      }`}>
+                        <div className="font-bold flex items-center gap-1.5 uppercase text-[10px]">
+                          <span>{verdict.kind === 'ok' ? '✓ COMPLIANT' : '⚠ AUDIT NOTICE'}</span>
+                        </div>
+                        <p className="text-[11px]">{verdict.text}</p>
+
+                        {verdict.kind === 'ok' && draft && (
+                          <button
+                            type="button"
+                            onClick={() => { insertQuestion(q); setQ(""); }}
+                            className="w-full mt-2 rounded-lg border-2 border-stone-900 bg-amber-300 hover:bg-amber-400 text-stone-950 font-mono-retro font-bold py-2 text-xs shadow-[2px_2px_0px_0px_#1c1917] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0 transition-all cursor-pointer"
+                          >
+                            + Insert Question Into Draft
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ready-Made Certified Questions */}
+                {data && data.template && (
+                  <div className="rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] shadow-[4px_4px_0px_0px_#1c1917] overflow-hidden">
+                    <div className="bg-[#f4eee2] border-b-2 border-stone-900 px-4 py-2.5">
+                      <span className="text-xs font-mono-retro font-bold text-stone-900 uppercase flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-600"></span>
+                        {q.trim() ? "Matching Queries" : "Ready-Made Questions"}
+                      </span>
+                    </div>
+
+                    <div className="p-3 space-y-2.5 max-h-[30rem] overflow-y-auto custom-scrollbar">
+                      {sugg.matches.filter(m => !draft.includes(m.text)).map(m => (
+                        <div
+                          key={m.id}
+                          className="rounded-xl border-2 border-stone-800 bg-white p-3 text-xs shadow-[2px_2px_0px_0px_#1c1917] hover:border-amber-700 transition-all space-y-2"
+                        >
+                          <p className="text-stone-800 leading-relaxed font-medium">
+                            {m.text}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => insertQuestion(m.text)}
+                            className="inline-flex items-center gap-1 font-mono-retro font-bold text-[11px] text-amber-900 hover:text-stone-950 underline decoration-amber-400 hover:decoration-stone-900 cursor-pointer"
+                          >
+                            + Add to Letter
+                          </button>
+                        </div>
+                      ))}
+
+                      {q.trim() && sugg.matches.length === 0 && (
+                        <div className="p-4 text-center text-xs font-mono-retro text-stone-500">
+                          {sugg.other_topics.length
+                            ? "No matches in this category. Try switching topic to: " + sugg.other_topics.join(", ")
+                            : "No exact match found. You can still type your own custom question above."}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </aside>
+
+              {/* ═══════════════════════════════════════════════════════════
+                  COLUMN 2: The Letter Drafting Desk (Main Center Pane)
+                 ═══════════════════════════════════════════════════════════ */}
+              <div className="space-y-5 order-1 lg:order-2">
+                
+                {/* District Lookup Banner if required */}
+                {data && data.missing_fields && data.missing_fields.includes("district") && (
+                  <div className="rounded-2xl border-2 border-amber-600 bg-amber-50 p-4 shadow-[3px_3px_0px_0px_#d97706] flex flex-wrap items-end gap-3">
+                    <div className="flex-1 min-w-[200px]">
+                      <label className="block text-xs font-mono-retro font-bold text-amber-950 uppercase mb-1">
+                        Enter District to resolve jurisdiction:
+                      </label>
+                      <input
+                        value={district}
+                        onChange={e => setDistrict(e.target.value)}
+                        placeholder="e.g. Lucknow, Varanasi, etc."
+                        className="w-full rounded-xl border-2 border-stone-900 bg-white px-3 py-2 text-xs font-mono-retro text-stone-900 shadow-[2px_2px_0px_0px_#1c1917] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                    <button
+                      onClick={() => load(topic, district)}
+                      className="px-4 py-2 rounded-xl border-2 border-stone-900 bg-amber-400 font-mono-retro font-bold text-xs shadow-[2px_2px_0px_0px_#1c1917] hover:bg-amber-300 cursor-pointer"
+                    >
+                      Update Authority
+                    </button>
+                  </div>
+                )}
+
+                {/* Applicant Identification Form */}
+                <div className="rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] p-4 sm:p-5 shadow-[4px_4px_0px_0px_#1c1917] space-y-3">
+                  <div className="flex items-center justify-between border-b-2 border-stone-200 pb-2">
+                    <span className="text-xs font-mono-retro font-bold text-stone-900 uppercase">
+                      ■ Step 1: Applicant Details
+                    </span>
+                    <span className="text-[10px] font-mono-retro font-bold px-2 py-0.5 rounded border border-stone-300 bg-stone-100 text-stone-600">
+                      SEC. 6(1) IDENTITY
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-mono-retro font-bold text-stone-700 uppercase mb-1">
+                        Your Full Name:
+                      </label>
+                      <input
+                        value={user.applicant_name}
+                        onChange={e => setUser({ ...user, applicant_name: e.target.value })}
+                        placeholder="e.g. Sarvagye Talwar"
+                        className="w-full rounded-xl border-2 border-stone-900 bg-white px-3 py-2 text-xs font-mono-retro text-stone-900 shadow-[2px_2px_0px_0px_#1c1917] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-mono-retro font-bold text-stone-700 uppercase mb-1">
+                        Postal Address:
+                      </label>
+                      <input
+                        value={user.applicant_address}
+                        onChange={e => setUser({ ...user, applicant_address: e.target.value })}
+                        placeholder="House / Street / City / PIN"
+                        className="w-full rounded-xl border-2 border-stone-900 bg-white px-3 py-2 text-xs font-mono-retro text-stone-900 shadow-[2px_2px_0px_0px_#1c1917] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-mono-retro font-bold text-stone-700 uppercase mb-1">
+                        Phone or Email:
+                      </label>
+                      <input
+                        value={user.applicant_contact}
+                        onChange={e => setUser({ ...user, applicant_contact: e.target.value })}
+                        placeholder="+91 / email@domain.com"
+                        className="w-full rounded-xl border-2 border-stone-900 bg-white px-3 py-2 text-xs font-mono-retro text-stone-900 shadow-[2px_2px_0px_0px_#1c1917] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] font-mono-retro text-stone-500 flex items-center gap-1.5 pt-1">
+                    <span>🔒</span>
+                    <span>Local Sandbox: Your details are strictly kept in this browser memory and merged directly into the letter below.</span>
+                  </p>
+                </div>
+
+                {/* The Letter Paper Sheet */}
+                {data && data.template && (
+                  <div className="rounded-2xl border-2 border-stone-900 bg-[#fffefb] shadow-[6px_6px_0px_0px_#1c1917] overflow-hidden">
+                    <div className="bg-[#f4eee2] border-b-2 border-stone-900 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-600"></span>
+                        <span className="text-xs font-mono-retro font-bold text-stone-900 uppercase">
+                          Official RTI Application Docket — Form A
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono-retro font-bold px-2 py-0.5 rounded border border-stone-400 bg-white text-stone-700">
+                        EDITABLE LETTER SHEET
+                      </span>
+                    </div>
+
+                    <div className="p-4 sm:p-6 bg-[#fffefb]">
+                      <textarea
+                        value={draft}
+                        onChange={e => setDraft(e.target.value)}
+                        rows="24"
+                        className="letter w-full rounded-xl border-2 border-stone-800 bg-[#fdfcf9] p-6 text-[15px] sm:text-[16px] text-stone-950 leading-relaxed shadow-inner focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+                      />
+                      <div className="mt-2 text-right">
+                        <span className="text-[11px] font-mono-retro text-stone-500">
+                          Tip: Click inside the letter to freely modify or edit questions and addresses.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ═══════════════════════════════════════════════════════════
+                  COLUMN 3: Actions, PIO Authority & Statutory Deadlines
+                 ═══════════════════════════════════════════════════════════ */}
+              <aside className="space-y-4 order-3">
+                {data && data.template && (
+                  <>
+                    {/* Primary Action Buttons */}
+                    <div className="space-y-2.5">
+                      <button
+                        onClick={download}
+                        type="button"
+                        className="w-full rounded-xl border-2 border-stone-900 bg-amber-400 hover:bg-amber-300 text-stone-950 font-mono-retro font-bold py-3 text-xs tracking-wider uppercase shadow-[4px_4px_0px_0px_#1c1917] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#1c1917] active:translate-x-0 active:translate-y-0 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <span>📄</span>
+                        <span>Download Application (PDF)</span>
+                      </button>
+
+                      <InlineCopyToast textToCopy={draft} label="RTI Docket" copyDuration={2000} />
+                    </div>
+
+                    {/* Authority Card ("Where to Send It") */}
+                    <div className="rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] p-4 shadow-[4px_4px_0px_0px_#1c1917] space-y-2.5">
+                      <div className="flex items-center justify-between border-b-2 border-stone-200 pb-2">
+                        <span className="text-xs font-mono-retro font-bold text-stone-900 uppercase">
+                          ■ Where to Send It
+                        </span>
+                        <span className="text-[10px] font-mono-retro font-bold px-1.5 py-0.5 rounded border border-stone-300 bg-stone-100 text-stone-600">
+                          PIO
+                        </span>
+                      </div>
+
+                      <div className="text-xs font-mono-retro space-y-1.5 text-stone-800">
+                        <p className="font-bold text-stone-950">
+                          {data.authority.name}
+                        </p>
+                        {data.authority.address && (
+                          <p className="text-[11px] text-stone-600 leading-tight">
+                            {data.authority.address}
+                          </p>
+                        )}
+                        
+                        {data.authority.portal_url && (
+                          <div className="pt-1">
+                            <a
+                              href={data.authority.portal_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-stone-900 bg-amber-100 text-stone-950 font-bold hover:bg-stone-900 hover:text-white transition-colors"
+                            >
+                              <span>Official RTI Portal ↗</span>
+                            </a>
+                          </div>
+                        )}
+
+                        <div className="pt-2 border-t border-stone-200 flex items-center justify-between text-[11px]">
+                          <span className="text-stone-500 font-bold">Standard Fee:</span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold border border-emerald-300">
+                            ₹{data.authority.fee || 10}
+                          </span>
+                        </div>
+                      </div>
+
+                      {!data.authority.verified && (
+                        <p className="p-2 rounded-lg border border-amber-400 bg-amber-50 text-[11px] font-mono-retro text-amber-900 leading-tight">
+                          Note: Verify the CPIO division name at rtionline.gov.in before posting physical IPO.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Timeline Card ("Dates to Remember") */}
+                    <div className="rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] p-4 shadow-[4px_4px_0px_0px_#1c1917] space-y-2.5">
+                      <div className="flex items-center justify-between border-b-2 border-stone-200 pb-2">
+                        <span className="text-xs font-mono-retro font-bold text-stone-900 uppercase">
+                          ■ Statutory Deadlines
+                        </span>
+                        <span className="text-[10px] font-mono-retro font-bold px-1.5 py-0.5 rounded border border-stone-300 bg-stone-100 text-stone-600">
+                          RTI ACT
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 text-xs font-mono-retro">
+                        <div className="p-2 rounded-lg border border-stone-300 bg-stone-50">
+                          <span className="text-[10px] text-stone-500 uppercase font-bold block">
+                            Reply Due By (30 Days):
+                          </span>
+                          <span className="font-bold text-emerald-800">
+                            {fmt(data.deadlines.reply_due)}
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded-lg border border-stone-300 bg-stone-50">
+                          <span className="text-[10px] text-stone-500 uppercase font-bold block">
+                            First Appeal If No Reply (30 Days):
+                          </span>
+                          <span className="font-bold text-amber-800">
+                            {fmt(data.deadlines.first_appeal_by)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Statutory Notes */}
+                    <div className="rounded-xl border border-stone-300 bg-[#f4eee2] p-3 text-[11px] font-mono-retro text-stone-700 space-y-1.5">
+                      {data.notes.map((n, i) => (
+                        <p key={i}>• {n}</p>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </aside>
+
+            </div>
+
+          </main>
+
+          {/* Footer Strip matching Landing Page */}
+          <footer className="w-full text-center py-10 mt-16 border-t-2 border-stone-900 bg-[#f4eee2] px-6 space-y-3">
+            <p className="text-xs font-mono-retro text-stone-600">
+              with love by{' '}
+              <a
+                href="https://github.com/SarvagyeTalwar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-stone-950 underline decoration-stone-400 hover:decoration-stone-950 transition-colors"
+              >
+                Lorem Ipsum
+              </a>
+            </p>
+
+            <div className="flex flex-wrap justify-center items-center gap-3 text-xs font-mono-retro font-medium text-stone-600">
+              <a
+                href="privacypolicy.html"
+                className="hover:text-stone-950 transition-colors underline decoration-stone-300 underline-offset-4"
+              >
+                Privacy Policy
+              </a>
+              <span>•</span>
+              <a
+                href="termsofservice.html"
+                className="hover:text-stone-950 transition-colors underline decoration-stone-300 underline-offset-4"
+              >
+                Terms of Service
+              </a>
+            </div>
+
+            <p className="text-[11px] font-mono-retro text-stone-500 max-w-xl mx-auto">
+              All Bharat Praman graph queries and RTI metadata are processed for research, transparency, and public informational purposes under the Right to Information Act, 2005.
+            </p>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

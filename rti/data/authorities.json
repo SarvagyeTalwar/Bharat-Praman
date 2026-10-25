@@ -1,0 +1,77 @@
+{
+  "LOK_SABHA_SECRETARIAT": {
+    "name": "Lok Sabha Secretariat",
+    "level": "CENTRAL",
+    "website": "https://loksabha.nic.in",
+    "pio_designation": "Central Public Information Officer (CPIO), Lok Sabha Secretariat",
+    "pio_address": "Lok Sabha Secretariat, Parliament House, New Delhi-110001",
+    "portal_url": "https://rtionline.gov.in",
+    "on_rtionline": null,
+    "fee": 10,
+    "payment_mode": null,
+    "appellate_authority": {
+      "name": null,
+      "address": null
+    },
+    "source_url": "https://pprloksabha.sansad.in/contact.aspx",
+    "last_verified": null,
+    "verified": false,
+    "research_note": "Office address from Lok Sabha Secretariat contact pages and past transfer letters. Current CPIO, room number, appellate authority and rtionline.gov.in status still need checking on the Secretariat's RTI page."
+  },
+  "RAJYA_SABHA_SECRETARIAT": {
+    "name": "Rajya Sabha Secretariat",
+    "level": "CENTRAL",
+    "website": "https://rajyasabha.nic.in",
+    "pio_designation": "Central Public Information Officer (CPIO), Rajya Sabha Secretariat",
+    "pio_address": "Rajya Sabha Secretariat, Parliament House Annexe, New Delhi-110001",
+    "portal_url": "https://rtionline.gov.in",
+    "on_rtionline": null,
+    "fee": 10,
+    "payment_mode": null,
+    "appellate_authority": {
+      "name": null,
+      "address": null
+    },
+    "source_url": "https://cms.rajyasabha.nic.in/UploadedFiles/ElectronicPublications/FAQ.pdf",
+    "last_verified": null,
+    "verified": false,
+    "research_note": "Address and CPIO post from a Rajya Sabha FAQ document that is undated. Officers rotate, so confirm the current CPIO, room number, appellate authority and rtionline.gov.in status on the Rajya Sabha RTI page."
+  },
+  "DISTRICT_AUTHORITY": {
+    "name": "District Collector / District Magistrate, {district}",
+    "level": "DISTRICT",
+    "website": null,
+    "pio_designation": "Public Information Officer, Office of the District Collector",
+    "pio_address": null,
+    "portal_url": null,
+    "on_rtionline": false,
+    "fee": null,
+    "payment_mode": null,
+    "appellate_authority": {
+      "name": null,
+      "address": null
+    },
+    "source_url": null,
+    "last_verified": null,
+    "verified": false
+  },
+  "MOSPI_MPLADS": {
+    "name": "Ministry of Statistics and Programme Implementation (MPLADS Division)",
+    "level": "CENTRAL",
+    "website": "https://mospi.gov.in",
+    "pio_designation": "Central Public Information Officer (CPIO) for MPLADS, MoSPI",
+    "pio_address": "Ministry of Statistics and Programme Implementation, Sardar Patel Bhawan, Sansad Marg, New Delhi-110001",
+    "portal_url": "https://rtionline.gov.in",
+    "on_rtionline": null,
+    "fee": 10,
+    "payment_mode": null,
+    "appellate_authority": {
+      "name": null,
+      "address": null
+    },
+    "research_note": "MoSPI publishes an office order naming the MPLADS CPIOs and first appellate authorities on its RTI office orders page. Open it and copy the current names and the appellate authority. Not yet used by any topic.",
+    "source_url": "https://mospi.gov.in/rti/rti-office-orders",
+    "last_verified": null,
+    "verified": false
+  }
+}
