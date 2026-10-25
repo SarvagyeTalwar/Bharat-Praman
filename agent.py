@@ -65,6 +65,7 @@ def vector_search(question, k):
         return s.run(
             "CALL db.index.vector.queryNodes($idx, $k, $v) YIELD node, score "
             "MATCH (d:Document)-[:HAS_CHUNK]->(node) "
+            "WHERE node.page > 5 AND size(node.text) > 150 "
             "RETURN node.id AS id, d.file AS file, d.title AS title, node.page AS page, node.text AS text, score "
             "ORDER BY score DESC",
             idx=VECTOR_INDEX, k=k, v=qv,
@@ -79,6 +80,7 @@ def fulltext_search(question, k):
         return s.run(
             "CALL db.index.fulltext.queryNodes($idx, $q) YIELD node, score "
             "MATCH (d:Document)-[:HAS_CHUNK]->(node) "
+            "WHERE node.page > 5 AND size(node.text) > 150 "
             "RETURN node.id AS id, d.file AS file, d.title AS title, node.page AS page, node.text AS text, score "
             "ORDER BY score DESC LIMIT $k",
             idx=FULLTEXT_INDEX, q=q, k=k,
