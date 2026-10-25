@@ -1,0 +1,1311 @@
+[
+  {
+    "question": "Which BJP MLAs are linked to criminal cases?",
+    "tags": [
+      "party",
+      "mla",
+      "person",
+      "criminal",
+      "case",
+      "multi-hop",
+      "member_of",
+      "faces"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person:MLA)-[:FACES]->(case:CriminalCase) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which BJP politicians are linked to criminal cases?",
+    "tags": [
+      "party",
+      "politician",
+      "person",
+      "criminal",
+      "case",
+      "multi-hop",
+      "member_of",
+      "faces"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person)-[:FACES]->(case:CriminalCase) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "What criminal cases are linked to a named person?",
+    "tags": [
+      "person",
+      "criminal",
+      "case",
+      "faces"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:FACES]->(case:CriminalCase) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($person) OR toLower(coalesce(person.myneta_name, '')) CONTAINS toLower($person) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find criminal cases for a person using their aliases.",
+    "tags": [
+      "person",
+      "aliases",
+      "criminal",
+      "case",
+      "faces"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:FACES]->(case:CriminalCase) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($person) OR any(alias IN coalesce(person.aliases, []) WHERE toLower(toString(alias)) CONTAINS toLower($person)) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Who belongs to a named political party?",
+    "tags": [
+      "party",
+      "member",
+      "politician",
+      "person",
+      "member_of"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which MLAs are members of a party?",
+    "tags": [
+      "party",
+      "mla",
+      "person",
+      "member",
+      "member_of"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person:MLA) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which party is a named person associated with?",
+    "tags": [
+      "person",
+      "party",
+      "member_of"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:MEMBER_OF]->(party:Party) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($person) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which constituencies do party MLAs represent?",
+    "tags": [
+      "party",
+      "mla",
+      "constituency",
+      "represent",
+      "member_of",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person:MLA)-[:REPRESENTS]->(seat:AssemblyConstituency) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show party MLAs, their criminal cases, and the sections under those cases.",
+    "tags": [
+      "party",
+      "mla",
+      "criminal",
+      "case",
+      "section",
+      "ipc",
+      "multi-hop",
+      "member_of",
+      "faces",
+      "under"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person:MLA)-[:FACES]->(case:CriminalCase)-[:UNDER]->(section:Section) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which MLAs from a party represent seats in a state?",
+    "tags": [
+      "party",
+      "mla",
+      "constituency",
+      "assembly",
+      "state",
+      "multi-hop",
+      "member_of",
+      "represents",
+      "in_state"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person:MLA)-[:REPRESENTS]->(seat:AssemblyConstituency)-[:IN_STATE]->(state:State) WHERE toLower(party.name) CONTAINS toLower($party) AND toLower(state.name) CONTAINS toLower($state) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which constituencies does a person represent?",
+    "tags": [
+      "person",
+      "mla",
+      "constituency",
+      "represent",
+      "represents"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:REPRESENTS]->(seat) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($person) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which state contains the constituency represented by a person?",
+    "tags": [
+      "person",
+      "constituency",
+      "state",
+      "represent",
+      "in_state",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:REPRESENTS]->(seat)-[:IN_STATE]->(state:State) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($person) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which MLAs represent constituencies in a state?",
+    "tags": [
+      "mla",
+      "person",
+      "constituency",
+      "state",
+      "represent",
+      "in_state",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(person:Person:MLA)-[:REPRESENTS]->(seat:AssemblyConstituency)-[:IN_STATE]->(state:State) WHERE toLower(state.name) CONTAINS toLower($state) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which constituencies are in a state?",
+    "tags": [
+      "constituency",
+      "assembly",
+      "state",
+      "in_state"
+    ],
+    "cypher": "MATCH p=(seat)-[:IN_STATE]->(state:State) WHERE (seat:Constituency OR seat:AssemblyConstituency) AND toLower(state.name) CONTAINS toLower($state) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which legal sections are linked to cases against a person?",
+    "tags": [
+      "person",
+      "case",
+      "criminal",
+      "section",
+      "ipc",
+      "faces",
+      "under",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:FACES]->(case:CriminalCase)-[:UNDER]->(section:Section) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($person) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which sections are listed under a case number?",
+    "tags": [
+      "criminal",
+      "case",
+      "case_no",
+      "fir_no",
+      "section",
+      "under"
+    ],
+    "cypher": "MATCH p=(case:CriminalCase)-[:UNDER]->(section:Section) WHERE toLower(toString(coalesce(case.case_no, case.case_id, case.fir_no, ''))) CONTAINS toLower($case_number) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which people are linked to cases under a section code?",
+    "tags": [
+      "person",
+      "criminal",
+      "case",
+      "section",
+      "code",
+      "under",
+      "faces",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:FACES]->(case:CriminalCase)-[:UNDER]->(section:Section) WHERE toLower(section.code) CONTAINS toLower($section_code) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Who holds a portfolio in a ministry?",
+    "tags": [
+      "person",
+      "minister",
+      "ministry",
+      "portfolio",
+      "holds_portfolio"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:HOLDS_PORTFOLIO]->(ministry:Ministry) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which portfolios does a named person hold?",
+    "tags": [
+      "person",
+      "minister",
+      "ministry",
+      "portfolio",
+      "role",
+      "holds_portfolio"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:HOLDS_PORTFOLIO]->(ministry:Ministry) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($person) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which people have held a named ministry portfolio?",
+    "tags": [
+      "person",
+      "minister",
+      "ministry",
+      "portfolio",
+      "holds_portfolio"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:HOLDS_PORTFOLIO]->(ministry:Ministry) WHERE toLower(ministry.name) CONTAINS toLower($ministry) OR toLower(coalesce(ministry.portfolio_type, '')) CONTAINS toLower($ministry) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which person and cases are connected to a party?",
+    "tags": [
+      "party",
+      "person",
+      "criminal",
+      "case",
+      "member_of",
+      "faces",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person)-[:FACES]->(case:CriminalCase) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which party members have more than a given number of linked criminal cases?",
+    "tags": [
+      "party",
+      "person",
+      "mla",
+      "criminal",
+      "case",
+      "criminal_case_count",
+      "member_of"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person) WHERE toLower(party.name) CONTAINS toLower($party) AND coalesce(person.criminal_case_count, 0) >= $minimum RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which party members have assets above an amount?",
+    "tags": [
+      "party",
+      "person",
+      "mla",
+      "assets",
+      "total_assets",
+      "member_of"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person) WHERE toLower(party.name) CONTAINS toLower($party) AND coalesce(person.total_assets, 0) >= $minimum_assets RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find people using a Myneta name or alias and show their party link.",
+    "tags": [
+      "person",
+      "myneta_name",
+      "myneta_id",
+      "aliases",
+      "party",
+      "member_of"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:MEMBER_OF]->(party:Party) WHERE toLower(coalesce(person.myneta_name, '')) CONTAINS toLower($person) OR any(alias IN coalesce(person.aliases, []) WHERE toLower(toString(alias)) CONTAINS toLower($person)) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which MLAs from a party represent seats in a state, and what party are they in?",
+    "tags": [
+      "party",
+      "mla",
+      "person",
+      "constituency",
+      "assembly",
+      "state",
+      "member_of",
+      "represents",
+      "in_state",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person:MLA)-[:REPRESENTS]->(seat:AssemblyConstituency)-[:IN_STATE]->(state:State) WHERE toLower(party.name) CONTAINS toLower($party) AND toLower(state.name) CONTAINS toLower($state) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which people from a party have ministries and portfolios?",
+    "tags": [
+      "party",
+      "person",
+      "ministry",
+      "portfolio",
+      "member_of",
+      "holds_portfolio",
+      "multi-hop"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(person:Person)-[:HOLDS_PORTFOLIO]->(ministry:Ministry) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show the profile properties available for Rahul Gandhi, including age, gender, profession, education, aliases, election year, and special responsibilities.",
+    "tags": [
+      "person-profile",
+      "age",
+      "gender",
+      "profession",
+      "education",
+      "election"
+    ],
+    "cypher": "MATCH p = (n:Person {name: $name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 1",
+    "result_type": "graph"
+  },
+  {
+    "question": "What party is Narendra Modi connected to in the graph?",
+    "tags": [
+      "person-profile",
+      "party"
+    ],
+    "cypher": "MATCH p = (n:Person)-[:MEMBER_OF]->(m:Party) WHERE n.name = $name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 1",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show the MLA profile for a person named Rahul Gandhi, if present.",
+    "tags": [
+      "mla-profile",
+      "mla"
+    ],
+    "cypher": "MATCH p = (m:MLA {name: $name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find the Party node for BJP and show its properties.",
+    "tags": [
+      "party"
+    ],
+    "cypher": "MATCH p = (p_node:Party {name: $party_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find the State node for Delhi and show its properties.",
+    "tags": [
+      "state"
+    ],
+    "cypher": "MATCH p = (s:State {name: $state_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find AssemblyConstituency nodes whose names contain New Delhi.",
+    "tags": [
+      "constituency"
+    ],
+    "cypher": "MATCH p = (ac:AssemblyConstituency) WHERE ac.name CONTAINS $constituency_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find Section nodes whose code contains IPC 420.",
+    "tags": [
+      "legal-section",
+      "section"
+    ],
+    "cypher": "MATCH p = (sec:Section) WHERE sec.code CONTAINS $section_code RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which people are connected to BJP by MEMBER_OF?",
+    "tags": [
+      "party-membership"
+    ],
+    "cypher": "MATCH p = (n:Person)-[r:MEMBER_OF]->(m:Party {name: $party_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which elected MLAs are connected to BJP by MEMBER_OF?",
+    "tags": [
+      "party-membership"
+    ],
+    "cypher": "MATCH p = (n:MLA)-[r:MEMBER_OF]->(m:Party {name: $party_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which party is Rahul Gandhi connected to by MEMBER_OF?",
+    "tags": [
+      "party-membership",
+      "party"
+    ],
+    "cypher": "MATCH p = (n:Person {name: $person_name})-[r:MEMBER_OF]->(m:Party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which AssemblyConstituency does Rahul Gandhi represent, if any?",
+    "tags": [
+      "representation",
+      "represent"
+    ],
+    "cypher": "MATCH p = (n:Person {name: $person_name})-[:REPRESENTS]->(ac:AssemblyConstituency) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which constituency is Narendra Modi recorded as representing?",
+    "tags": [
+      "representation",
+      "constituency"
+    ],
+    "cypher": "MATCH p = (n:Person {name: $person_name})-[:REPRESENTS]->(c:Constituency) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP MLAs and their represented AssemblyConstituencies.",
+    "tags": [
+      "representation"
+    ],
+    "cypher": "MATCH p = (n:MLA)-[:MEMBER_OF]->(:Party {name: $party_name}), (n)-[:REPRESENTS]->(:AssemblyConstituency) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show INC MLAs and their represented constituencies.",
+    "tags": [
+      "representation"
+    ],
+    "cypher": "MATCH p = (n:MLA)-[:MEMBER_OF]->(:Party {name: $party_name}), (n)-[:REPRESENTS]->(:Constituency) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which state contains the AssemblyConstituency represented by Rahul Gandhi?",
+    "tags": [
+      "state"
+    ],
+    "cypher": "MATCH p = (n:Person {name: $person_name})-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show MLAs representing AssemblyConstituencies in Gujarat.",
+    "tags": [
+      "state"
+    ],
+    "cypher": "MATCH p = (n:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State {name: $state_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which people are linked to a CriminalCase through FACES?",
+    "tags": [
+      "criminal-cases"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:FACES]->(c:CriminalCase) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which BJP MLAs are linked to CriminalCase nodes through FACES?",
+    "tags": [
+      "criminal-cases"
+    ],
+    "cypher": "MATCH p = (m:MLA:Person {party_name: $party_name})-[:FACES]->(c:CriminalCase) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show people with a recorded criminal_case_count greater than zero and their linked cases.",
+    "tags": [
+      "criminal-cases"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:FACES]->(c:CriminalCase) WHERE m.criminal_case_count > 0 RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which people hold a portfolio in a Ministry, and what role is stored on the relationship?",
+    "tags": [
+      "ministries",
+      "portfolio",
+      "ministry"
+    ],
+    "cypher": "MATCH p = (m:Person)-[r:HOLDS_PORTFOLIO]->(min:Ministry) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP members connected to Ministry nodes through HOLDS_PORTFOLIO.",
+    "tags": [
+      "ministries",
+      "ministry"
+    ],
+    "cypher": "MATCH p = (m:Person)-[r:HOLDS_PORTFOLIO]->(min:Ministry) WHERE m.party_name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show a person, a case linked by FACES, and the Section codes attached through UNDER.",
+    "tags": [
+      "case-sections",
+      "case",
+      "section"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP MLAs, their linked cases, and the legal Section codes for those cases.",
+    "tags": [
+      "case-sections",
+      "section"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(:Party {name: $party_name})-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Which INC members have cases linked to a Section whose code contains IPC 420?",
+    "tags": [
+      "case-sections",
+      "section"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:MEMBER_OF]->(:Party {name: $party_name}), (m)-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) WHERE s.code CONTAINS $section_code RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP MLAs, their cases, and each case's court, status, charges_framed, and ipc_sections.",
+    "tags": [
+      "case-details",
+      "case",
+      "court",
+      "status"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(:Party {name: $party_name})-[:FACES]->(c:CriminalCase) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find cases whose status contains pending and show linked people and FIR numbers.",
+    "tags": [
+      "case-details",
+      "status",
+      "fir"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:FACES]->(c:CriminalCase) WHERE c.status CONTAINS $status RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find cases whose status contains disposed and show their linked people and courts.",
+    "tags": [
+      "case-details",
+      "status"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:FACES]->(c:CriminalCase) WHERE c.status CONTAINS $status RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show cases with non-empty charges_framed, their linked people, and case numbers.",
+    "tags": [
+      "case-details",
+      "case"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:FACES]->(c:CriminalCase) WHERE c.charges_framed IS NOT NULL AND c.charges_framed <> \"\" RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find Section codes connected to cases linked to Rahul Gandhi.",
+    "tags": [
+      "case-sections",
+      "section"
+    ],
+    "cypher": "MATCH p = (m:Person {name: $person_name})-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP MLAs representing constituencies in Gujarat, with each MLA's recorded age.",
+    "tags": [
+      "party-state",
+      "mla",
+      "age"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(:Party {name: $party_name}), (m)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(:State {name: $state_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show INC MLAs representing constituencies in Delhi, with party and constituency names.",
+    "tags": [
+      "party-state",
+      "party",
+      "constituency"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(:Party {name: $party_name}), (m)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(:State {name: $state_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find BJP MLAs in Gujarat with total_assets greater than 100000000 and show liabilities and constituency.",
+    "tags": [
+      "assets",
+      "constituency"
+    ],
+    "cypher": "MATCH p=(m:MLA:Person)-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State) WHERE m.party_name = $party AND s.name = $state AND m.total_assets > $min_assets RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find INC MLAs in Delhi with liabilities greater than 10000000 and show movable and immovable assets.",
+    "tags": [
+      "assets"
+    ],
+    "cypher": "MATCH p=(m:MLA:Person)-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State) WHERE m.party_name = $party AND s.name = $state AND m.liabilities > $min_liabilities RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show Rahul Gandhi's profile properties and all CriminalCase nodes linked through FACES.",
+    "tags": [
+      "profile-and-cases"
+    ],
+    "cypher": "MATCH p=(n:Person)-[:FACES]->(c:CriminalCase) WHERE n.name = $name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP MLAs with profession and education properties who are linked to at least one case.",
+    "tags": [
+      "profile-and-cases",
+      "profession",
+      "education",
+      "case"
+    ],
+    "cypher": "MATCH p=(m:MLA:Person)-[:FACES]->(c:CriminalCase) WHERE m.party_name = $party AND m.profession IS NOT NULL AND m.education IS NOT NULL RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show people, their parties, and Ministry portfolios, including each relationship's role.",
+    "tags": [
+      "portfolio",
+      "ministry"
+    ],
+    "cypher": "MATCH p=(n:Person)-[:MEMBER_OF]->(pty:Party), q=(n)-[r:HOLDS_PORT_FOLIO|HOLDS_PORTFOLIO]->(m:Ministry) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show people with source_document_date and election_year who represent a constituency in Gujarat.",
+    "tags": [
+      "metadata",
+      "represent",
+      "constituency"
+    ],
+    "cypher": "MATCH p=(n:Person)-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State) WHERE s.name = $state AND n.source_document_date IS NOT NULL AND n.election_year IS NOT NULL RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find a person whose aliases contain Rahul Gandhi and show their party and represented constituency.",
+    "tags": [
+      "aliases",
+      "party",
+      "constituency"
+    ],
+    "cypher": "MATCH p=(n:Person)-[:MEMBER_OF]->(pty:Party), q=(n)-[:REPRESENTS]->(c) WHERE $alias IN n.aliases RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP MLAs, represented constituencies, and states, including only seats in Gujarat or Delhi.",
+    "tags": [
+      "constituency"
+    ],
+    "cypher": "MATCH p=(m:MLA:Person)-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State) WHERE m.party_name = $party AND s.name IN $states RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show each BJP MLA's linked cases, FIR numbers, court, status, and Section codes, limiting results to 50 paths.",
+    "tags": [
+      "case-sections",
+      "mla",
+      "fir",
+      "court",
+      "status",
+      "section"
+    ],
+    "cypher": "MATCH p=(m:MLA:Person)-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) WHERE m.party_name = $party RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Trace BJP to its MLA members, their CriminalCase links, and the Section codes under those cases.",
+    "tags": [
+      "multi-hop-party-cases",
+      "mla",
+      "section"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Trace INC to its MLA members, each represented AssemblyConstituency, and the containing State.",
+    "tags": [
+      "multi-hop-party-state",
+      "mla",
+      "state"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(state:State) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Trace BJP members to cases and Sections; return the person, case number, court, status, and section code.",
+    "tags": [
+      "multi-hop-party-cases",
+      "case",
+      "court",
+      "status",
+      "section"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Trace BJP MLAs to constituencies in Gujarat and return their age, profession, total assets, movable assets, immovable assets, and liabilities.",
+    "tags": [
+      "multi-hop-asset-state",
+      "age",
+      "profession"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(state:State {name: $state_name}) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Trace INC members to their Ministry portfolios and return person name, role, Ministry name, and portfolio_type.",
+    "tags": [
+      "multi-hop-portfolio",
+      "ministry"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[r:HOLDS_PORTFOLIO]->(m:Ministry) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Trace Rahul Gandhi through party membership, representation, constituency, and state wherever those links exist.",
+    "tags": [
+      "multi-hop-named-person",
+      "party",
+      "constituency",
+      "state"
+    ],
+    "cypher": "MATCH p=(person:Person)-[:MEMBER_OF]->(party:Party), (person)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(state:State) WHERE person.name = $person_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "For each BJP MLA linked to a case, trace the case to Sections and return charges_framed and ipc_sections.",
+    "tags": [
+      "multi-hop-cases",
+      "mla",
+      "case"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find BJP MLAs in Gujarat with cases and show their constituencies, case status, court, and FIR number.",
+    "tags": [
+      "multi-hop-party-state-cases",
+      "case",
+      "status",
+      "court",
+      "fir"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(state:State {name: $state_name}), (mla)-[:FACES]->(cc:CriminalCase) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find INC MLAs in Delhi with cases linked to IPC 420 and show the full party-person-case-section path.",
+    "tags": [
+      "multi-hop-party-state-cases",
+      "party",
+      "case",
+      "section"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(state:State {name: $state_name}), (mla)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section {code: $sec_code}) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP members who hold a Ministry portfolio and are also linked to cases, with role and case status.",
+    "tags": [
+      "multi-hop-portfolio-cases",
+      "ministry",
+      "portfolio",
+      "case",
+      "status"
+    ],
+    "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[r:HOLDS_PORTFOLIO]->(m:Ministry), (mla)-[:FACES]->(cc:CriminalCase) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "For people with recorded profession and education who face cases under a Section containing IPC 120B, show profile and legal path.",
+    "tags": [
+      "multi-hop-profile-cases",
+      "profession",
+      "education",
+      "section"
+    ],
+    "cypher": "MATCH p = (m:Person)-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) WHERE m.profession IS NOT NULL AND m.education IS NOT NULL AND s.code CONTAINS $ipc RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show BJP MLAs in Gujarat with recorded sons or daughters, plus their constituency and state.",
+    "tags": [
+      "multi-hop-party-state-family",
+      "constituency",
+      "state"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE m.party_name = $party AND s.name = $state AND (m.nSons > 0 OR m.nDaughters > 0) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Compare BJP and INC MLA paths through party, constituency, state, case, and legal Section; return distinct paths.",
+    "tags": [
+      "multi-hop-party-state-cases",
+      "mla",
+      "party",
+      "constituency",
+      "state",
+      "case",
+      "section"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(pt:Party), (m)-[:REPRESENTS]->(ac)-[:IN_STATE]->(st:State), (m)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WHERE pt.name IN $parties RETURN DISTINCT nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show cases linked to a named person by exact or partial name or alias, then include court, status, charges, and Sections.",
+    "tags": [
+      "multi-hop-case-details",
+      "alias",
+      "court",
+      "status"
+    ],
+    "cypher": "MATCH p = (per:Person)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WHERE per.name CONTAINS $name OR $name IN per.aliases RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find all people connected through FACES to cases under a requested Section code and show their party memberships.",
+    "tags": [
+      "multi-hop-sections",
+      "section",
+      "party"
+    ],
+    "cypher": "MATCH p = (per:Person)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section), (per)-[:MEMBER_OF]->(pt:Party) WHERE sec.code = $code RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find BJP MLAs representing a seat in Gujarat, then return the MLA's terms, election year, party, and state.",
+    "tags": [
+      "multi-hop-representation",
+      "mla",
+      "terms",
+      "election",
+      "party",
+      "state"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(st:State) WHERE m.party_name = $party AND st.name = $state RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Trace people from BJP through Ministry portfolios and also to their represented constituency and state.",
+    "tags": [
+      "multi-hop-portfolio-state",
+      "ministry",
+      "constituency",
+      "state"
+    ],
+    "cypher": "MATCH p = (per:Person)-[:MEMBER_OF]->(pt:Party), (per)-[:HOLDS_PORTFOLIO]->(min:Ministry), (per)-[:REPRESENTS]->(ac)-[:IN_STATE]->(st:State) WHERE pt.name = $party RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Find BJP members with a case whose status is pending and whose Section code contains IPC 307; show the entire path.",
+    "tags": [
+      "multi-hop-case-property",
+      "case",
+      "status",
+      "section"
+    ],
+    "cypher": "MATCH p = (per:Person)-[:MEMBER_OF]->(pt:Party), (per)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WHERE pt.name = $party AND cc.status = $status AND sec.code CONTAINS $ipc RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Return distinct paths comparing BJP and INC MLAs in Gujarat by age, assets, liabilities, constituency, and linked case count property.",
+    "tags": [
+      "multi-hop-comparison",
+      "age",
+      "constituency",
+      "case"
+    ],
+    "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(pt:Party), (m)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(st:State) WHERE pt.name IN $parties AND st.name = $state RETURN DISTINCT nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+    "result_type": "graph"
+  },
+  {
+    "question": "Show the recorded age, gender, and profession of Rahul Gandhi.",
+    "tags": [
+      "person-profile",
+      "age",
+      "gender",
+      "profession"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person {name: $name}) RETURN n.age AS age, n.gender AS gender, n.profession AS profession LIMIT 1"
+  },
+  {
+    "question": "What education and profession are recorded for Narendra Modi?",
+    "tags": [
+      "person-profile",
+      "education",
+      "profession"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person {name: $name}) RETURN n.education AS education, n.profession AS profession LIMIT 1"
+  },
+  {
+    "question": "Show the recorded aliases and MyNeta name for Rahul Gandhi.",
+    "tags": [
+      "person-profile"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person {name: $name}) RETURN n.aliases AS aliases, n.myneta_name AS myneta_name LIMIT 1"
+  },
+  {
+    "question": "How many terms and which election year are recorded for Narendra Modi?",
+    "tags": [
+      "person-profile",
+      "terms",
+      "election"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person {name: $name}) RETURN n.terms AS terms, n.election_year AS election_year LIMIT 1"
+  },
+  {
+    "question": "Show the recorded number of sons and daughters for Rahul Gandhi.",
+    "tags": [
+      "person-profile"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person {name: $name}) RETURN n.nSons AS nSons, n.nDaughters AS nDaughters LIMIT 1"
+  },
+  {
+    "question": "What council section and special responsibilities are recorded for Narendra Modi?",
+    "tags": [
+      "person-profile",
+      "section"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person {name: $name}) RETURN n.council_section AS council_section, n.special_responsibilities AS special_responsibilities LIMIT 1"
+  },
+  {
+    "question": "Show the available profile properties for a person named Rahul Gandhi.",
+    "tags": [
+      "person-profile"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person {name: $name}) RETURN n.name AS name, n.age AS age, n.gender AS gender, n.profession AS profession, n.education AS education, n.aliases AS aliases, n.election_year AS election_year, n.special_responsibilities AS special_responsibilities LIMIT 1"
+  },
+  {
+    "question": "Show the age, party name, and election year recorded for MLAs in Gujarat.",
+    "tags": [
+      "mla-profile",
+      "age",
+      "party",
+      "election"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State {name: $state_name}) RETURN m.name AS mla_name, m.age AS age, m.party_name AS party_name, m.election_year AS election_year LIMIT 10"
+  },
+  {
+    "question": "Show Ministry nodes and their portfolio type.",
+    "tags": [
+      "ministry",
+      "portfolio"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:Ministry) RETURN m.name AS ministry_name, m.portfolio_type AS portfolio_type LIMIT 10"
+  },
+  {
+    "question": "Show a few CriminalCase records with case number, FIR number, court, and status.",
+    "tags": [
+      "case",
+      "fir",
+      "court",
+      "status"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (c:CriminalCase) RETURN c.case_no AS case_no, c.fir_no AS fir_no, c.court AS court, c.status AS status LIMIT 10"
+  },
+  {
+    "question": "Show recorded total assets and liabilities for BJP MLAs.",
+    "tags": [
+      "mla-profile",
+      "total"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA {party_name: $party_name}) RETURN m.name AS mla_name, m.total_assets AS total_assets, m.liabilities AS liabilities LIMIT 10"
+  },
+  {
+    "question": "Show recorded movable and immovable assets for MLAs in Delhi.",
+    "tags": [
+      "mla-profile"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State {name: $state_name}) RETURN m.name AS mla_name, m.movable_assets AS movable_assets, m.immovable_assets AS immovable_assets LIMIT 10"
+  },
+  {
+    "question": "Show INC members with their age and profession properties.",
+    "tags": [
+      "party-membership",
+      "age",
+      "profession"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person)-[:MEMBER_OF]->(p:Party {name: $party_name}) RETURN n.name AS name, n.age AS age, n.profession AS profession LIMIT 10"
+  },
+  {
+    "question": "Find BJP MLAs with recorded total assets above 100000000 and show their asset and liability properties.",
+    "tags": [
+      "assets",
+      "total",
+      "asset",
+      "liability"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA:Person) WHERE m.party_name = $party_name AND m.total_assets > $min_assets RETURN m.name AS name, m.total_assets AS total_assets, m.liabilities AS liabilities, m.movable_assets AS movable_assets, m.immovable_assets AS immovable_assets LIMIT 10"
+  },
+  {
+    "question": "Find people with recorded liabilities greater than 50000000 and show their names and parties.",
+    "tags": [
+      "assets"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Person) WHERE p.liabilities > $min_liabilities RETURN p.name AS name, p.party_name AS party_name, p.liabilities AS liabilities LIMIT 10"
+  },
+  {
+    "question": "Show people whose recorded number of sons is greater than zero, with their number of daughters.",
+    "tags": [
+      "family-fields"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Person) WHERE p.nSons > 0 RETURN p.name AS name, p.nSons AS nSons, p.nDaughters AS nDaughters LIMIT 10"
+  },
+  {
+    "question": "Show people whose recorded number of daughters is greater than zero, with their number of sons.",
+    "tags": [
+      "family-fields"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Person) WHERE p.nDaughters > 0 RETURN p.name AS name, p.nDaughters AS nDaughters, p.nSons AS nSons LIMIT 10"
+  },
+  {
+    "question": "Show cases with a recorded court and status, including their FIR and case numbers.",
+    "tags": [
+      "case-details",
+      "court",
+      "status",
+      "fir",
+      "case"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (c:CriminalCase) WHERE c.court IS NOT NULL AND c.status IS NOT NULL RETURN c.case_no AS case_no, c.fir_no AS fir_no, c.court AS court, c.status AS status LIMIT 10"
+  },
+  {
+    "question": "Which BJP members hold Ministry portfolios, and what portfolio_type is recorded for each Ministry?",
+    "tags": [
+      "portfolio",
+      "ministry"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (n:Person)-[:MEMBER_OF]->(p:Party {name: $party}), (n)-[r:HOLDS_PORTFOLIO]->(m:Ministry) RETURN n.name AS person_name, p.name AS party_name, m.name AS ministry_name, m.portfolio_type AS portfolio_type, r.role AS role LIMIT 10"
+  },
+  {
+    "question": "Find BJP MLAs with total assets over 100000000 who have a linked case, and return assets, liabilities, case number, and court.",
+    "tags": [
+      "multi-hop-financial-cases",
+      "total",
+      "case",
+      "court"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:FACES]->(c:CriminalCase) WHERE m.party_name = $party AND m.total_assets > $min_assets RETURN m.name, m.total_assets, m.liabilities, c.case_no, c.court LIMIT 10"
+  },
+  {
+    "question": "What is the average recorded age of MLAs, grouped by party? Return aggregate values, not graph paths.",
+    "tags": [
+      "aggregate-age",
+      "average",
+      "age",
+      "party"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA) RETURN m.party_name AS party, avg(m.age) AS average_age ORDER BY average_age DESC LIMIT 10"
+  },
+  {
+    "question": "For BJP MLAs, what are the average, minimum, and maximum recorded total_assets values?",
+    "tags": [
+      "aggregate-assets",
+      "average",
+      "minimum",
+      "maximum"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA {party_name: $party_name}) RETURN avg(m.total_assets) AS average_assets, min(m.total_assets) AS min_assets, max(m.total_assets) AS max_assets LIMIT 10"
+  },
+  {
+    "question": "How many distinct people are linked to at least one CriminalCase, grouped by party?",
+    "tags": [
+      "aggregate-cases",
+      "distinct",
+      "party"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Person)-[:MEMBER_OF]->(pt:Party), (p)-[:FACES]->(:CriminalCase) RETURN pt.name AS party, count(DISTINCT p) AS distinct_people_count ORDER BY distinct_people_count DESC LIMIT 10"
+  },
+  {
+    "question": "What are the average recorded numbers of sons and daughters for people, grouped by gender?",
+    "tags": [
+      "aggregate-family",
+      "average",
+      "gender"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Person) RETURN p.gender AS gender, avg(p.nSons) AS average_sons, avg(p.nDaughters) AS average_daughters LIMIT 10"
+  },
+  {
+    "question": "How many BJP MLAs represent constituencies in each State? Return one count per state.",
+    "tags": [
+      "aggregate-state",
+      "represent",
+      "state",
+      "count"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA {party_name: $party_name})-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State) RETURN s.name AS state_name, count(DISTINCT m) AS mla_count ORDER BY mla_count DESC LIMIT 10"
+  },
+  {
+    "question": "Which Section codes have the most linked CriminalCase nodes? Return counts sorted descending, with a small limit.",
+    "tags": [
+      "aggregate-legal",
+      "section"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (c:CriminalCase)-[:UNDER]->(s:Section) RETURN s.code AS section_code, count(c) AS case_count ORDER BY case_count DESC LIMIT 10"
+  },
+  {
+    "question": "How many people hold portfolios in each Ministry portfolio_type, and how many distinct people per type?",
+    "tags": [
+      "aggregate-portfolio",
+      "ministry",
+      "distinct"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Person)-[r:HOLDS_PORTFOLIO]->(m:Ministry) RETURN m.portfolio_type AS portfolio_type, count(p) AS total_holdings, count(DISTINCT p) AS distinct_people ORDER BY distinct_people DESC LIMIT 10"
+  },
+  {
+    "question": "For Gujarat MLAs, compare average total_assets, movable_assets, immovable_assets, and liabilities by party.",
+    "tags": [
+      "aggregate-assets-state",
+      "average",
+      "party"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State {name: $state_name}) RETURN m.party_name AS party, avg(m.total_assets) AS avg_total_assets, avg(m.movable_assets) AS avg_movable_assets, avg(m.immovable_assets) AS avg_immovable_assets, avg(m.liabilities) AS avg_liabilities ORDER BY avg_total_assets DESC LIMIT 10"
+  },
+  {
+    "question": "For each party, count distinct MLA members, distinct linked cases, and cases grouped by status.",
+    "tags": [
+      "aggregate-case-status",
+      "party",
+      "count",
+      "distinct",
+      "mla",
+      "status"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:MEMBER_OF]->(pt:Party), (m)-[:FACES]->(c:CriminalCase) RETURN pt.name AS party, c.status AS case_status, count(DISTINCT m) AS distinct_mlas, count(DISTINCT c) AS distinct_cases, count(c) AS total_cases ORDER BY total_cases DESC LIMIT 10"
+  },
+  {
+    "question": "Compare average MLA age and member count by party and State, using represented constituencies.",
+    "tags": [
+      "aggregate-age-state",
+      "average",
+      "mla",
+      "age",
+      "count",
+      "party",
+      "state"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State) RETURN m.party_name AS party, s.name AS state_name, avg(m.age) AS average_age, count(DISTINCT m) AS member_count ORDER BY member_count DESC LIMIT 10"
+  },
+  {
+    "question": "Among BJP MLAs in Gujarat, compute average age and assets, count distinct linked criminal cases by status, and list the most common Section codes.",
+    "tags": [
+      "aggregate-multi-hop",
+      "average",
+      "age",
+      "count",
+      "distinct",
+      "criminal",
+      "status",
+      "section"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c:AssemblyConstituency)-[:IN_STATE]->(s:State {name: $state_name}) WHERE m.party_name = $party_name MATCH (m)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) RETURN avg(m.age) AS avg_age, avg(m.total_assets) AS avg_assets, cc.status AS case_status, count(DISTINCT cc) AS case_count, sec.code AS section_code, count(sec) AS section_count ORDER BY case_count DESC LIMIT 10"
+  },
+  {
+    "question": "Compare BJP and INC by State: number of MLAs, average age, average total_assets, number with cases, and distinct case counts.",
+    "tags": [
+      "aggregate-multi-hop",
+      "state",
+      "average",
+      "age",
+      "distinct",
+      "case"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE m.party_name IN $parties MATCH (m)-[:FACES]->(cc:CriminalCase) RETURN s.name AS state_name, m.party_name AS party_name, count(DISTINCT m) AS mla_count, avg(m.age) AS avg_age, avg(m.total_assets) AS avg_total_assets, count(DISTINCT CASE WHEN m.criminal_case_count > 0 THEN m END) AS mlas_with_cases, count(DISTINCT cc) AS distinct_case_count ORDER BY state_name, party_name LIMIT 10"
+  },
+  {
+    "question": "For each party and Section code, count distinct MLAs linked through cases, then return the top ten party-section pairs.",
+    "tags": [
+      "aggregate-multi-hop",
+      "party",
+      "section",
+      "count",
+      "distinct"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Party)<-[:MEMBER_OF]-(m:MLA)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(s:Section) RETURN p.name AS party_name, s.code AS section_code, count(DISTINCT m) AS distinct_mla_count ORDER BY distinct_mla_count DESC LIMIT 10"
+  },
+  {
+    "question": "For each Ministry portfolio_type and party, count distinct holders and count distinct holders who also have linked cases.",
+    "tags": [
+      "aggregate-multi-hop",
+      "ministry",
+      "party",
+      "count",
+      "distinct"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:Person)-[:HOLDS_PORTFOLIO]->(min:Ministry), (m)-[:MEMBER_OF]->(p:Party) RETURN min.portfolio_type AS portfolio_type, p.name AS party_name, count(DISTINCT m) AS total_holders, count(DISTINCT CASE WHEN m.criminal_case_count > 0 THEN m END) AS holders_with_cases ORDER BY total_holders DESC LIMIT 10"
+  },
+  {
+    "question": "Find parties whose Gujarat MLAs have average liabilities above 10000000; return average liabilities, total assets, and MLA count.",
+    "tags": [
+      "aggregate-multi-hop",
+      "average",
+      "total",
+      "mla",
+      "count"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c:AssemblyConstituency)-[:IN_STATE]->(s:State {name: $state_name}), (m)-[:MEMBER_OF]->(p:Party) WITH p, m WHERE m.liabilities IS NOT NULL WITH p, avg(m.liabilities) AS avg_liabilities, avg(m.total_assets) AS avg_total_assets, count(m) AS mla_count WHERE avg_liabilities > $threshold RETURN p.name AS party_name, avg_liabilities, avg_total_assets, mla_count ORDER BY avg_liabilities DESC LIMIT 10"
+  },
+  {
+    "question": "Among people with known age, profession, sons, and daughters, compare average age and family counts by profession and party.",
+    "tags": [
+      "aggregate-multi-hop",
+      "age",
+      "profession",
+      "average",
+      "party"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (p:Person)-[:MEMBER_OF]->(party:Party) WHERE p.age IS NOT NULL AND p.profession IS NOT NULL AND p.nSons IS NOT NULL AND p.nDaughters IS NOT NULL RETURN p.profession AS profession, party.name AS party_name, avg(p.age) AS avg_age, avg(p.nSons) AS avg_sons, avg(p.nDaughters) AS avg_daughters, count(p) AS person_count ORDER BY person_count DESC LIMIT 10"
+  },
+  {
+    "question": "For each State and party, rank MLA groups by average assets and case prevalence, while counting distinct constituencies and Sections.",
+    "tags": [
+      "aggregate-multi-hop",
+      "state",
+      "party",
+      "mla",
+      "average",
+      "case",
+      "distinct"
+    ],
+    "result_type": "aggregate",
+    "cypher": "MATCH (s:State)<-[:IN_STATE]-(ac:AssemblyConstituency)<-[:REPRESENTS]-(m:MLA)-[:MEMBER_OF]->(p:Party), (m)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) RETURN s.name AS state_name, p.name AS party_name, avg(m.total_assets) AS avg_assets, count(DISTINCT CASE WHEN m.criminal_case_count > 0 THEN m END) * 1.0 / count(DISTINCT m) AS case_prevalence, count(DISTINCT ac) AS distinct_constituencies, count(DISTINCT sec) AS distinct_sections ORDER BY avg_assets DESC LIMIT 10"
+  }
+]

@@ -1,0 +1,41 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Secrets
+.env
+BACKEND/.env
+*.env
+!.env.example
+
+# Logs
+*.log
+frontend-server.log
+frontend-server-error.log
+uvicorn.log
+uvicorn-error.log
+
+# Generated caches / data dumps
+cache/
+myneta_cache/
+myneta_cons_cache/
+myneta_parsed.json
+MLAs/mla_parsed.json
+MPs_everything/mp/members.json
+MPs_everything/mp/mp_entities.json
+MPs_everything/mp/myneta_parsed.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Large media / pdfs
+*.pdf

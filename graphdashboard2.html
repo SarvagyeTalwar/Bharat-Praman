@@ -146,7 +146,7 @@
     );
 
     // --- Search Component with Retro Neobrutalist Polish ---
-    function BharatPramanSearch({ items, onActionSelect, externalQueryTrigger }) {
+    function BharatPramanSearch({ items, onActionSelect, onSearch, externalQueryTrigger }) {
       const [isOpen, setIsOpen] = useState(false);
       const [query, setQuery] = useState('');
       const [activeSection, setActiveSection] = useState('All');
@@ -236,12 +236,8 @@
           }
         } else if (e.key === 'Enter') {
           e.preventDefault();
-          const selectedItem = filteredItems[activeIndex];
-          if (selectedItem) {
-            selectedItem.action();
-            onActionSelect?.(selectedItem);
-            setIsOpen(false);
-          }
+          onSearch?.(query.trim(), activeSection.toLowerCase());
+          setIsOpen(false);
         }
       };
 
@@ -533,6 +529,15 @@
         setActiveSampleQuery(queryText);
       };
 
+      const searchGraph = (queryText, filter) => {
+        if (!queryText) {
+          setSelectedMessage('Type a search term first.');
+          return;
+        }
+        const params = new URLSearchParams({ query: queryText, filter });
+        window.location.href = `graph.html?${params.toString()}`;
+      };
+
       return (
         <div className="min-h-screen flex flex-col justify-between">
           {/* Top Gazette Nav Strip */}
@@ -582,6 +587,7 @@
               <BharatPramanSearch
                 items={bharatPramanItems}
                 externalQueryTrigger={activeSampleQuery}
+                onSearch={searchGraph}
                 onActionSelect={(item) =>
                   setSelectedMessage(`Selected: "${item.title}" [${item.section}]`)
                 }
@@ -614,8 +620,6 @@
               </div>
             )}
           </main>
-
-
 
           {/* Section: Why Us */}
           <section id="why-us" className="w-full max-w-4xl mx-auto mt-20 px-6 pt-12 border-t-2 border-dashed border-stone-300">

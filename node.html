@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bharat Praman — Node details</title>
+  <style>
+    :root { color-scheme: light; --paper:#fbf8f1; --ink:#1c1917; --muted:#6b6256; --line:#292524; --amber:#fbbf24; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(#d8d0c2 1px,transparent 1px) 0 0/22px 22px,var(--paper); color:var(--ink); font-family:"Segoe UI",sans-serif; }
+    header { position:sticky; top:0; z-index:2; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px clamp(16px,4vw,48px); border-bottom:2px solid var(--line); background:#f4eee2; }
+    .brand,.mono,button,a.back { font-family:Consolas,monospace; }
+    .brand { font-size:12px; font-weight:700; letter-spacing:.04em; }
+    a.back,button { border:2px solid var(--line); border-radius:8px; background:white; color:var(--ink); padding:10px 13px; font-size:12px; font-weight:700; text-decoration:none; cursor:pointer; box-shadow:2px 2px 0 var(--line); }
+    main { width:min(1240px,calc(100% - 32px)); margin:28px auto 48px; }
+    h1 { margin:0 0 6px; font-size:clamp(26px,4vw,38px); }
+    .sub { margin:0 0 20px; color:var(--muted); font:12px/1.6 Consolas,monospace; }
+    #status { min-height:28px; color:var(--muted); font:12px Consolas,monospace; }
+    #status.error { color:#b42318; }
+    .card { margin:14px 0 20px; overflow:hidden; border:2px solid var(--line); border-radius:12px; background:#fffefa; box-shadow:4px 4px 0 var(--line); }
+    .card-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 16px; border-bottom:2px solid var(--line); background:#f4eee2; font:700 12px Consolas,monospace; }
+    #graph { width:100%; height:min(58vh,560px); min-height:390px; }
+    #properties { display:grid; gap:12px; }
+    details { border:1px solid #c9c1b6; border-radius:8px; background:white; padding:12px 14px; }
+    summary { cursor:pointer; font-weight:700; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; font:12px/1.5 Consolas,monospace; overflow-wrap:anywhere; }
+    th,td { text-align:left; vertical-align:top; padding:8px; border-top:1px solid #e7e0d6; }
+    th { width:28%; color:var(--muted); }
+    .empty { padding:28px; color:var(--muted); text-align:center; font:13px/1.6 Consolas,monospace; }
+    .flows { display:grid; gap:12px; padding:14px; }
+    .flow-path { display:flex; align-items:center; gap:8px; overflow-x:auto; padding:8px 2px 12px; }
+    .flow-node { display:grid; flex:0 0 auto; min-width:115px; max-width:200px; gap:5px; padding:10px 12px; border:2px solid var(--line); border-radius:9px; color:var(--ink); text-decoration:none; box-shadow:2px 2px 0 var(--line); }
+    .flow-node strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+    .flow-node small { color:var(--muted); font:10px Consolas,monospace; }
+    .flow-link { display:grid; flex:0 0 auto; justify-items:center; gap:4px; color:var(--muted); font:10px Consolas,monospace; }
+    .flow-arrow { color:var(--ink); font-size:20px; line-height:1; }
+    .cat-party { background:#fde68a; } .cat-person { background:#bfdbfe; } .cat-mla { background:#c4b5fd; }
+    .cat-state { background:#bbf7d0; } .cat-constituency { background:#a5f3fc; } .cat-assemblyconstituency { background:#99f6e4; }
+    .cat-ministry { background:#ddd6fe; } .cat-criminalcase { background:#fecaca; } .cat-section { background:#fed7aa; }
+    @media(max-width:640px) { header{padding:11px 14px}.brand{font-size:10px}main{width:calc(100% - 22px);margin-top:20px}#graph{min-height:340px;height:52vh} }
+  </style>
+  <script src="https://unpkg.com/cytoscape@3.33.0/dist/cytoscape.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="brand">BHARAT PRAMAN // NODE DETAILS</div>
+    <a id="back" class="back" href="graph.html">← Back to graph</a>
+  </header>
+  <main>
+    <h1 id="title">Loading graph node…</h1>
+    <p id="subtitle" class="sub">Node, direct connections, and properties from Neo4j</p>
+    <div id="status" role="status">Fetching node details from FastAPI…</div>
+    <section class="card" aria-label="Node graph">
+      <div class="card-head"><span>DIRECT CONNECTIONS</span><div style="display:flex;gap:8px"><button id="expand" type="button" hidden>Load more connections</button><button id="fit" type="button">Fit graph</button></div></div>
+      <div id="graph"></div>
+      <div id="empty" class="empty" hidden>There are no direct connections for this node.</div>
+    </section>
+    <section class="card">
+      <div class="card-head"><span>CASE CONNECTION FLOW</span><span class="mono">up to 2 links from this node</span></div>
+      <div id="flows" class="flows"><div class="empty">Looking for paths to criminal cases…</div></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><span>NODE AND RELATIONSHIP PROPERTIES</span><span id="count"></span></div>
+      <div id="properties" style="padding:14px"></div>
+    </section>
+  </main>
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000';
+    const params = new URLSearchParams(location.search);
+    const nodeId = params.get('id');
+    const fromQuery = params.get('from') || '';
+    const back = document.getElementById('back');
+    if (fromQuery) back.href = `graph.html?${new URLSearchParams({query:fromQuery,filter:'all'})}`;
+    const statusEl = document.getElementById('status');
+    const titleEl = document.getElementById('title');
+    const graphEl = document.getElementById('graph');
+    const emptyEl = document.getElementById('empty');
+    const propertyEl = document.getElementById('properties');
+    const expandButton = document.getElementById('expand');
+    const flowsEl = document.getElementById('flows');
+    let cy;
+    let graphData;
+
+    if (typeof cytoscape !== 'undefined') {
+      cy = cytoscape({ container:graphEl, elements:[], minZoom:.15, maxZoom:3, wheelSensitivity:.2,
+        style:[
+          {selector:'node',style:{label:'data(label)',shape:'round-rectangle',width:'label',height:40,padding:10,'background-color':'#dbeafe','border-color':'#292524','border-width':1.5,color:'#1c1917','font-size':11,'font-weight':600,'text-wrap':'ellipsis','text-max-width':170,'text-valign':'center','text-halign':'center'}},
+          {selector:'node.focus',style:{'background-color':'#fbbf24','border-width':3,'font-size':13,'font-weight':800}},
+          {selector:'node.party',style:{'background-color':'#fde68a'}},
+          {selector:'node.person',style:{'background-color':'#bfdbfe'}},
+          {selector:'node.mla',style:{'background-color':'#c4b5fd'}},
+          {selector:'node.state',style:{'background-color':'#bbf7d0'}},
+          {selector:'node.constituency',style:{'background-color':'#a5f3fc'}},
+          {selector:'node.assemblyconstituency',style:{'background-color':'#99f6e4'}},
+          {selector:'node.ministry',style:{'background-color':'#ddd6fe'}},
+          {selector:'node.criminalcase',style:{'background-color':'#fecaca'}},
+          {selector:'node.section',style:{'background-color':'#fed7aa'}},
+          {selector:'node.focus',style:{'background-color':'#fbbf24','border-width':3,'font-size':13,'font-weight':800}},
+          {selector:'edge',style:{'curve-style':'bezier','line-color':'#b5aa97',width:1.5,'target-arrow-shape':'triangle','target-arrow-color':'#8b8173',label:'data(label)','font-size':8,color:'#6b6256','text-rotation':'autorotate','text-background-color':'#fffefa','text-background-opacity':.9,'text-background-padding':2}}
+        ], layout:{name:'cose',animate:false}
+      });
+      cy.on('tap','node',event=>openNode(event.target.id()));
+      cy.on('mouseover','node',()=>graphEl.style.cursor='pointer');
+      cy.on('mouseout','node',()=>graphEl.style.cursor='default');
+    } else {
+      statusEl.textContent='Cytoscape.js did not load. Check your internet connection and reload.';
+      statusEl.classList.add('error');
+    }
+
+    function openNode(id) {
+      const q = new URLSearchParams({id,from:fromQuery});
+      location.href = `node.html?${q.toString()}`;
+    }
+
+    function addPropertyDetails(parent, heading, props) {
+      const details=document.createElement('details');
+      const summary=document.createElement('summary'); summary.textContent=heading;
+      details.append(summary);
+      const entries=Object.entries(props||{});
+      if (!entries.length) { const p=document.createElement('p'); p.textContent='No stored properties.'; p.className='mono'; details.append(p); }
+      else {
+        const table=document.createElement('table');
+        for (const [key,value] of entries) {
+          const row=document.createElement('tr'); const th=document.createElement('th'); const td=document.createElement('td');
+          th.textContent=key; td.textContent=typeof value==='object' ? JSON.stringify(value,null,2) : String(value);
+          row.append(th,td); table.append(row);
+        }
+        details.append(table);
+      }
+      parent.append(details);
+    }
+
+    function render(data) {
+      graphData=data;
+      const focus=data.node;
+      titleEl.textContent=focus.label || focus.labels?.[0] || 'Graph node';
+      document.title=`${titleEl.textContent} — Bharat Praman`;
+      document.getElementById('subtitle').textContent=`${(focus.labels||[]).join(' · ') || 'Node'} · ${data.total_edges} direct connections`;
+      const elements=[];
+      for (const node of data.nodes) elements.push({group:'nodes',data:{id:String(node.id),label:node.label||node.labels?.[0]||'Graph node'},classes:[...(node.labels||[]).map(x=>String(x).toLowerCase()),...(String(node.id)===String(focus.id)?['focus']:[])].join(' ')});
+      for (const edge of data.edges) elements.push({group:'edges',data:{id:String(edge.id),source:String(edge.source),target:String(edge.target),label:edge.type}});
+      cy.elements().remove(); cy.add(elements);
+      if (data.edges.length) { emptyEl.hidden=true; graphEl.hidden=false; cy.layout({name:'cose',animate:true,fit:true,padding:55,nodeRepulsion:9000,idealEdgeLength:115,numIter:450}).run(); }
+      else { graphEl.hidden=true; emptyEl.hidden=false; }
+
+      document.getElementById('count').textContent=`${data.nodes.length} nodes · ${data.edges.length} edges${data.truncated?' · first 100 shown':''}`;
+      expandButton.hidden=!data.truncated;
+      addPropertyDetails(propertyEl,`Selected node: ${focus.label}`,focus.properties);
+      const otherNodes=data.nodes.filter(node=>String(node.id)!==String(focus.id));
+      for (const node of otherNodes) addPropertyDetails(propertyEl,`Node: ${node.label} (${(node.labels||[]).join(', ')})`,node.properties);
+      for (const edge of data.edges) addPropertyDetails(propertyEl,`Relationship: ${edge.type}`,edge.properties);
+      statusEl.textContent=data.truncated?'Showing the first 100 direct connections. More are available.':'Node details loaded from Neo4j.';
+    }
+
+    async function loadMore() {
+      if (!graphData) return;
+      expandButton.disabled=true; expandButton.textContent='Loading…';
+      try {
+        const response=await fetch(`${API_BASE}/api/graph/expand`,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({seed_ids:[nodeId],offset:graphData.edges.length,limit:100})
+        });
+        const result=await response.json(); if(!response.ok) throw new Error(result.detail||'Could not load more connections.');
+        const knownNodes=new Set(graphData.nodes.map(item=>String(item.id)));
+        const knownEdges=new Set(graphData.edges.map(item=>String(item.id)));
+        for(const node of result.nodes||[]) if(!knownNodes.has(String(node.id))){
+          graphData.nodes.push(node);
+          addPropertyDetails(propertyEl,`Node: ${node.label} (${(node.labels||[]).join(', ')})`,node.properties);
+        }
+        const newElements=[];
+        for(const edge of result.edges||[]) if(!knownEdges.has(String(edge.id))){
+          graphData.edges.push(edge);
+          newElements.push({group:'edges',data:{id:String(edge.id),source:String(edge.source),target:String(edge.target),label:edge.type}});
+          addPropertyDetails(propertyEl,`Relationship: ${edge.type}`,edge.properties);
+        }
+        cy.add(newElements);
+        graphData.total_edges=result.connection_count;
+        graphData.truncated=result.has_more_connections;
+        document.getElementById('count').textContent=`${graphData.nodes.length} nodes · ${graphData.edges.length} edges`;
+        statusEl.textContent=`Showing ${graphData.edges.length} of ${result.connection_count} direct connections.`;
+        expandButton.hidden=!result.has_more_connections;
+        cy.layout({name:'cose',animate:true,fit:true,padding:55,nodeRepulsion:9000,idealEdgeLength:115}).run();
+      }catch(error){statusEl.textContent=`Could not expand graph: ${error.message}`;statusEl.classList.add('error');}
+      finally{expandButton.disabled=false;expandButton.textContent='Load more connections';}
+    }
+
+    async function load() {
+      if (!nodeId) { statusEl.textContent='No node ID was provided.'; statusEl.classList.add('error'); return; }
+      try {
+        const response=await fetch(`${API_BASE}/api/nodes/${encodeURIComponent(nodeId)}`);
+        const result=await response.json(); if (!response.ok) throw new Error(result.detail||'Could not load the graph node.');
+        render(result);
+        loadCaseFlows();
+      } catch(error) { statusEl.textContent=`Could not load node: ${error.message}`; statusEl.classList.add('error'); }
+    }
+
+    function category(labels) {
+      const known=['party','mla','person','ministry','state','constituency','assemblyconstituency','criminalcase','section'];
+      return (labels||[]).map(x=>String(x).toLowerCase()).find(x=>known.includes(x))||'node';
+    }
+
+    async function loadCaseFlows() {
+      try {
+        const response=await fetch(`${API_BASE}/api/nodes/${encodeURIComponent(nodeId)}/flows?limit=50`);
+        const result=await response.json(); if(!response.ok) throw new Error(result.detail||'Could not load case paths.');
+        flowsEl.replaceChildren();
+        if(!result.paths?.length){const note=document.createElement('div');note.className='empty';note.textContent='No path to a node labeled as a criminal case was found within two connections.';flowsEl.append(note);return;}
+        for(const path of result.paths){
+          const row=document.createElement('div');row.className='flow-path';
+          path.nodes.forEach((node,index)=>{
+            const params=new URLSearchParams({id:node.id,from:fromQuery});
+            const anchor=document.createElement('a');anchor.className=`flow-node cat-${category(node.labels)}`;anchor.href=`node.html?${params}`;
+            const name=document.createElement('strong');name.textContent=node.label;
+            const kind=document.createElement('small');kind.textContent=(node.labels||[]).join(' · ');
+            anchor.append(name,kind);row.append(anchor);
+            if(index<path.edges.length){
+              const connector=document.createElement('div');connector.className='flow-link';
+              const rel=document.createElement('small');rel.textContent=path.edges[index].type;
+              const arrow=document.createElement('span');arrow.className='flow-arrow';arrow.textContent='→';
+              connector.append(rel,arrow);row.append(connector);
+            }
+          });
+          flowsEl.append(row);
+        }
+        if(result.truncated){const note=document.createElement('div');note.className='sub';note.textContent='Showing the first 50 case paths.';flowsEl.append(note);}
+      }catch(error){flowsEl.textContent=`Could not load case paths: ${error.message}`;}
+    }
+    document.getElementById('fit').addEventListener('click',()=>cy?.fit(undefined,55));
+    expandButton.addEventListener('click',loadMore);
+    load();
+  </script>
+</body>
+</html>

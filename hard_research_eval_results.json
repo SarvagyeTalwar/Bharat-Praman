@@ -1,0 +1,1272 @@
+{
+  "started_at": "2026-10-24T18:45:09+05:30",
+  "endpoint": "http://127.0.0.1:8000/api/ask",
+  "max_questions": 40,
+  "pause_seconds": 5.0,
+  "quota_policy": "No retry; stop immediately after an API quota/rate-limit response; preserve a checkpoint after each question.",
+  "results": [
+    {
+      "id": 1,
+      "level": 1,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "profile and family fields",
+      "question": "For Rahul Gandhi, return the graph-recorded age, gender, profession, education, aliases, number of sons, number of daughters, and source-document date, keeping missing values distinct from zero.",
+      "http_status": 400,
+      "actual_type": null,
+      "neo4j_rows": null,
+      "assessment": "error",
+      "error": "Graph queries must use a specific labeled relationship path.",
+      "gemini_request_count": 1,
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1739,
+        "candidatesTokenCount": 124,
+        "totalTokenCount": 1863
+      }
+    },
+    {
+      "id": 2,
+      "level": 1,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "profile and family fields",
+      "question": "For Narendra Modi, return recorded age, education, profession, terms, council section, and special responsibilities.",
+      "http_status": 400,
+      "actual_type": null,
+      "neo4j_rows": null,
+      "assessment": "error",
+      "error": "Graph queries must use a specific labeled relationship path.",
+      "gemini_request_count": 1,
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1696,
+        "candidatesTokenCount": 116,
+        "totalTokenCount": 1812
+      }
+    },
+    {
+      "id": 3,
+      "level": 1,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "party membership",
+      "question": "Which Party node is Rahul Gandhi connected to through MEMBER_OF?",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 1,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1700,
+        "candidatesTokenCount": 121,
+        "totalTokenCount": 1821,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1700
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Finds the Party node connected to Rahul Gandhi via the MEMBER_OF relationship.",
+      "cypher": "MATCH p = (n:Person)-[:MEMBER_OF]->(m:Party) WHERE toLower(n.name) CONTAINS toLower($person_name) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+      "node_count": 2,
+      "edge_count": 1,
+      "node_labels": [
+        "Party",
+        "Person"
+      ],
+      "relationship_types": [
+        "MEMBER_OF"
+      ]
+    },
+    {
+      "id": 4,
+      "level": 1,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "legal record",
+      "question": "Show the CriminalCase records linked to Rahul Gandhi, with each case's recorded status, court, FIR number, and case number.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 18,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1714,
+        "candidatesTokenCount": 111,
+        "totalTokenCount": 1825,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1714
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns the paths between the Person Rahul Gandhi and any linked CriminalCase nodes along with their case details.",
+      "cypher": "MATCH p=(n:Person)-[:FACES]->(c:CriminalCase) WHERE n.name = $name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+      "node_count": 19,
+      "edge_count": 18,
+      "node_labels": [
+        "CriminalCase",
+        "Person"
+      ],
+      "relationship_types": [
+        "FACES"
+      ]
+    },
+    {
+      "id": 5,
+      "level": 1,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "asset record",
+      "question": "Show BJP MLAs with recorded total assets above 500000000, including their recorded liabilities and movable and immovable assets.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 10,
+      "assessment": "wrong_result_type",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1728,
+        "candidatesTokenCount": 168,
+        "totalTokenCount": 1896,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1728
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns recorded asset and liability properties for BJP MLAs with total assets exceeding 500,000,000.",
+      "cypher": "MATCH (m:MLA:Person) WHERE m.party_name = $party_name AND m.total_assets > $min_assets RETURN m.name AS name, m.total_assets AS total_assets, m.liabilities AS liabilities, m.movable_assets AS movable_assets, m.immovable_assets AS immovable_assets LIMIT 10"
+    },
+    {
+      "id": 6,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "age by party and state",
+      "question": "What is the average recorded age and number of MLAs by party for constituencies in Gujarat? Use distinct MLAs and return the top 10 groups.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 5,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1818,
+        "candidatesTokenCount": 158,
+        "totalTokenCount": 1976,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1818
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns the average recorded age and number of distinct MLAs grouped by party for constituencies in Gujarat, ordered by MLA count.",
+      "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE toLower(s.name) = toLower($state_name) RETURN m.party_name AS party_name, avg(m.age) AS average_age, count(DISTINCT m) AS mla_count ORDER BY mla_count DESC LIMIT 10",
+      "result_columns": [
+        "party_name",
+        "average_age",
+        "mla_count"
+      ]
+    },
+    {
+      "id": 7,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "asset comparison",
+      "question": "Among BJP and INC MLAs representing constituencies in Gujarat, compare average total assets, movable assets, immovable assets, and liabilities by party.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 2,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1882,
+        "candidatesTokenCount": 213,
+        "totalTokenCount": 2095,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1882
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Compares average total assets, movable assets, immovable assets, and liabilities for BJP and INC MLAs in Gujarat by party.",
+      "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c)-[:IN_STATE]->(s:State {name: $state_name}), (m)-[:MEMBER_OF]->(p:Party) WHERE p.name IN $parties RETURN p.name AS party, avg(m.total_assets) AS avg_total_assets, avg(m.movable_assets) AS avg_movable_assets, avg(m.immovable_assets) AS avg_immovable_assets, avg(m.liabilities) AS avg_liabilities ORDER BY avg_total_assets DESC LIMIT 10",
+      "result_columns": [
+        "party",
+        "avg_total_assets",
+        "avg_movable_assets",
+        "avg_immovable_assets",
+        "avg_liabilities"
+      ]
+    },
+    {
+      "id": 8,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "family fields by party",
+      "question": "For people grouped by party, calculate average recorded number of sons and daughters and count how many records have both values present.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 41,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1662,
+        "candidatesTokenCount": 140,
+        "totalTokenCount": 1802,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1662
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Calculates the average recorded number of sons and daughters, and counts records where both values are non-null, grouped by party name.",
+      "cypher": "MATCH (p:Person)-[:MEMBER_OF]->(pt:Party) WHERE p.nSons IS NOT NULL AND p.nDaughters IS NOT NULL RETURN pt.name AS party_name, avg(p.nSons) AS average_sons, avg(p.nDaughters) AS average_daughters, count(p) AS record_count LIMIT 50",
+      "result_columns": [
+        "party_name",
+        "average_sons",
+        "average_daughters",
+        "record_count"
+      ]
+    },
+    {
+      "id": 9,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "case status by party",
+      "question": "For each party, count distinct MLAs and distinct CriminalCase nodes by the case status recorded in Neo4j.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 20,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1851,
+        "candidatesTokenCount": 132,
+        "totalTokenCount": 1983,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1851
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Counts distinct MLAs and distinct criminal cases linked to each party, grouped by the stored criminal case status.",
+      "cypher": "MATCH (m:MLA)-[:MEMBER_OF]->(pt:Party), (m)-[:FACES]->(c:CriminalCase) RETURN pt.name AS party_name, c.status AS case_status, count(DISTINCT m) AS distinct_mlas, count(DISTINCT c) AS distinct_cases ORDER BY distinct_cases DESC LIMIT 20",
+      "result_columns": [
+        "party_name",
+        "case_status",
+        "distinct_mlas",
+        "distinct_cases"
+      ]
+    },
+    {
+      "id": 10,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "legal sections",
+      "question": "Which Section codes occur most often among CriminalCase nodes linked to BJP MLAs? Return distinct case counts, sorted descending, limited to 10.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 10,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1816,
+        "candidatesTokenCount": 152,
+        "totalTokenCount": 1968,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1816
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns the top 10 Section codes sorted by the number of distinct CriminalCase nodes linked to BJP MLAs.",
+      "cypher": "MATCH (m:MLA)-[:MEMBER_OF]->(p:Party), (m)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(s:Section) WHERE toLower(p.name) CONTAINS toLower($party_name) RETURN s.code AS section_code, count(DISTINCT cc) AS case_count ORDER BY case_count DESC LIMIT 10",
+      "result_columns": [
+        "section_code",
+        "case_count"
+      ]
+    },
+    {
+      "id": 11,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "ministries",
+      "question": "For each Ministry portfolio_type and party, count distinct people holding a portfolio and count distinct holders with a linked case.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 9,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1789,
+        "candidatesTokenCount": 156,
+        "totalTokenCount": 1945,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1789
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Counts distinct people holding portfolios and distinct portfolio holders with linked criminal cases, grouped by ministry portfolio type and party.",
+      "cypher": "MATCH (p:Person)-[:HOLDS_PORTFOLIO]->(m:Ministry), (p)-[:MEMBER_OF]->(pt:Party) RETURN m.portfolio_type AS portfolio_type, pt.name AS party_name, count(DISTINCT p) AS distinct_holders, count(DISTINCT CASE WHEN p.criminal_case_count > 0 THEN p END) AS distinct_holders_with_cases ORDER BY distinct_holders DESC LIMIT 20",
+      "result_columns": [
+        "portfolio_type",
+        "party_name",
+        "distinct_holders",
+        "distinct_holders_with_cases"
+      ]
+    },
+    {
+      "id": 12,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "profile completeness",
+      "question": "By party, count distinct MLAs with non-null age, education, profession, total assets, liabilities, and criminal_case_count.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 0,
+      "assessment": "empty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1882,
+        "candidatesTokenCount": 158,
+        "totalTokenCount": 2040,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1882
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Counts distinct MLAs by party who have non-null values for age, education, profession, total assets, liabilities, and criminal case count.",
+      "cypher": "MATCH (m:MLA)-[:MEMBER_OF]->(p:Party) WHERE m.age IS NOT NULL AND m.education IS NOT NULL AND m.profession IS NOT NULL AND m.total_assets IS NOT NULL AND m.liabilities IS NOT NULL AND m.criminal_case_count IS NOT NULL RETURN p.name AS party_name, count(DISTINCT m) AS mla_count ORDER BY mla_count DESC LIMIT 50",
+      "result_columns": []
+    },
+    {
+      "id": 13,
+      "level": 2,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "age distribution",
+      "question": "Group MLAs into age bands under 40, 40 to 59, and 60 or older, and report counts by party. Ignore records with unknown age.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 50,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1764,
+        "candidatesTokenCount": 162,
+        "totalTokenCount": 1926,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1764
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns MLA counts grouped by party and age band, ignoring records with unknown age.",
+      "cypher": "MATCH (m:Person:MLA)-[:MEMBER_OF]->(p:Party) WHERE m.age IS NOT NULL RETURN p.name AS party_name, CASE WHEN m.age < 40 THEN 'Under 40' WHEN m.age >= 40 AND m.age <= 59 THEN '40 to 59' ELSE '60 or older' END AS age_band, count(DISTINCT m) AS mla_count ORDER BY party_name, age_band LIMIT 50",
+      "result_columns": [
+        "party_name",
+        "age_band",
+        "mla_count"
+      ]
+    },
+    {
+      "id": 14,
+      "level": 2,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "case and legal section",
+      "question": "Show BJP MLA-to-case-to-Section paths where the Section code contains 420, including the case's recorded status.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 50,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1778,
+        "candidatesTokenCount": 163,
+        "totalTokenCount": 1941,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1778
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns paths connecting BJP MLAs through their criminal cases to legal sections where the section code contains 420.",
+      "cypher": "MATCH p = (m:MLA:Person)-[:MEMBER_OF]->(pt:Party), (m)-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) WHERE pt.name = $party_name AND s.code CONTAINS $section_code RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+      "node_count": 39,
+      "edge_count": 38,
+      "node_labels": [
+        "MLA",
+        "Party",
+        "Person"
+      ],
+      "relationship_types": [
+        "MEMBER_OF"
+      ]
+    },
+    {
+      "id": 15,
+      "level": 2,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "representation and state",
+      "question": "Show INC MLAs connected through REPRESENTS to an AssemblyConstituency in Delhi, and include the State node when linked.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 0,
+      "assessment": "empty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1798,
+        "candidatesTokenCount": 150,
+        "totalTokenCount": 1948,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1798
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns paths connecting INC MLAs to their represented AssemblyConstituency and State in Delhi.",
+      "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(:Party {name: $party_name}), (m)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(:State {name: $state_name}) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+      "node_count": 0,
+      "edge_count": 0,
+      "node_labels": [],
+      "relationship_types": []
+    },
+    {
+      "id": 16,
+      "level": 3,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "assets and case prevalence",
+      "question": "For each party among Gujarat MLAs, calculate MLA count, average total assets, average liabilities, count of distinct MLAs linked to at least one case, and distinct case count.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 5,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1938,
+        "candidatesTokenCount": 236,
+        "totalTokenCount": 2174,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1938
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Calculates MLA count, average total assets, average liabilities, distinct MLAs with criminal cases, and distinct case count for each party among Gujarat MLAs.",
+      "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c:AssemblyConstituency)-[:IN_STATE]->(s:State {name: $state_name}), (m)-[:MEMBER_OF]->(p:Party) OPTIONAL MATCH (m)-[:FACES]->(cc:CriminalCase) RETURN p.name AS party_name, count(DISTINCT m) AS mla_count, avg(m.total_assets) AS avg_total_assets, avg(m.liabilities) AS avg_liabilities, count(DISTINCT CASE WHEN cc IS NOT NULL THEN m END) AS mlas_with_cases, count(DISTINCT cc) AS distinct_case_count ORDER BY mla_count DESC LIMIT 20",
+      "result_columns": [
+        "party_name",
+        "mla_count",
+        "avg_total_assets",
+        "avg_liabilities",
+        "mlas_with_cases",
+        "distinct_case_count"
+      ]
+    },
+    {
+      "id": 17,
+      "level": 3,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "party state legal comparison",
+      "question": "For BJP and INC MLAs, group by State and report distinct MLA count, distinct linked case count, and average age; return the 10 largest groups.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 10,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1946,
+        "candidatesTokenCount": 213,
+        "totalTokenCount": 2159,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1946
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Groups BJP and INC MLAs by State using REPRESENTS and IN_STATE, computing distinct MLA count, distinct linked criminal case count via FACES, and average age, ordered by the largest MLA counts.",
+      "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE m.party_name IN $parties OPTIONAL MATCH (m)-[:FACES]->(cc:CriminalCase) RETURN s.name AS state_name, m.party_name AS party_name, count(DISTINCT m) AS mla_count, count(DISTINCT cc) AS case_count, avg(m.age) AS avg_age ORDER BY mla_count DESC LIMIT 10",
+      "result_columns": [
+        "state_name",
+        "party_name",
+        "mla_count",
+        "case_count",
+        "avg_age"
+      ]
+    },
+    {
+      "id": 18,
+      "level": 3,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "section and case status",
+      "question": "For each Section code and recorded case status, count distinct cases linked to MLAs, and show the ten largest section-status groups.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 10,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1855,
+        "candidatesTokenCount": 116,
+        "totalTokenCount": 1971,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1855
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns the top ten Section code and case status groups ordered by the count of distinct criminal cases linked to MLAs.",
+      "cypher": "MATCH (m:MLA)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(s:Section) RETURN s.code AS section_code, cc.status AS case_status, count(DISTINCT cc) AS distinct_cases ORDER BY distinct_cases DESC LIMIT 10",
+      "result_columns": [
+        "section_code",
+        "case_status",
+        "distinct_cases"
+      ]
+    },
+    {
+      "id": 19,
+      "level": 3,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "case count consistency",
+      "question": "Compare by party the average stored criminal_case_count property with the average number of distinct CriminalCase nodes reached through FACES for MLAs.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 20,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1899,
+        "candidatesTokenCount": 161,
+        "totalTokenCount": 2060,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1899
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Compares by party the average of the stored criminal_case_count property on MLAs against the average count of distinct connected CriminalCase nodes reached via FACES.",
+      "cypher": "MATCH (m:MLA) OPTIONAL MATCH (m)-[:FACES]->(cc:CriminalCase) RETURN m.party_name AS party_name, avg(m.criminal_case_count) AS avg_stored_criminal_case_count, count(DISTINCT cc) * 1.0 / count(DISTINCT m) AS avg_distinct_criminal_cases ORDER BY avg_stored_criminal_case_count DESC LIMIT 20",
+      "result_columns": [
+        "party_name",
+        "avg_stored_criminal_case_count",
+        "avg_distinct_criminal_cases"
+      ]
+    },
+    {
+      "id": 20,
+      "level": 3,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "portfolio and legal links",
+      "question": "For each party and Ministry portfolio_type, count distinct portfolio holders, distinct linked criminal cases, and distinct Section codes reached from those cases.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 4,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1811,
+        "candidatesTokenCount": 174,
+        "totalTokenCount": 1985,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1811
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Counts distinct portfolio holders, criminal cases, and legal sections by party and ministry portfolio type using graph relationships.",
+      "cypher": "MATCH (p:Person)-[:MEMBER_OF]->(pt:Party), (p)-[:HOLDS_PORTFOLIO]->(min:Ministry), (p)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(s:Section) RETURN pt.name AS party_name, min.portfolio_type AS portfolio_type, count(DISTINCT p) AS distinct_holders, count(DISTINCT cc) AS distinct_cases, count(DISTINCT s) AS distinct_sections ORDER BY distinct_holders DESC, distinct_cases DESC LIMIT 25",
+      "result_columns": [
+        "party_name",
+        "portfolio_type",
+        "distinct_holders",
+        "distinct_cases",
+        "distinct_sections"
+      ]
+    },
+    {
+      "id": 21,
+      "level": 3,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "election year and source date",
+      "question": "By party and election_year, count MLAs and report the latest available source_document_date; do not treat missing dates as current.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 50,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1734,
+        "candidatesTokenCount": 115,
+        "totalTokenCount": 1849,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1734
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Counts MLAs and finds the latest source document date grouped by party and election year.",
+      "cypher": "MATCH (m:MLA) RETURN m.party_name AS party, m.election_year AS election_year, count(DISTINCT m) AS mla_count, max(m.source_document_date) AS latest_source_document_date ORDER BY mla_count DESC LIMIT 50",
+      "result_columns": [
+        "party",
+        "election_year",
+        "mla_count",
+        "latest_source_document_date"
+      ]
+    },
+    {
+      "id": 22,
+      "level": 3,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "family and assets",
+      "question": "Among MLAs with recorded nSons and nDaughters, compare by party the average family counts, average assets, and number of records with non-null values.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 0,
+      "assessment": "empty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1764,
+        "candidatesTokenCount": 164,
+        "totalTokenCount": 1928,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1764
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns the average number of sons, average number of daughters, average total assets, and count of records for MLAs with recorded non-null nSons and nDaughters, grouped by party.",
+      "cypher": "MATCH (m:MLA) WHERE m.nSons IS NOT NULL AND m.nDaughters IS NOT NULL RETURN m.party_name AS party_name, avg(m.nSons) AS avg_sons, avg(m.nDaughters) AS avg_daughters, avg(m.total_assets) AS avg_total_assets, count(m) AS record_count ORDER BY record_count DESC LIMIT 20",
+      "result_columns": []
+    },
+    {
+      "id": 23,
+      "level": 3,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "multi-hop party case section",
+      "question": "Trace BJP through MEMBER_OF to MLA, then FACES to CriminalCase, then UNDER to Section; return case number, status, court, and Section code.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 25,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1757,
+        "candidatesTokenCount": 150,
+        "totalTokenCount": 1907,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1757
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Traces paths from the BJP party to its MLA members, their criminal cases, and the legal sections involved, returning the path nodes and edges.",
+      "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WHERE toLower(party.name) CONTAINS toLower($party_name) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 25",
+      "node_count": 23,
+      "edge_count": 36,
+      "node_labels": [
+        "CriminalCase",
+        "MLA",
+        "Party",
+        "Person",
+        "Section"
+      ],
+      "relationship_types": [
+        "FACES",
+        "MEMBER_OF",
+        "UNDER"
+      ]
+    },
+    {
+      "id": 24,
+      "level": 3,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "multi-hop party state",
+      "question": "Trace INC membership to MLAs, their represented AssemblyConstituencies, and the State for seats in Gujarat.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 12,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1722,
+        "candidatesTokenCount": 164,
+        "totalTokenCount": 1886,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1722
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Traces INC party members who are MLAs, the AssemblyConstituencies they represent, and the State of Gujarat using stored relationship paths.",
+      "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(state:State) WHERE party.name = $party_name AND state.name = $state_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 25",
+      "node_count": 26,
+      "edge_count": 36,
+      "node_labels": [
+        "AssemblyConstituency",
+        "MLA",
+        "Party",
+        "Person",
+        "State"
+      ],
+      "relationship_types": [
+        "IN_STATE",
+        "MEMBER_OF",
+        "REPRESENTS"
+      ]
+    },
+    {
+      "id": 25,
+      "level": 3,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "multi-hop person portfolio",
+      "question": "Show people connected to BJP who hold Ministry portfolios, including the HOLDS_PORTFOLIO role and Ministry portfolio_type.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 50,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1711,
+        "candidatesTokenCount": 143,
+        "totalTokenCount": 1854,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1711
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns people who are members of the BJP party and hold a Ministry portfolio, along with the portfolio relationship and ministry details.",
+      "cypher": "MATCH p = (person:Person)-[:MEMBER_OF]->(party:Party), (person)-[r:HOLDS_PORTFOLIO]->(ministry:Ministry) WHERE toLower(party.name) CONTAINS toLower($party) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+      "node_count": 35,
+      "edge_count": 34,
+      "node_labels": [
+        "MLA",
+        "Party",
+        "Person"
+      ],
+      "relationship_types": [
+        "MEMBER_OF"
+      ]
+    },
+    {
+      "id": 26,
+      "level": 4,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "cross-domain party comparison",
+      "question": "Compare BJP and INC by State using distinct MLA counts, mean age, median total_assets if supported by Cypher, case prevalence, distinct linked case counts, and the top Section code.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 10,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1952,
+        "candidatesTokenCount": 275,
+        "totalTokenCount": 2227,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1952
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Compares BJP and INC by State using distinct MLA counts, mean age, mean total_assets, case prevalence, distinct linked case counts, and associated section frequencies.",
+      "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE m.party_name IN $parties MATCH (m)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) RETURN s.name AS state_name, m.party_name AS party_name, count(DISTINCT m) AS distinct_mla_count, avg(m.age) AS mean_age, avg(m.total_assets) AS mean_total_assets, count(DISTINCT CASE WHEN m.criminal_case_count > 0 THEN m END) AS mlas_with_cases, count(DISTINCT cc) AS distinct_case_count, sec.code AS top_section_code, count(sec) AS section_frequency ORDER BY state_name, party_name, section_frequency DESC LIMIT 10",
+      "result_columns": [
+        "state_name",
+        "party_name",
+        "distinct_mla_count",
+        "mean_age",
+        "mean_total_assets",
+        "mlas_with_cases",
+        "distinct_case_count",
+        "top_section_code",
+        "section_frequency"
+      ]
+    },
+    {
+      "id": 27,
+      "level": 4,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "case-status section ranking",
+      "question": "For every party, rank the top five Section codes by distinct linked MLA count, split by recorded CriminalCase.status, and include total distinct cases.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 50,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1859,
+        "candidatesTokenCount": 157,
+        "totalTokenCount": 2016,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1859
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Counts distinct MLAs and distinct criminal cases linked to each party, split by criminal case status and legal section code, ordered by distinct MLA count descending.",
+      "cypher": "MATCH (p:Party)<-[:MEMBER_OF]-(m:MLA)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(s:Section) RETURN p.name AS party_name, cc.status AS case_status, s.code AS section_code, count(DISTINCT m) AS distinct_mla_count, count(DISTINCT cc) AS distinct_cases ORDER BY distinct_mla_count DESC LIMIT 50",
+      "result_columns": [
+        "party_name",
+        "case_status",
+        "section_code",
+        "distinct_mla_count",
+        "distinct_cases"
+      ]
+    },
+    {
+      "id": 28,
+      "level": 4,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "data quality audit",
+      "question": "By node label, report node counts and the number and percentage with source_document_date; return the latest date available per label.",
+      "http_status": 400,
+      "actual_type": null,
+      "neo4j_rows": null,
+      "assessment": "error",
+      "error": "Generated queries must constrain matches to a known graph label.",
+      "gemini_request_count": 1,
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1727,
+        "candidatesTokenCount": 179,
+        "totalTokenCount": 1906
+      }
+    },
+    {
+      "id": 29,
+      "level": 4,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "financial outliers",
+      "question": "For Gujarat MLAs by party, return the five largest recorded total_assets values with MLA name, liabilities, and constituency; exclude null asset values.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 5,
+      "assessment": "wrong_result_type",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1801,
+        "candidatesTokenCount": 151,
+        "totalTokenCount": 1952,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1801
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns the top 5 MLAs in Gujarat with the highest recorded total assets, along with their constituencies and liabilities, excluding null asset values.",
+      "cypher": "MATCH p = (m:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE s.name = $state_name AND m.total_assets IS NOT NULL RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges ORDER BY m.total_assets DESC LIMIT 5"
+    },
+    {
+      "id": 30,
+      "level": 4,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "legal status and representation",
+      "question": "For BJP and INC MLAs grouped by State and recorded case status, report distinct affected MLAs, cases per affected MLA, and average total_assets.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 20,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1920,
+        "candidatesTokenCount": 227,
+        "totalTokenCount": 2147,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1920
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns distinct affected MLAs, ratio of cases per affected MLA, and average total_assets for BJP and INC MLAs grouped by State and recorded criminal case status.",
+      "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(c:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE m.party_name IN $parties MATCH (m)-[:FACES]->(cc:CriminalCase) RETURN s.name AS state_name, m.party_name AS party_name, cc.status AS case_status, count(DISTINCT m) AS distinct_mlas, count(DISTINCT cc) * 1.0 / count(DISTINCT m) AS cases_per_affected_mla, avg(m.total_assets) AS avg_total_assets ORDER BY state_name, party_name, case_status LIMIT 20",
+      "result_columns": [
+        "state_name",
+        "party_name",
+        "case_status",
+        "distinct_mlas",
+        "cases_per_affected_mla",
+        "avg_total_assets"
+      ]
+    },
+    {
+      "id": 31,
+      "level": 4,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "deep case detail",
+      "question": "Find BJP MLAs represented in Gujarat who are linked to cases under Sections containing 120B; show the party-person-constituency-state-case-section evidence path, and keep the stored arrows in the correct direction.",
+      "http_status": 400,
+      "actual_type": null,
+      "neo4j_rows": null,
+      "assessment": "error",
+      "error": "Graph paths are limited to three relationship hops.",
+      "gemini_request_count": 1,
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1845,
+        "candidatesTokenCount": 217,
+        "totalTokenCount": 2062
+      }
+    },
+    {
+      "id": 32,
+      "level": 4,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "multi-hop party ministry case",
+      "question": "Show BJP members who hold a Ministry portfolio and are also linked to a CriminalCase, returning the membership path and the separate portfolio and case links with their stored properties.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 8,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1739,
+        "candidatesTokenCount": 139,
+        "totalTokenCount": 1878,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1739
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Finds BJP MLA members, their Ministry portfolios, and connected CriminalCase nodes.",
+      "cypher": "MATCH p=(party:Party)<-[:MEMBER_OF]-(mla:MLA)-[r:HOLDS_PORTFOLIO]->(m:Ministry), (mla)-[:FACES]->(cc:CriminalCase) WHERE party.name = $party_name RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 10",
+      "node_count": 7,
+      "edge_count": 6,
+      "node_labels": [
+        "MLA",
+        "Ministry",
+        "Party",
+        "Person"
+      ],
+      "relationship_types": [
+        "HOLDS_PORTFOLIO",
+        "MEMBER_OF"
+      ]
+    },
+    {
+      "id": 33,
+      "level": 4,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "name alias and case",
+      "question": "Find a Person whose name, MyNeta name, or aliases contain Rahul Gandhi; show their party link and any FACES-linked cases without treating the link as guilt.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 18,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1750,
+        "candidatesTokenCount": 214,
+        "totalTokenCount": 1964,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1750
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns paths connecting a Person matching the name, Myneta name, or aliases to their Party and any FACES-linked criminal cases. FACES represents a database link only and does not denote guilt or conviction.",
+      "cypher": "MATCH p=(person:Person)-[:MEMBER_OF]->(party:Party), q=(person)-[:FACES]->(case:CriminalCase) WHERE toLower(coalesce(person.name, '')) CONTAINS toLower($name) OR toLower(coalesce(person.myneta_name, '')) CONTAINS toLower($name) OR any(alias IN coalesce(person.aliases, []) WHERE toLower(toString(alias)) CONTAINS toLower($name)) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 25",
+      "node_count": 2,
+      "edge_count": 1,
+      "node_labels": [
+        "Party",
+        "Person"
+      ],
+      "relationship_types": [
+        "MEMBER_OF"
+      ]
+    },
+    {
+      "id": 34,
+      "level": 4,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "non-null field denominators",
+      "question": "For each party, compare average age, assets, and liabilities while also returning a separate non-null denominator for each measure.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 50,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1891,
+        "candidatesTokenCount": 182,
+        "totalTokenCount": 2073,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1891
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Calculates the average age, total assets, and liabilities for each party alongside non-null counts (denominators) for each measure, ordered by descending average total assets.",
+      "cypher": "MATCH (p:Person)-[:MEMBER_OF]->(pt:Party) RETURN pt.name AS party_name, avg(p.age) AS average_age, count(p.age) AS age_count, avg(p.total_assets) AS average_total_assets, count(p.total_assets) AS total_assets_count, avg(p.liabilities) AS average_liabilities, count(p.liabilities) AS liabilities_count ORDER BY average_total_assets DESC LIMIT 50",
+      "result_columns": [
+        "party_name",
+        "average_age",
+        "age_count",
+        "average_total_assets",
+        "total_assets_count",
+        "average_liabilities",
+        "liabilities_count"
+      ]
+    },
+    {
+      "id": 35,
+      "level": 4,
+      "expected_type": "graph",
+      "expect_supported": true,
+      "topic": "case fields",
+      "question": "Show BJP MLA paths to cases whose recorded status contains Pending and return case_no, fir_no, court, charges_framed, ipc_sections, and Section codes where available.",
+      "http_status": 200,
+      "actual_type": "graph",
+      "neo4j_rows": 0,
+      "assessment": "empty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1752,
+        "candidatesTokenCount": 165,
+        "totalTokenCount": 1917,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1752
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Returns paths connecting BJP MLAs through their party and criminal cases to legal sections, filtered where the case status contains 'Pending'.",
+      "cypher": "MATCH p = (m:MLA)-[:MEMBER_OF]->(p_party:Party {name: $party_name})-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) WHERE toLower(c.status) CONTAINS toLower($status_filter) RETURN nodes(p) AS path_nodes, relationships(p) AS path_edges LIMIT 50",
+      "node_count": 0,
+      "edge_count": 0,
+      "node_labels": [],
+      "relationship_types": []
+    },
+    {
+      "id": 36,
+      "level": 5,
+      "expected_type": "unsupported",
+      "expect_supported": false,
+      "topic": "current MPs unsupported",
+      "question": "List current Lok Sabha and Rajya Sabha MPs by party, State, age, affidavit assets, and linked cases; do not infer MPs from Person nodes.",
+      "http_status": 200,
+      "actual_type": "unsupported",
+      "neo4j_rows": 0,
+      "assessment": "unsupported_as_expected",
+      "gemini_usage_metadata": {},
+      "gemini_request_count": 0,
+      "plan_cache_hit": false,
+      "explanation": "This graph has no MP or Parliament membership label, so it cannot reliably answer questions about MPs.",
+      "cypher": ""
+    },
+    {
+      "id": 37,
+      "level": 5,
+      "expected_type": "unsupported",
+      "expect_supported": false,
+      "topic": "spouse unsupported",
+      "question": "Compare the wives of BJP and INC MLAs by profession, assets, and party; report unsupported if spouse relationships are not represented.",
+      "http_status": 200,
+      "actual_type": "unsupported",
+      "neo4j_rows": 0,
+      "assessment": "unsupported_as_expected",
+      "gemini_usage_metadata": {},
+      "gemini_request_count": 0,
+      "plan_cache_hit": false,
+      "explanation": "This graph has no spouse or family relationship data, so it cannot identify a person's wife, husband, or spouse.",
+      "cypher": ""
+    },
+    {
+      "id": 38,
+      "level": 5,
+      "expected_type": "unsupported",
+      "expect_supported": false,
+      "topic": "current office unsupported",
+      "question": "Which politicians currently hold office as of today, grouped by party and State? Require a verified as-of date, otherwise report unsupported.",
+      "http_status": 200,
+      "actual_type": "unsupported",
+      "neo4j_rows": 0,
+      "assessment": "unsupported_as_expected",
+      "gemini_usage_metadata": {},
+      "gemini_request_count": 0,
+      "plan_cache_hit": false,
+      "explanation": "The graph has no reliable current-office indicator or verified as-of date, so it cannot confirm who currently holds office.",
+      "cypher": ""
+    },
+    {
+      "id": 39,
+      "level": 5,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "multi-hop consistency",
+      "question": "For each party and State, reconcile MLA counts from MEMBER_OF plus REPRESENTS with distinct case counts through FACES and UNDER, and report distinct Section counts; avoid join multiplication.",
+      "http_status": 200,
+      "actual_type": "aggregate",
+      "neo4j_rows": 50,
+      "assessment": "nonempty_result",
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1787,
+        "candidatesTokenCount": 268,
+        "totalTokenCount": 2055,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1787
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "gemini_request_count": 1,
+      "plan_cache_hit": false,
+      "explanation": "Aggregates MLA counts, distinct criminal case counts, and distinct section counts per party and state without join multiplication, limited to 50 rows.",
+      "cypher": "MATCH (party:Party), (state:State) OPTIONAL MATCH (m:MLA)-[:MEMBER_OF]->(party), (m)-[:REPRESENTS]->(ac)-[:IN_STATE]->(state) WITH party, state, count(DISTINCT m) AS mla_count OPTIONAL MATCH (m2:MLA)-[:MEMBER_OF]->(party), (m2)-[:REPRESENTS]->(:AssemblyConstituency)-[:IN_STATE]->(state), (m2)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) WITH party, state, mla_count, count(DISTINCT cc) AS case_count, count(DISTINCT sec) AS section_count WHERE mla_count > 0 OR case_count > 0 RETURN party.name AS party_name, state.name AS state_name, mla_count, case_count, section_count LIMIT 50",
+      "result_columns": [
+        "party_name",
+        "state_name",
+        "mla_count",
+        "case_count",
+        "section_count"
+      ]
+    },
+    {
+      "id": 40,
+      "level": 5,
+      "expected_type": "aggregate",
+      "expect_supported": true,
+      "topic": "case burden and assets",
+      "question": "For Gujarat BJP and INC MLAs, compare case burden quartiles with total_assets and liabilities, using distinct MLAs and cases, excluding unknown numeric values, and returning sample counts for every group.",
+      "http_status": 400,
+      "actual_type": null,
+      "neo4j_rows": null,
+      "assessment": "error",
+      "error": "Neo4j could not run the generated graph query. Try a simpler question.",
+      "gemini_request_count": 1,
+      "gemini_usage_metadata": {
+        "promptTokenCount": 1988,
+        "candidatesTokenCount": 330,
+        "totalTokenCount": 2318
+      }
+    }
+  ],
+  "stopped_early": false,
+  "stop_reason": null,
+  "gemini_requests_recorded": 37,
+  "gemini_tokens_recorded": 73129,
+  "completed_at": "2026-10-24T18:51:34+05:30"
+}

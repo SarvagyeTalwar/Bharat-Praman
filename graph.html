@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bharat Praman — Graph Explorer</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #fbf8f1;
+      --ink: #1c1917;
+      --muted: #6b6256;
+      --line: #292524;
+      --amber: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: var(--paper);
+      background-image: radial-gradient(#d8d0c2 1px, transparent 1px);
+      background-size: 22px 22px;
+      color: var(--ink);
+      font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px clamp(16px, 4vw, 48px);
+      border-bottom: 2px solid var(--line);
+      background: #f4eee2;
+    }
+    .brand { font: 700 12px/1.4 "Consolas", monospace; letter-spacing: .04em; }
+    .back-link, button {
+      border: 2px solid var(--line);
+      border-radius: 9px;
+      background: white;
+      color: var(--ink);
+      cursor: pointer;
+      font: 700 12px/1.2 "Consolas", monospace;
+      text-decoration: none;
+      box-shadow: 2px 2px 0 var(--line);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .back-link { padding: 10px 13px; }
+    button { padding: 11px 16px; }
+    .back-link:hover, button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--line); }
+    main { width: min(1240px, calc(100% - 32px)); margin: 30px auto 48px; }
+    .heading { margin: 0 0 5px; font-size: clamp(24px, 4vw, 36px); font-weight: 850; }
+    .subheading { margin: 0 0 22px; color: var(--muted); font: 12px/1.6 "Consolas", monospace; }
+    .freshness-note { margin:-12px 0 16px; padding:10px 12px; border-left:4px solid #b45309; background:#fff7ed; color:#7c2d12; font:11px/1.6 Consolas,monospace; }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 11px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fffefa;
+      box-shadow: 4px 4px 0 var(--line);
+    }
+    input, select {
+      min-width: 0;
+      height: 42px;
+      border: 1px solid #c9c1b6;
+      border-radius: 7px;
+      background: white;
+      color: var(--ink);
+      font: 14px "Consolas", monospace;
+      padding: 0 12px;
+    }
+    input { flex: 1; }
+    select { width: 145px; }
+    select#mode { width: 175px; }
+    button { background: var(--amber); }
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 42px;
+      color: var(--muted);
+      font: 11px/1.4 "Consolas", monospace;
+    }
+    .legend { display:flex; flex-wrap:wrap; gap:8px 14px; margin:0 0 12px; color:var(--muted); font:10px Consolas,monospace; }
+    .legend span { display:inline-flex; align-items:center; gap:6px; }
+    .legend i { width:10px; height:10px; border:1px solid var(--line); border-radius:3px; }
+    #status.error { color: #b42318; }
+    .cypher-panel { margin:0 0 14px; border:1px solid #c9c1b6; border-radius:8px; padding:10px 13px; background:#fffefa; }
+    .cypher-panel summary { cursor:pointer; font:700 11px Consolas,monospace; }
+    .cypher-panel p { color:var(--muted); font-size:12px; }
+    .cypher-panel pre { overflow:auto; padding:12px; border-radius:6px; background:#292524; color:#f5f5f4; font:11px/1.6 Consolas,monospace; white-space:pre-wrap; }
+    .aggregate-results { margin:0 0 16px; padding:16px; border:2px solid var(--line); border-radius:12px; background:#fffefa; box-shadow:4px 4px 0 var(--line); }
+    .aggregate-results h2 { margin:0 0 6px; font-size:17px; }
+    .aggregate-results p { color:var(--muted); font:12px/1.6 Consolas,monospace; }
+    .aggregate-table-wrap { overflow:auto; max-height:55vh; border:1px solid #d6d3d1; border-radius:7px; }
+    .aggregate-table { width:100%; border-collapse:collapse; font:12px/1.5 Consolas,monospace; }
+    .aggregate-table th,.aggregate-table td { padding:9px 11px; border-bottom:1px solid #e7e5e4; text-align:left; vertical-align:top; }
+    .aggregate-table th { position:sticky; top:0; background:#f4eee2; }
+    .aggregate-table td { max-width:360px; overflow-wrap:anywhere; }
+    .graph-card {
+      overflow: hidden;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fffefa;
+      box-shadow: 5px 5px 0 var(--line);
+    }
+    .graph-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 2px solid var(--line);
+      background: #f4eee2;
+      font: 700 12px/1.5 "Consolas", monospace;
+    }
+    #graph { width: 100%; height: min(70vh, 680px); min-height: 430px; background: #fffefa; }
+    .graph-controls { display: flex; gap: 8px; }
+    .graph-controls button { padding: 7px 10px; background: white; }
+    .empty-state {
+      display: grid;
+      min-height: 430px;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+      font: 13px/1.7 "Consolas", monospace;
+    }
+    @media (max-width: 640px) {
+      header { padding: 11px 14px; }
+      .brand { max-width: 55%; font-size: 10px; }
+      main { width: calc(100% - 22px); margin-top: 22px; }
+      .toolbar { flex-wrap: wrap; }
+      input { flex-basis: 100%; }
+      select { flex: 1; }
+      #graph { min-height: 390px; height: 62vh; }
+    }
+  </style>
+  <script src="https://unpkg.com/cytoscape@3.33.0/dist/cytoscape.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="brand">BHARAT PRAMAN // GRAPH EXPLORER</div>
+    <a class="back-link" href="graphdashboard2.html">← Back to search</a>
+  </header>
+
+  <main>
+    <h1 class="heading">Explore the graph</h1>
+    <p class="subheading">Search a person, party, constituency, state, or relationship—or ask a question in plain English.</p>
+    <p id="freshness-note" class="freshness-note" role="status">Checking the graph's source-date coverage…</p>
+
+    <form id="search-form" class="toolbar">
+      <select id="mode" aria-label="Search mode">
+        <option value="keyword">Keyword search</option>
+        <option value="ask">Ask with Gemini</option>
+      </select>
+      <input id="query" type="search" maxlength="200" placeholder="Search the graph…" autocomplete="off" aria-label="Search the graph" />
+      <select id="filter" aria-label="Search filter">
+        <option value="all">All</option>
+        <option value="nodes">Nodes</option>
+        <option value="relations">Relations</option>
+      </select>
+      <button id="search-button" type="submit">Search</button>
+    </form>
+
+    <div class="status-row">
+      <span id="status" role="status">Enter a keyword to load a graph from Neo4j.</span>
+      <span>Drag nodes · Pan · Zoom</span>
+    </div>
+    <details id="cypher-panel" class="cypher-panel" hidden>
+      <summary>View the generated read-only Cypher</summary>
+      <p id="cypher-explanation"></p>
+      <pre id="cypher-text"></pre>
+    </details>
+    <section id="aggregate-results" class="aggregate-results" hidden aria-live="polite">
+      <h2>Tabular results from Neo4j</h2>
+      <p id="aggregate-explanation"></p>
+      <div id="aggregate-table-wrap" class="aggregate-table-wrap"></div>
+    </section>
+    <div class="legend" aria-label="Node color legend">
+      <span><i style="background:#fde68a"></i>Party</span><span><i style="background:#c4b5fd"></i>MLA</span>
+      <span><i style="background:#bfdbfe"></i>Person</span><span><i style="background:#bbf7d0"></i>State</span>
+      <span><i style="background:#a5f3fc"></i>Constituency</span><span><i style="background:#ddd6fe"></i>Ministry</span>
+      <span><i style="background:#fecaca"></i>Criminal case</span><span><i style="background:#fed7aa"></i>Section</span>
+    </div>
+
+    <section class="graph-card" aria-label="Neo4j graph results">
+      <div class="graph-heading">
+        <span id="graph-title">No search yet</span>
+        <div class="graph-controls">
+        <button id="expand-button" type="button" hidden>Load more connections</button>
+          <button id="fit-button" type="button" title="Fit graph to screen">Fit</button>
+          <button id="zoom-out" type="button" title="Zoom out">−</button>
+          <button id="zoom-in" type="button" title="Zoom in">+</button>
+        </div>
+      </div>
+      <div id="graph" aria-label="Graph visualization"></div>
+      <div id="empty-state" class="empty-state">Search from this page or use the search page to open a graph.</div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = 'http://127.0.0.1:8000/api/search';
+    const queryInput = document.getElementById('query');
+    const filterInput = document.getElementById('filter');
+    const form = document.getElementById('search-form');
+    const status = document.getElementById('status');
+    const graphTitle = document.getElementById('graph-title');
+    const graphContainer = document.getElementById('graph');
+    const emptyState = document.getElementById('empty-state');
+    const searchButton = document.getElementById('search-button');
+    const expandButton = document.getElementById('expand-button');
+    const modeInput = document.getElementById('mode');
+    const cypherPanel = document.getElementById('cypher-panel');
+    const cypherText = document.getElementById('cypher-text');
+    const cypherExplanation = document.getElementById('cypher-explanation');
+    const aggregatePanel = document.getElementById('aggregate-results');
+    const aggregateExplanation = document.getElementById('aggregate-explanation');
+    const aggregateTableWrap = document.getElementById('aggregate-table-wrap');
+    const graphCard = document.querySelector('.graph-card');
+    const freshnessNote = document.getElementById('freshness-note');
+    let cy = null;
+    let activeFocusIds = [];
+    let connectionOffset = 0;
+    let activeQuery = '';
+
+    fetch('http://127.0.0.1:8000/api/metadata')
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('metadata unavailable')))
+      .then(metadata => {
+        const dateNote = metadata.latest_source_date
+          ? `Latest recorded source-document date: ${metadata.latest_source_date}. `
+          : 'The graph has no recorded source-document dates. ';
+        const coverage = `Only ${metadata.source_date_coverage_percent}% of nodes have a source-document date. `;
+        const stale = metadata.latest_source_date_over_one_year_old
+          ? 'That date is over a year old; this is not a live current-office roster. '
+          : '';
+        freshnessNote.textContent = `${dateNote}${coverage}${stale}${metadata.note || ''}`;
+      })
+      .catch(() => {
+        freshnessNote.textContent = 'Could not read source-date coverage. Check that the FastAPI service and Neo4j are running.';
+      });
+
+    if (typeof cytoscape !== 'undefined') {
+      cy = cytoscape({
+        container: graphContainer,
+        elements: [],
+        minZoom: 0.15,
+        maxZoom: 3,
+        wheelSensitivity: 0.2,
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'label': 'data(label)',
+              'shape': 'round-rectangle',
+              'width': 'label',
+              'height': 40,
+              'padding': '10px',
+              'background-color': '#dbeafe',
+              'border-color': '#292524',
+              'border-width': 1.5,
+              'color': '#1c1917',
+              'font-size': 11,
+              'font-weight': 600,
+              'text-wrap': 'ellipsis',
+              'text-max-width': 170,
+              'text-valign': 'center',
+              'text-halign': 'center'
+            }
+          },
+          { selector: 'node.party', style: { 'background-color': '#fde68a' } },
+          { selector: 'node.state', style: { 'background-color': '#bbf7d0' } },
+          { selector: 'node.constituency', style: { 'background-color': '#a5f3fc' } },
+          { selector: 'node.assemblyconstituency', style: { 'background-color': '#99f6e4' } },
+          { selector: 'node.person', style: { 'background-color': '#bfdbfe' } },
+          { selector: 'node.mla', style: { 'background-color': '#c4b5fd' } },
+          { selector: 'node.ministry', style: { 'background-color': '#ddd6fe' } },
+          { selector: 'node.criminalcase', style: { 'background-color': '#fecaca' } },
+          { selector: 'node.section', style: { 'background-color': '#fed7aa' } },
+          { selector: 'node.focus', style: { 'background-color': '#fbbf24', 'border-width': 3, 'font-size': 13, 'font-weight': 800 } },
+          {
+            selector: 'edge',
+            style: {
+              'curve-style': 'bezier',
+              'line-color': '#b5aa97',
+              'width': 1.5,
+              'target-arrow-shape': 'triangle',
+              'target-arrow-color': '#8b8173',
+              'label': 'data(label)',
+              'font-size': 8,
+              'color': '#6b6256',
+              'text-rotation': 'autorotate',
+              'text-background-color': '#fffefa',
+              'text-background-opacity': 0.9,
+              'text-background-padding': 2
+            }
+          },
+          { selector: ':selected', style: { 'border-color': '#b45309', 'border-width': 3, 'overlay-opacity': 0.08 } }
+        ],
+        layout: { name: 'cose', animate: false }
+      });
+    } else {
+      status.textContent = 'Cytoscape.js did not load. Check your internet connection and reload this page.';
+      status.classList.add('error');
+    }
+
+    function showEmpty(message) {
+      aggregatePanel.hidden = true;
+      graphCard.hidden = false;
+      emptyState.textContent = message;
+      emptyState.hidden = false;
+      graphContainer.hidden = true;
+    }
+
+    function renderGraph(data) {
+      const nodes = data.nodes || [];
+      const edges = data.edges || [];
+      aggregatePanel.hidden = true;
+      graphCard.hidden = false;
+      cypherPanel.hidden = !data.cypher;
+      cypherText.textContent = data.cypher || '';
+      const promptNote = data.plan_cache_hit
+        ? 'Cached query plan; Gemini was not called for this repeat.'
+        : data.prompt_examples_used
+          ? `Used ${data.prompt_examples_used} relevant examples from the local catalog.`
+          : '';
+      cypherExplanation.textContent = [data.explanation || '', promptNote].filter(Boolean).join(' ');
+      if (data.result_type === 'unsupported') {
+        cy.elements().remove();
+        expandButton.hidden = true;
+        graphTitle.textContent = 'This question is not supported by the available graph data';
+        showEmpty(data.explanation || 'The Neo4j schema does not contain the requested information.');
+        return;
+      }
+      if (data.result_type === 'aggregate') {
+        cy.elements().remove();
+        expandButton.hidden = true;
+        graphCard.hidden = true;
+        aggregatePanel.hidden = false;
+        aggregateExplanation.textContent = `${data.explanation || ''} ${data.row_count || 0} result row(s).`;
+        const records = data.records || [];
+        aggregateTableWrap.replaceChildren();
+        if (!records.length) {
+          aggregateTableWrap.textContent = 'Neo4j returned no matching rows for this question.';
+          return;
+        }
+        const columns = [...new Set(records.flatMap(record => Object.keys(record)))];
+        const table = document.createElement('table');
+        table.className = 'aggregate-table';
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        for (const column of columns) {
+          const th = document.createElement('th');
+          th.scope = 'col';
+          th.textContent = column.replaceAll('_', ' ');
+          headerRow.appendChild(th);
+        }
+        thead.appendChild(headerRow);
+        const tbody = document.createElement('tbody');
+        for (const record of records) {
+          const tr = document.createElement('tr');
+          for (const column of columns) {
+            const td = document.createElement('td');
+            const value = record[column];
+            td.textContent = value == null ? '—' : Array.isArray(value) ? value.join(', ') : typeof value === 'object' ? JSON.stringify(value) : String(value);
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        }
+        table.append(thead, tbody);
+        aggregateTableWrap.appendChild(table);
+        return;
+      }
+      if (!nodes.length) {
+        cy.elements().remove();
+        expandButton.hidden = true;
+        graphTitle.textContent = `No matches for “${data.query}”`;
+        showEmpty(`No graph nodes or relationships matched “${data.query}”. Try a person, party, constituency, or state name.`);
+        return;
+      }
+
+      const focusIds = new Set(data.focus_ids || []);
+      const nodeElements = nodes.map((node) => {
+        const labels = node.labels || [];
+        const category = labels.map(label=>String(label).toLowerCase()).find(label=>[
+          'party','state','constituency','assemblyconstituency','person','mla','ministry','criminalcase','section'
+        ].includes(label)) || 'node';
+        const classes = [...labels.map(label=>String(label).toLowerCase()), category, focusIds.has(node.id) ? 'focus' : ''].filter(Boolean).join(' ');
+        return {
+          group: 'nodes',
+          data: { id: String(node.id), label: node.label || labels[0] || 'Graph node', category },
+          classes
+        };
+      });
+      const edgeElements = edges.map((edge) => ({
+        group: 'edges',
+        data: {
+          id: String(edge.id),
+          source: String(edge.source),
+          target: String(edge.target),
+          label: edge.type || 'RELATED'
+        }
+      }));
+
+      cy.elements().remove();
+      cy.add([...nodeElements, ...edgeElements]);
+      activeFocusIds = data.focus_ids || [];
+      connectionOffset = data.connection_offset || 0;
+      activeQuery = data.query || '';
+      expandButton.hidden = !data.has_more_connections;
+      emptyState.hidden = true;
+      graphContainer.hidden = false;
+      graphTitle.textContent = `“${data.query}” · ${nodes.length} nodes · ${edges.length} connections`;
+      cy.layout({
+        name: 'cose',
+        animate: true,
+        animationDuration: 450,
+        randomize: true,
+        fit: true,
+        padding: 55,
+        nodeRepulsion: 9000,
+        idealEdgeLength: 115,
+        edgeElasticity: 100,
+        gravity: 0.25,
+        numIter: 500
+      }).run();
+    }
+
+    async function expandGraph() {
+      if (!activeFocusIds.length) return;
+      expandButton.disabled = true;
+      expandButton.textContent = 'Loading…';
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/graph/expand', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ seed_ids: activeFocusIds, offset: connectionOffset, limit: 100 })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'Could not load more connections.');
+        const newNodes = (result.nodes || []).map(node => ({
+          group: 'nodes',
+          data: { id: String(node.id), label: node.label || node.labels?.[0] || 'Graph node' },
+          classes: (node.labels || []).map(label => String(label).toLowerCase()).join(' ')
+        }));
+        const newEdges = (result.edges || []).map(edge => ({
+          group: 'edges',
+          data: { id: String(edge.id), source: String(edge.source), target: String(edge.target), label: edge.type || 'RELATED' }
+        }));
+        cy.add([...newNodes, ...newEdges]);
+        connectionOffset = result.connection_offset || connectionOffset;
+        graphTitle.textContent = `“${activeQuery}” · ${cy.nodes().length} nodes · ${cy.edges().length} connections`;
+        status.textContent = `Showing ${connectionOffset} of ${result.connection_count} direct connections.`;
+        expandButton.hidden = !result.has_more_connections;
+        cy.layout({ name: 'cose', animate: true, animationDuration: 350, fit: true, padding: 55, nodeRepulsion: 9000, idealEdgeLength: 115 }).run();
+      } catch (error) {
+        status.textContent = `Could not expand graph: ${error.message}`;
+        status.classList.add('error');
+      } finally {
+        expandButton.disabled = false;
+        expandButton.textContent = 'Load more connections';
+      }
+    }
+
+    async function searchGraph(searchText) {
+      const searchQuery = searchText.trim();
+      if (!searchQuery) {
+        status.textContent = 'Enter a search term first.';
+        status.classList.add('error');
+        queryInput.focus();
+        return;
+      }
+      if (!cy) return;
+
+      status.classList.remove('error');
+      status.textContent = 'Searching Neo4j…';
+      cypherPanel.hidden = true;
+      searchButton.disabled = true;
+      try {
+        const isAsk = modeInput.value === 'ask';
+        const response = await fetch(isAsk ? 'http://127.0.0.1:8000/api/ask' : API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(isAsk
+            ? { question: searchQuery }
+            : { query: searchQuery, filter: filterInput.value })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'Search failed.');
+        renderGraph(result);
+        status.textContent = isAsk
+          ? `${result.explanation || `Neo4j returned ${result.row_count || 0} ${result.result_type === 'aggregate' ? 'aggregate rows' : 'graph paths'}.`} ${result.plan_cache_hit ? 'Cached plan; Gemini was not called.' : result.prompt_examples_used ? `Used ${result.prompt_examples_used} relevant examples.` : ''}`
+          : 'Connected to Bharat Praman’s Neo4j graph.';
+        const params = new URLSearchParams({ query: searchQuery, filter: filterInput.value, mode: modeInput.value });
+        history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
+      } catch (error) {
+        status.textContent = `Search failed: ${error.message}`;
+        status.classList.add('error');
+        aggregatePanel.hidden = true;
+        graphCard.hidden = false;
+        graphTitle.textContent = 'Could not load graph';
+        showEmpty('Check that the API is running on port 8000 and that Neo4j is reachable.');
+      } finally {
+        searchButton.disabled = false;
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      searchGraph(queryInput.value);
+    });
+    modeInput.addEventListener('change', () => {
+      const askMode = modeInput.value === 'ask';
+      filterInput.disabled = askMode;
+      queryInput.placeholder = askMode ? 'Ask, e.g. Which BJP MLAs face criminal cases?' : 'Search the graph…';
+      status.textContent = askMode ? 'Ask a question in plain English; Gemini will generate a schema-checked read-only graph or aggregate query.' : 'Enter a keyword to load a graph from Neo4j.';
+    });
+    document.getElementById('fit-button').addEventListener('click', () => cy?.fit(undefined, 55));
+    document.getElementById('zoom-in').addEventListener('click', () => cy?.zoom({ level: cy.zoom() * 1.25, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    document.getElementById('zoom-out').addEventListener('click', () => cy?.zoom({ level: cy.zoom() / 1.25, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    expandButton.addEventListener('click', expandGraph);
+    cy?.on('tap', 'node', (event) => {
+      const params = new URLSearchParams({ id: event.target.id(), from: activeQuery });
+      window.location.href = `node.html?${params.toString()}`;
+    });
+    cy?.on('mouseover', 'node', () => { graphContainer.style.cursor = 'pointer'; });
+    cy?.on('mouseout', 'node', () => { graphContainer.style.cursor = 'default'; });
+
+    const params = new URLSearchParams(location.search);
+    const initialQuery = params.get('query') || '';
+    const initialFilter = params.get('filter') || 'all';
+    const initialMode = params.get('mode') || 'keyword';
+    if (['keyword', 'ask'].includes(initialMode)) modeInput.value = initialMode;
+    filterInput.disabled = modeInput.value === 'ask';
+    if (modeInput.value === 'ask') queryInput.placeholder = 'Ask, e.g. Which BJP MLAs face criminal cases?';
+    if (['all', 'nodes', 'relations'].includes(initialFilter)) filterInput.value = initialFilter;
+    if (initialQuery) {
+      queryInput.value = initialQuery;
+      searchGraph(initialQuery);
+    }
+  </script>
+</body>
+</html>
