@@ -25,6 +25,22 @@ RTI page ──► RTI server (FastAPI)  :8001  ──► Neo4j Instance01
 - **Port 8001** — RTI server (`rti/server.py`): RTI draft generation (separate service).
 - **Port 5500** — static frontend served from the repo root.
 
+## Why templates, not just an LLM
+
+Text-to-Cypher uses a **governed template layer** for common questions:
+
+```
+intent router → parameterized Cypher → read-only validator → Neo4j
+novel phrasing → LLM fallback → same validator → refuse if unsafe
+```
+
+- **Determinism** — "how many MLAs have criminal cases?" must return the same correct number every time, not whatever a model improvises.
+- **Auditability** — every template is a visible, reviewed Cypher query a judge can read.
+- **Latency + cost** — no model call for high-frequency questions.
+- **Honest refusal** — questions the schema can't support (gender, "serious" classification, income, future elections) are refused with an explicit reason, never guessed.
+
+The LLM handles *novel* phrasing, but every query — template or LLM — passes the same read-only, schema-bounded validator. The high-confidence intents are parameterized, not hardcoded, deliberately: for counts and asset/case thresholds, we don't want a model improvising.
+
 ## Prerequisites
 
 - **Python 3.14** — required. The optional semantic e5 path uses `torch` + `sentence-transformers`, which have **no wheels for Python 3.15 yet**. MHA now defaults to the complete local TF-IDF index + full-text (`MHA_USE_E5=0`); set `MHA_USE_E5=1` only after a full e5 backfill.

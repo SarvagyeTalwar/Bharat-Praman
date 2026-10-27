@@ -914,8 +914,10 @@ def schema_unsupported_reason(question: str) -> str | None:
         return "The graph has no reliable current-office indicator or verified as-of date, so it cannot confirm who currently holds office."
     if re.search(r"\b(?:income|self[- ]?income|salary|earnings)\b", lowered):
         return "The graph does not store declared income, so it cannot answer income-based questions."
-    if "serious" in lowered and re.search(r"punishable|5\+|five years|5 years", lowered):
-        return "The graph does not store a seriousness classification for criminal cases, so it cannot count 'serious' cases."
+    if "serious" in lowered and re.search(r"punishable|5\+|five years|5 years|\bcriminal\b|\bcharge|\bcase|\bcrime|\boffen[cs]e", lowered):
+        return "The graph does not store a seriousness classification for criminal cases, so it cannot answer questions about 'serious' cases."
+    if re.search(r"\b(?:women|woman|female|gender|male|men)\b", lowered):
+        return "The graph does not store gender for MLAs, so it cannot answer questions about male or female politicians."
     if "immovable" in lowered and "more than 3" in lowered and "state" in lowered:
         return "The graph stores aggregate immovable assets per person, not per-state asset declarations, so it cannot count assets across more than three states."
     return None

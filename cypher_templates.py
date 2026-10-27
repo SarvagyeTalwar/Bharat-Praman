@@ -1051,6 +1051,42 @@ def _party_most_with_cases(q):
     }
 
 
+def _top_parties_by_cases(q):
+    n = _top_n(q, default=5)
+    return {
+        "result_type": "aggregate",
+        "cypher": """
+            MATCH (m:MLA)
+            WHERE m.party_name IS NOT NULL
+            RETURN m.party_name AS party_name, sum(coalesce(m.criminal_case_count, 0)) AS total_cases
+            ORDER BY total_cases DESC
+            LIMIT $n
+        """,
+        "parameters": {"n": n},
+        "explanation": f"The top {n} parties ranked by total criminal cases across their MLAs.",
+        "template_id": "top_parties_by_cases",
+    }
+
+
+def _mlas_over_liabilities(q):
+    amount = _money(q)
+    if amount is None:
+        return None
+    return {
+        "result_type": "aggregate",
+        "cypher": """
+            MATCH (m:MLA)
+            WHERE m.liabilities IS NOT NULL AND m.liabilities > $amount
+            RETURN m.name AS mla_name, m.party_name AS party, m.liabilities AS liabilities
+            ORDER BY liabilities DESC
+            LIMIT 50
+        """,
+        "parameters": {"amount": amount},
+        "explanation": "MLAs whose declared liabilities exceed the requested amount, ordered highest first.",
+        "template_id": "mlas_over_liabilities",
+    }
+
+
 def _party_most_zero_cases(q):
     return {
         "result_type": "aggregate",
@@ -1274,6 +1310,11 @@ def plan_from_template(question: str) -> dict | None:
     if _any(ql, "negative net worth", "net worth negative"):
         return _negative_net_worth(q)
 
+    # Top N parties by total criminal cases (party aggregation, checked before the MLA ranking).
+    if (_any(ql, "top 5", "top five", "top 10", "top ten", "rank the top", "top parties")
+            and _any(ql, "party", "parties") and _any(ql, "criminal", "case", "tainted", "charges")):
+        return _top_parties_by_cases(q)
+
     # Top N by criminal cases ("tainted" is common Indian political shorthand).
     if (_any(ql, "top 5", "top five", "top 10", "top ten")
             and "mla" in ql and _any(ql, "criminal", "tainted", "cases")):
@@ -1287,6 +1328,13 @@ def plan_from_template(question: str) -> dict | None:
             and not _any(ql, "average", "per mla", "more than", "zero", "without", "no criminal")):
         return _count_mlas_with_cases(q)
 
+    # Paraphrase with "elected" between "how many" and "MLAs", or "charges" instead of "cases".
+    if (re.search(r"how many", ql) and re.search(r"\bmlas?\b", ql)
+            and _any(ql, "criminal charge", "face charge", "criminal record", "criminal case", "with case", "tainted")
+            and not _section_codes(q)
+            and not _any(ql, "more than", "over", "above", "at least", "zero", "without", "no criminal", "average", "per mla")):
+        return _count_mlas_with_cases(q)
+
     # How many MLAs with zero / without cases ("clean" is common shorthand).
     if "how many mla" in ql and _any(ql, "zero", "without criminal", "no criminal cases", "clean"):
         return _count_mlas_zero_cases(q)
@@ -1298,6 +1346,13 @@ def plan_from_template(question: str) -> dict | None:
             return plan
     if "how many mla" in ql and _any(ql, "asset", "liabilit") and _any(ql, "above", "over", "more than", "at least"):
         plan = _money_threshold_count(q)
+        if plan:
+            return plan
+
+    # "Which MLAs have liabilities above X" — a list, not a count.
+    if ("mla" in ql and "liabilit" in ql and _any(ql, "above", "over", "more than", "exceed", "exceeding")
+            and not _any(ql, "how many", "highest", "most", "single", "combined")):
+        plan = _mlas_over_liabilities(q)
         if plan:
             return plan
 
@@ -1381,9 +1436,10 @@ def plan_from_template(question: str) -> dict | None:
     if "constituenc" in ql and _any(ql, "most", "highest") and "criminal" in ql and not _state(q):
         return _constituency_most_cases(q)
 
-    if (_any(ql, "richest", "wealthiest", "most wealthy", "highest assets", "highest net worth")
+    if (_any(ql, "richest", "wealthiest", "most wealthy", "highest assets", "highest total assets",
+             "largest assets", "largest total assets", "most assets", "highest declared assets", "highest net worth")
             and not _any(ql, "top 10", "top 5", "top 3", "top ten", "top five")):
-        if "mla" in ql or "legislator" in ql:
+        if "mla" in ql or "legislat" in ql or "assembly member" in ql:
             return _richest_mla(q)
         return _richest_politician(q)
 
