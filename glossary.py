@@ -35,7 +35,16 @@ def load(ministry=None):
     if VALIDATED.exists():
         data = json.loads(VALIDATED.read_text(encoding="utf-8"))
     if OVERRIDES.exists():
-        data.update(json.loads(OVERRIDES.read_text(encoding="utf-8")))
+        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+        for acr, ov in overrides.items():
+            if acr in data:
+                merged = dict(data[acr])
+                merged.update(ov)
+                if not ov.get("count"):
+                    merged["count"] = data[acr].get("count", 0)
+                data[acr] = merged
+            else:
+                data[acr] = ov
     if ministry:
         want = _norm_ministry(ministry).lower()
         data = {k: v for k, v in data.items()

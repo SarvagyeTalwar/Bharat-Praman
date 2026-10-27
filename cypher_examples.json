@@ -1307,5 +1307,119 @@
     ],
     "result_type": "aggregate",
     "cypher": "MATCH (s:State)<-[:IN_STATE]-(ac:AssemblyConstituency)<-[:REPRESENTS]-(m:MLA)-[:MEMBER_OF]->(p:Party), (m)-[:FACES]->(cc:CriminalCase)-[:UNDER]->(sec:Section) RETURN s.name AS state_name, p.name AS party_name, avg(m.total_assets) AS avg_assets, count(DISTINCT CASE WHEN m.criminal_case_count > 0 THEN m END) * 1.0 / count(DISTINCT m) AS case_prevalence, count(DISTINCT ac) AS distinct_constituencies, count(DISTINCT sec) AS distinct_sections ORDER BY avg_assets DESC LIMIT 10"
+  },
+  {
+    "question": "How many MLAs have criminal cases?",
+    "tags": [
+      "mla",
+      "criminal",
+      "case",
+      "count",
+      "aggregate"
+    ],
+    "cypher": "MATCH (m:MLA) WHERE coalesce(m.criminal_case_count, 0) > 0 RETURN count(DISTINCT m) AS mlas_with_cases LIMIT 1",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "Who is the richest MLA?",
+    "tags": [
+      "mla",
+      "assets",
+      "richest",
+      "top",
+      "aggregate"
+    ],
+    "cypher": "MATCH (m:MLA:Person) WHERE m.total_assets IS NOT NULL RETURN m.name AS mla_name, m.party_name AS party, m.total_assets AS total_assets ORDER BY total_assets DESC LIMIT 1",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "Who has the most criminal cases?",
+    "tags": [
+      "mla",
+      "criminal",
+      "case",
+      "most",
+      "aggregate"
+    ],
+    "cypher": "MATCH (m:MLA:Person) RETURN m.name AS mla_name, m.party_name AS party, m.criminal_case_count AS case_count ORDER BY case_count DESC LIMIT 1",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "Show me MLAs from Delhi.",
+    "tags": [
+      "mla",
+      "state",
+      "delhi",
+      "list",
+      "aggregate"
+    ],
+    "cypher": "MATCH (m:MLA)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(s:State) WHERE toLower(s.name) CONTAINS toLower($state) RETURN m.name AS mla_name, m.party_name AS party, ac.name AS constituency, s.name AS state ORDER BY mla_name LIMIT 25",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "Is there an MLA with a murder charge?",
+    "tags": [
+      "mla",
+      "criminal",
+      "case",
+      "section",
+      "murder",
+      "302",
+      "aggregate"
+    ],
+    "cypher": "MATCH (m:MLA)-[:FACES]->(c:CriminalCase)-[:UNDER]->(s:Section) WHERE s.code = $section_code RETURN m.name AS mla_name, m.party_name AS party, s.code AS section_code, c.status AS status LIMIT 5",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "What is the most common crime among politicians?",
+    "tags": [
+      "mla",
+      "criminal",
+      "case",
+      "section",
+      "common",
+      "aggregate"
+    ],
+    "cypher": "MATCH (s:Section)<-[:UNDER]-(cc:CriminalCase)<-[:FACES]-(m:MLA) WHERE s.code <> 'IPC' RETURN s.code AS section_code, count(DISTINCT m) AS mla_count, count(DISTINCT cc) AS case_count ORDER BY mla_count DESC LIMIT 10",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "How much data is in the graph?",
+    "tags": [
+      "count",
+      "data",
+      "person",
+      "mla",
+      "case",
+      "party",
+      "aggregate"
+    ],
+    "cypher": "MATCH (p:Person) RETURN 'Person' AS label, count(p) AS count UNION ALL MATCH (m:MLA) RETURN 'MLA' AS label, count(m) AS count UNION ALL MATCH (c:CriminalCase) RETURN 'CriminalCase' AS label, count(c) AS count UNION ALL MATCH (p:Party) RETURN 'Party' AS label, count(p) AS count LIMIT 50",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "Show me any politician.",
+    "tags": [
+      "person",
+      "mla",
+      "sample",
+      "list",
+      "aggregate"
+    ],
+    "cypher": "MATCH (m:MLA:Person) RETURN m.name AS mla_name, m.party_name AS party ORDER BY mla_name LIMIT 5",
+    "result_type": "aggregate"
+  },
+  {
+    "question": "Who is the wealthiest MLA?",
+    "tags": [
+      "mla",
+      "assets",
+      "richest",
+      "wealthiest",
+      "top",
+      "aggregate"
+    ],
+    "cypher": "MATCH (m:MLA:Person) WHERE m.total_assets IS NOT NULL RETURN m.name AS mla_name, m.party_name AS party, m.total_assets AS total_assets ORDER BY total_assets DESC LIMIT 1",
+    "result_type": "aggregate"
   }
 ]

@@ -23,6 +23,8 @@ from neo4j.exceptions import DriverError, Neo4jError
 from pydantic import BaseModel, Field
 
 from glossary import search as glossary_search, lookup as glossary_lookup
+from cypher_templates import plan_from_template, TEMPLATE_COLUMNS, EMPTY_OK_TEMPLATES, _state as template_state
+from ipc_sections import EXPLANATIONS as IPC_EXPLANATIONS, normalize_code
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -334,6 +336,79 @@ def glossary_get(acronym: str, ministry: str | None = Query(default=None, max_le
     return {"acronym": acronym, **item}
 
 
+@app.get("/api/ipc-sections")
+def ipc_sections_list():
+    """Return major IPC sections with one-line explanations and live MLA charged counts."""
+    query = (
+        "MATCH (p:MLA)-[:FACES]->(:CriminalCase)-[:UNDER]->(s:Section) "
+        "RETURN s.code AS code, count(DISTINCT p) AS mla_count"
+    )
+    try:
+        with driver.session(default_access_mode=READ_ACCESS) as session:
+            rows = list(session.run(query))
+    except (Neo4jError, DriverError):
+        raise HTTPException(status_code=503, detail="Could not read IPC sections from Neo4j.")
+
+    # Aggregate counts per normalized (upper-cased) code so case-variant
+    # duplicates like '120b' vs '120B' collapse into one entry.
+    counts: dict[str, int] = {}
+    for row in rows:
+        code = normalize_code(row["code"])
+        if not code:
+            continue
+        counts[code] = counts.get(code, 0) + int(row["mla_count"])
+
+    items = [
+        {"code": code, "explanation": explanation, "mla_count": counts.get(code, 0)}
+        for code, explanation in IPC_EXPLANATIONS.items()
+        if counts.get(code, 0) > 0
+    ]
+    items.sort(key=lambda item: (-item["mla_count"], item["code"]))
+    return {"items": items, "count": len(items)}
+
+
+class RagAskRequest(BaseModel):
+    question: str = Field(min_length=2, max_length=1000)
+    ministry: str = Field(default="education", max_length=60)
+
+
+@app.post("/api/rag/ask")
+def rag_ask(req: RagAskRequest):
+    """Answer a question from the ingested Ministry annual reports."""
+    ministry = req.ministry.strip().lower()
+    if ministry in ("education", "moe", "ministry of education"):
+        targets = [("Education", "agent")]
+    elif ministry in ("home", "home affairs", "mha", "internal affairs", "ministry of home affairs"):
+        targets = [("Home Affairs", "mha_agent")]
+    elif ministry in ("both", "all", "annual reports", "annual_reports"):
+        targets = [("Education", "agent"), ("Home Affairs", "mha_agent")]
+    else:
+        raise HTTPException(status_code=400, detail="Unknown ministry. Use education, home, or both.")
+
+    results = []
+    for label, module_name in targets:
+        try:
+            module = __import__(module_name)
+            ans, hits, gctx = module.answer(req.question)
+            results.append({
+                "ministry": label,
+                "answer": ans,
+                "graph_context": gctx,
+                "sources": [
+                    {"title": h.get("title"), "page": h.get("page"), "score": h.get("score")}
+                    for h in (hits or [])
+                ],
+            })
+        except Exception as exc:
+            results.append({
+                "ministry": label,
+                "answer": f"Could not answer from {label} right now: {exc}",
+                "graph_context": "",
+                "sources": [],
+            })
+    return {"question": req.question, "results": results}
+
+
 @app.get("/api/metadata")
 def graph_metadata():
     """Return cached graph counts and source-date coverage for demo context."""
@@ -579,7 +654,7 @@ SECURITY AND EVIDENCE RULES
 - Return graph evidence paths only. A FACES connection means a case is linked to a person; it does not prove guilt, conviction, or wrongdoing.
 - If the user asks about a conviction or case outcome, use the stored CriminalCase.status and phrase the response as a database-recorded status; never infer guilt from FACES.
 - Do not treat missing assets, ages, family counts, or other values as zero. Aggregate only non-null numeric values and make result aliases clear.
-- The schema has no MP label or spouse/wife field or relationship. Do not infer MPs or family relationships from other fields; mark such questions unsupported.
+- MP nodes are labeled `:Person:MP` and represent Members of Parliament; they link to Constituency nodes via REPRESENTS. The schema has no spouse/wife field or relationship; do not infer family relationships.
 - The schema has no reliable is_current/current-serving field. Do not claim someone is current based only on an election year; mark time-sensitive current-office questions unsupported unless the user explicitly asks for a dated record in the graph.
 - If a question asks for an average, count, total, minimum, maximum, or comparison statistic, use result_type `aggregate` and return scalar values from Neo4j. If it asks to explore entities/relationships, use result_type `graph`. If the schema cannot answer it, use result_type `unsupported` with an empty cypher string.
 
@@ -589,11 +664,12 @@ EXACT NODE SCHEMA (label: properties)
 - CriminalCase: case_id, case_no, fir_no, status, court, charges_framed, ipc_sections
 - MLA: name, entity_id, age, party_name, myneta_id, criminal_case_count, total_assets, liabilities, movable_assets, immovable_assets, education, election, election_year, council_section, source_document_date
 - Ministry: name, portfolio_type, source_document_date
+- MP: name, entity_id, age, party_name, criminal_case_count, total_assets, liabilities, movable_assets, immovable_assets, education, election, election_year
 - Party: name, entity_id
 - Person: name, first_name, last_name, gender, age, party_name, profession, terms, nSons, nDaughters, myneta_id, myneta_name, criminal_case_count, total_assets, liabilities, movable_assets, immovable_assets, education, council_section, source_document_date, special_responsibilities, aliases, election, election_year, entity_id
 - Section: code
 - State: name, entity_id
-MLA nodes in this graph also carry the Person label; use :Person:MLA when the question specifically concerns elected MLAs. CriminalCase has no name field: identify it with case_no, case_id, or fir_no. Section is identified by code.
+MLA nodes in this graph also carry the Person label; use :Person:MLA when the question specifically concerns elected MLAs. MP nodes carry the MP and Person labels; use :Person:MP for Members of Parliament. MPs link to Constituency via REPRESENTS; MLAs link to AssemblyConstituency. CriminalCase has no name field: identify it with case_no, case_id, or fir_no. Section is identified by code.
 
 EXACT RELATIONSHIP DIRECTIONS
 - (Person)-[:FACES]->(CriminalCase)
@@ -605,13 +681,13 @@ EXACT RELATIONSHIP DIRECTIONS
 Use these directions in MATCH patterns; do not reverse the stored arrows. The other relationship types have no stored properties.
 
 QUERY GUIDANCE
-- Generate exactly one read-only query starting with MATCH or OPTIONAL MATCH. Never use CREATE, MERGE, SET, REMOVE, DELETE, CALL, LOAD CSV, UNION, or multiple statements.
-- Keep paths to at most 3 relationship hops. Use a specific path pattern with labels and relationship types when possible; avoid unconstrained graph scans.
+- Generate exactly one read-only query starting with MATCH or OPTIONAL MATCH. Never use CREATE, MERGE, SET, REMOVE, DELETE, CALL, LOAD CSV, or multiple statements. WITH is allowed for aggregation. UNION is allowed only for aggregate queries that combine two scalar result sets; never use UNION in a graph/path query.
+- Keep paths to at most 5 relationship hops. Use a specific path pattern with labels and relationship types when possible; avoid unconstrained graph scans.
 - Write path syntax as `MATCH p=(a:Label)-[:RELATION]->(b:Label)`. Put property filters in WHERE (for example `WHERE toLower(a.name) CONTAINS toLower($name)`); do not put a node property map immediately before a relationship.
 - For questions about party membership, traverse MEMBER_OF. For cases, traverse FACES. For portfolios, traverse HOLDS_PORTFOLIO. For constituencies and states, traverse REPRESENTS then IN_STATE. For legal sections, traverse CriminalCase-[:UNDER]->Section.
 - Do not add a path branch unless the question requires it. For party/state/case statistics, use one MATCH pattern, aggregate with count(DISTINCT ...), and put filters in WHERE. For individual comparisons, return graph paths instead of averages.
 - Match names against the properties for that label: people can use name, first_name/last_name, myneta_name, or aliases; parties use name; cases use case_no, case_id, or fir_no; sections use code; states and constituencies use name. Use case-insensitive comparisons and Cypher parameters. Do not interpolate user text into query strings.
-- For a question specifically about elected MLAs, constrain the person with both labels `:Person:MLA`. For a broader politician/person question, use `:Person`. Use MEMBER_OF for graph party links; only use party_name when the question asks for that stored property itself.
+- For a question specifically about elected MLAs, constrain the person with both labels `:Person:MLA`. For MPs, constrain `:Person:MP`. For a broader politician/person question, use `:Person`. Use MEMBER_OF for graph party links; only use party_name when the question asks for that stored property itself.
 - Use the short examples appended below as patterns for similar questions. Adapt parameter names and values to the current question; never copy example values when they do not match.
 - For entity/path questions return one row per useful path with exactly `nodes(p) AS path_nodes` and `relationships(p) AS path_edges`, using a path variable named p. Always include a literal LIMIT from 1 to 50.
 - For aggregate questions return only scalar columns with clear aliases, use DISTINCT when joins can multiply counts, and include a literal LIMIT from 1 to 50. Do not return graph nodes or relationships for aggregates.
@@ -712,11 +788,14 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
         raise HTTPException(status_code=400, detail="The generated query contains unsupported syntax.")
     if not re.match(r"^(?:MATCH|OPTIONAL\s+MATCH)\b", cypher, re.IGNORECASE):
         raise HTTPException(status_code=400, detail="Only read-only graph matches are allowed.")
-    forbidden = r"\b(?:CREATE|MERGE|SET|REMOVE|DELETE|DETACH|CALL|LOAD|CSV|USE|SHOW|DROP|ALTER|GRANT|REVOKE|DENY|TERMINATE|UNION|FOREACH|INSERT)\b"
+    forbidden = r"\b(?:CREATE|MERGE|SET|REMOVE|DELETE|DETACH|CALL|LOAD|CSV|USE|SHOW|DROP|ALTER|GRANT|REVOKE|DENY|TERMINATE|FOREACH|INSERT)\b"
     if re.search(forbidden, cypher, re.IGNORECASE):
         raise HTTPException(status_code=400, detail="The generated query contains a disallowed Cypher clause.")
     if result_type not in {"graph", "aggregate"}:
         raise HTTPException(status_code=400, detail="The generated result type is invalid.")
+    has_union = bool(re.search(r"\bUNION\b", cypher, re.IGNORECASE))
+    if has_union and result_type != "aggregate":
+        raise HTTPException(status_code=400, detail="UNION is only allowed for aggregate queries.")
     if not re.search(r"\bRETURN\b", cypher, re.IGNORECASE):
         raise HTTPException(status_code=400, detail="The generated query must return results.")
     if result_type == "graph":
@@ -731,7 +810,7 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
     # to Gemini. Strip string literals first so user values are not mistaken for
     # labels, relationship types, or property names.
     schema_text = re.sub(r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"", "''", cypher)
-    allowed_labels = {"AssemblyConstituency", "Constituency", "CriminalCase", "Ministry", "MLA", "Party", "Person", "Section", "State"}
+    allowed_labels = {"AssemblyConstituency", "Constituency", "CriminalCase", "Ministry", "MLA", "MP", "Party", "Person", "Section", "State"}
     allowed_relationships = {"FACES", "HOLDS_PORTFOLIO", "IN_STATE", "MEMBER_OF", "REPRESENTS", "UNDER"}
     allowed_properties = {
         "age", "aliases", "case_id", "case_no", "charges_framed", "code", "council_section", "court",
@@ -759,21 +838,23 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
         path_match = re.search(r"\bp\s*=\s*(.+?)(?=\bWHERE\b|\bRETURN\b)", schema_text, re.IGNORECASE | re.DOTALL)
         if not path_match or not re.search(r"\[[^\]]+\]", path_match.group(1)):
             raise HTTPException(status_code=400, detail="Graph queries must use a specific labeled relationship path.")
-        if len(re.findall(r"\[[^\]]+\]", path_match.group(1))) > 3:
-            raise HTTPException(status_code=400, detail="Graph paths are limited to three relationship hops.")
+        if len(re.findall(r"\[[^\]]+\]", path_match.group(1))) > 5:
+            raise HTTPException(status_code=400, detail="Graph paths are limited to five relationship hops.")
 
     variable_lengths = re.findall(r"\[([^\]]*\*[^\]]*)\]", cypher)
     for pattern in variable_lengths:
         bounds = re.search(r"\*(?:\s*\d+)?\s*\.\.\s*(\d+)", pattern)
-        if not bounds or int(bounds.group(1)) > 3:
-            raise HTTPException(status_code=400, detail="Variable-length paths are limited to three hops.")
+        if not bounds or int(bounds.group(1)) > 5:
+            raise HTTPException(status_code=400, detail="Variable-length paths are limited to five hops.")
 
     limits = re.findall(r"\bLIMIT\s+(\d+)\b", cypher, re.IGNORECASE)
     if any(int(value) < 1 or int(value) > 50 for value in limits):
         raise HTTPException(status_code=400, detail="Generated queries are limited to 50 result rows.")
     if re.search(r"\bLIMIT\b", cypher, re.IGNORECASE) and not limits:
         raise HTTPException(status_code=400, detail="Generated queries must use a literal result limit.")
-    if len(limits) > 1:
+    if has_union and len(limits) > 3:
+        raise HTTPException(status_code=400, detail="UNION queries may include at most three result limits.")
+    if not has_union and len(limits) > 1:
         raise HTTPException(status_code=400, detail="Generated queries may include only one result limit.")
     if not limits:
         cypher += "\nLIMIT 50"
@@ -817,13 +898,133 @@ def graph_node_payload(node) -> dict:
 def schema_unsupported_reason(question: str) -> str | None:
     """Avoid spending a model call on facts that the graph cannot represent."""
     lowered = question.casefold()
-    if re.search(r"\b(?:mps?|members? of parliament|lok sabha members?)\b", lowered):
-        return "This graph has no MP or Parliament membership label, so it cannot reliably answer questions about MPs."
+    # General-knowledge / live-world questions that the affidavit graph cannot verify.
+    # These must be refused rather than mapped onto an unrelated ministry or person.
+    if re.search(r"\bprime\s+minister\b|\bpm\s+of\s+india\b|\bwho\s+is\s+the\s+pm\b", lowered):
+        return "This graph stores politicians, their affidavits and their portfolios, but it does not record who holds the office of Prime Minister, so it cannot answer that."
+    if re.search(r"\bpresident\s+of\s+india\b|\bwho\s+is\s+the\s+president\b|\bchief\s+minister\b|\bgovernor\s+of\b", lowered):
+        return "This graph does not record the President, Chief Minister or Governor offices, so it cannot answer that."
+    if re.search(r"\bcapital\s+of\b|\bweather\b|\btemperature\b|\bforecast\b|\bwill\s+win\b|\bprediction\b|\bpredict\b", lowered):
+        return "That is a general-knowledge or live-world question, not something this affidavit and document graph stores, so it cannot answer it."
+    if re.search(r"\b(?:aliens?|extraterrestrials?)\b", lowered):
+        return "That is outside the scope of this graph, which covers Indian politicians, affidavits, criminal cases and government documents."
     if re.search(r"\b(?:wife|wives|husband|spouse|married to|children's mother|children's father)\b", lowered):
         return "This graph has no spouse or family relationship data, so it cannot identify a person's wife, husband, or spouse."
     if re.search(r"\b(?:current|currently|today's|serving)\s+(?:elected\s+)?(?:mla|politician|minister|officeholder|office holder)\b|\bwho\s+(?:currently\s+)?holds?\s+office\b|\bpoliticians?\s+currently\s+(?:hold|holds|holding)\s+office\b|\bas of today\b", lowered):
         return "The graph has no reliable current-office indicator or verified as-of date, so it cannot confirm who currently holds office."
+    if re.search(r"\b(?:income|self[- ]?income|salary|earnings)\b", lowered):
+        return "The graph does not store declared income, so it cannot answer income-based questions."
+    if "serious" in lowered and re.search(r"punishable|5\+|five years|5 years", lowered):
+        return "The graph does not store a seriousness classification for criminal cases, so it cannot count 'serious' cases."
+    if "immovable" in lowered and "more than 3" in lowered and "state" in lowered:
+        return "The graph stores aggregate immovable assets per person, not per-state asset declarations, so it cannot count assets across more than three states."
     return None
+
+
+_PARTY_CANON = {
+    "indian national congress": "INC",
+    "congress": "INC",
+    "inc": "INC",
+    "bharatiya janata party": "BJP",
+    "bjp": "BJP",
+    "aam aadmi party": "AAP",
+    "aap": "AAP",
+    "samajwadi party": "SP",
+    "bahujan samaj party": "BSP",
+    "dravida munnetra kazhagam": "DMK",
+    "all india anna dravidar munnetra kazhagam": "AIADMK",
+    "trinamool congress": "TMC",
+    "telugu desam party": "TDP",
+    "ysr congress party": "YSRCP",
+    "yuvajana sramika rythu congress party": "YSRCP",
+}
+
+
+def normalize_plan_parameters(plan: dict) -> dict:
+    """Normalize party names in parameters to the names stored in Neo4j."""
+    parameters = plan.get("parameters")
+    if not isinstance(parameters, dict):
+        return plan
+    for key in ("party_name", "party", "parties"):
+        if key not in parameters:
+            continue
+        value = parameters[key]
+        if isinstance(value, str):
+            parameters[key] = _PARTY_CANON.get(value.strip().lower(), value)
+        elif isinstance(value, list):
+            parameters[key] = [_PARTY_CANON.get(str(v).strip().lower(), v) for v in value]
+    return plan
+
+
+def execute_cypher_plan(plan: dict):
+    """Validate and run one plan, returning (rows, cypher, parameters)."""
+    plan = normalize_plan_parameters(plan)
+    result_type = plan["result_type"]
+    cypher = validate_readonly_cypher(str(plan.get("cypher", "")), result_type=result_type)
+    parameters = validate_cypher_parameters(plan.get("parameters", {}))
+    referenced_parameters = set(re.findall(r"\$([A-Za-z][A-Za-z0-9_]*)", cypher))
+    if referenced_parameters != set(parameters):
+        raise HTTPException(status_code=400, detail="The generated query parameters do not match its Cypher query.")
+
+    @unit_of_work(timeout=12)
+    def run_read(tx):
+        result = tx.run(cypher, parameters)
+        return [dict(record) for record in result]
+
+    with driver.session(database=NEO4J_DATABASE, default_access_mode=READ_ACCESS) as session:
+        rows = session.execute_read(run_read)
+    return rows, cypher, parameters
+
+
+def select_and_run_plan(question: str):
+    """Try a deterministic template first, then fall back to the Gemini planner."""
+    template = plan_from_template(question)
+    if template:
+        template.setdefault("_cache_hit", False)
+        template.setdefault("_examples_used", 0)
+        template.setdefault("_usage_metadata", {})
+        template["_template"] = template.get("template_id")
+        try:
+            rows, cypher, parameters = execute_cypher_plan(template)
+            expected = TEMPLATE_COLUMNS.get(template.get("template_id"))
+            if rows and expected and not set(expected).issubset(rows[0].keys()):
+                raise HTTPException(status_code=400, detail="Template output shape mismatch.")
+            if not rows and template.get("template_id") not in EMPTY_OK_TEMPLATES:
+                raise HTTPException(status_code=400, detail="Template returned no rows.")
+            return template, rows, cypher, parameters
+        except (HTTPException, Neo4jError, DriverError) as error:
+            logger.info("Template plan %s failed; falling back to Gemini: %s", template.get("template_id"), error)
+
+    plan = gemini_cypher_plan(question)
+    plan["_template"] = None
+    if plan.get("result_type") == "unsupported":
+        return plan, [], "", {}
+    try:
+        rows, cypher, parameters = execute_cypher_plan(plan)
+    except (Neo4jError, DriverError):
+        logger.exception("Generated read-only graph query failed")
+        raise HTTPException(status_code=400, detail="Neo4j could not run the generated graph query. Try a simpler question.")
+    return plan, rows, cypher, parameters
+
+
+def empty_result_explanation(question: str, plan: dict, explanation: str) -> str:
+    """Make empty results honest: say whether it is a filter miss or missing data."""
+    template = plan.get("_template")
+    if template not in {"mlas_in_state", "mlas_in_state_filtered"}:
+        return explanation
+    state = template_state(question)
+    if not state:
+        return explanation
+    lowered = question.casefold()
+    if template == "mlas_in_state":
+        return (f"No MLAs from {state} are loaded in the current graph. The graph covers 3,863 MLAs "
+                f"but does not include a complete assembly roster for every state, so this is a "
+                f"data-coverage gap, not a finding that the state has no MLAs.")
+    if any(word in lowered for word in ("murder", "ipc", "section", "302", "307", "420", "120b", "376", "354", "153a", "295a", "147", "148", "149")):
+        return (f"No MLA from {state} matches that charge filter. Case-to-IPC-section links are "
+                f"incomplete for some states, so this can reflect missing section data rather than "
+                f"zero charges.")
+    return f"No MLA from {state} matches all of the requested filters."
 
 
 @app.post("/api/ask")
@@ -847,7 +1048,24 @@ def ask_graph(request: AskRequest):
             "plan_cache_hit": False, "prompt_examples_used": 0,
         }
 
-    plan = gemini_cypher_plan(question)
+    try:
+        plan, rows, cypher, parameters = select_and_run_plan(question)
+    except HTTPException as error:
+        if error.status_code in (400, 502):
+            # A novel phrasing should fail honestly, not break the demo with a 400/500.
+            return {
+                "query": question, "filter": "text2cypher", "result_type": "unsupported",
+                "nodes": [], "edges": [], "focus_ids": [],
+                "connection_count": 0, "connection_offset": 0,
+                "has_more_connections": False,
+                "explanation": ("I could not map that phrasing to a safe graph query. "
+                                "Try naming the entity (MLA, MP, party, state) and the metric "
+                                "(count, assets, criminal cases, ranking)."),
+                "cypher": "", "row_count": 0, "template_id": None,
+                "plan_cache_hit": False, "prompt_examples_used": 0,
+                "gemini_usage_metadata": {},
+            }
+        raise
     result_type = plan["result_type"]
     explanation = str(plan.get("explanation", ""))[:500]
     usage_metadata = plan.get("_usage_metadata", {}) if not plan.get("_cache_hit") else {}
@@ -870,41 +1088,22 @@ def ask_graph(request: AskRequest):
             "nodes": [], "edges": [], "focus_ids": [],
             "connection_count": 0, "connection_offset": 0,
             "has_more_connections": False, "explanation": explanation,
-            "cypher": "", "row_count": 0,
+            "cypher": "", "row_count": 0, "template_id": plan.get("_template"),
             "plan_cache_hit": bool(plan.get("_cache_hit", False)),
             "prompt_examples_used": int(plan.get("_examples_used", 0)),
             "gemini_usage_metadata": usage_metadata,
         }
 
-    try:
-        cypher = validate_readonly_cypher(str(plan.get("cypher", "")), result_type=result_type)
-        parameters = validate_cypher_parameters(plan.get("parameters", {}))
-        referenced_parameters = set(re.findall(r"\$([A-Za-z][A-Za-z0-9_]*)", cypher))
-        if referenced_parameters != set(parameters):
-            raise HTTPException(status_code=400, detail="The generated query parameters do not match its Cypher query.")
-    except HTTPException as error:
-        raise HTTPException(status_code=error.status_code, detail=error.detail, headers=usage_headers)
-    try:
-        @unit_of_work(timeout=12)
-        def run_read(tx):
-            result = tx.run(cypher, parameters)
-            return [dict(record) for record in result]
-
-        with driver.session(database=NEO4J_DATABASE, default_access_mode=READ_ACCESS) as session:
-            rows = session.execute_read(run_read)
-    except HTTPException:
-        raise
-    except (Neo4jError, DriverError):
-        logger.exception("Generated read-only graph query failed")
-        raise HTTPException(status_code=400, detail="Neo4j could not run the generated graph query. Try a simpler question.", headers=usage_headers)
-
-    if not plan.get("_cache_hit"):
+    if not plan.get("_cache_hit") and not plan.get("_template"):
         cache_cypher_plan(question, {
             "result_type": result_type,
             "cypher": cypher,
             "parameters": parameters,
             "explanation": explanation,
         })
+
+    if result_type == "aggregate" and not rows:
+        explanation = empty_result_explanation(question, plan, explanation)
 
     if result_type == "aggregate":
         records = [json_safe(dict(row)) for row in rows]
@@ -913,7 +1112,7 @@ def ask_graph(request: AskRequest):
             "records": records, "nodes": [], "edges": [], "focus_ids": [],
             "connection_count": 0, "connection_offset": 0,
             "has_more_connections": False, "explanation": explanation,
-            "cypher": cypher, "row_count": len(records),
+            "cypher": cypher, "row_count": len(records), "template_id": plan.get("_template"),
             "plan_cache_hit": bool(plan.get("_cache_hit", False)),
             "prompt_examples_used": int(plan.get("_examples_used", 0)),
             "gemini_usage_metadata": usage_metadata,
@@ -956,6 +1155,7 @@ def ask_graph(request: AskRequest):
         "explanation": explanation or "Graph paths returned by the generated read-only query.",
         "cypher": cypher,
         "row_count": len(rows),
+        "template_id": plan.get("_template"),
         "plan_cache_hit": bool(plan.get("_cache_hit", False)),
         "prompt_examples_used": int(plan.get("_examples_used", 0)),
         "gemini_usage_metadata": usage_metadata,

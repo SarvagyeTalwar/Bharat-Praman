@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+neo4j
+python-dotenv
+pydantic
+google-genai
+sentence-transformers
+truststore
+pypdf

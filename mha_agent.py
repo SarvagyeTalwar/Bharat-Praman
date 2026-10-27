@@ -24,9 +24,14 @@ DB = os.getenv("NEO4J_DATABASE1")
 KEY = os.getenv("GEMINI_API_KEY1") or os.getenv("GEMINI_API_KEY")
 MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
 
-VOCAB = Path(r"C:\Users\aarya\OneDrive\Documents\Default Project\mha_vocab.json")
-VEC_INDEX = "mha_chunk_embeddings_local"
+VEC_INDEX = "mha_chunk_embeddings_e5"
+LOCAL_VEC_INDEX = "mha_chunk_embeddings_local"
+# e5 is opt-in: torch/model loading is memory-heavy on the demo machine, and the
+# e5 index was historically empty. The complete TF-IDF index is the default.
+USE_E5 = os.getenv("MHA_USE_E5", "0").strip().lower() in {"1", "true", "yes"}
+LOCAL_VOCAB_PATH = Path(r"C:\Users\aarya\OneDrive\Documents\Default Project\mha_vocab.json")
 FT_INDEX = "mha_chunk_text_fulltext"
+_LOCAL_VOCAB = None
 
 driver = GraphDatabase.driver(URI, auth=(USER, PW), max_transaction_retry_time=120, notifications_min_severity="OFF")
 client = genai.Client(api_key=KEY)
@@ -36,64 +41,115 @@ def tokenize(t):
     return re.findall(r"[A-Za-z0-9\u0900-\u097f]+", t.lower())
 
 
-class Embedder:
-    def __init__(self):
-        v = json.loads(VOCAB.read_text(encoding="utf-8"))
-        self.vocab, self.idf = v["vocab"], v["idf"]
-
-    def vec(self, text):
-        x = [0.0] * len(self.vocab)
-        tf = Counter(tokenize(text))
-        for tok, c in tf.items():
-            if tok in self.vocab:
-                x[self.vocab[tok]] = c * self.idf[self.vocab[tok]]
-        n = math.sqrt(sum(a * a for a in x)) or 1.0
-        return [a / n for a in x]
-
-
-embedder = Embedder()
-
-
 def known_states():
     with driver.session(database=DB) as s:
         return [r["n"] for r in s.run("MATCH (s:StateUT) RETURN s.name AS n")]
 
 
-def vector_search(q, k, state=None, chapter=None):
-    qv = embedder.vec(q)
-    where = "AND toLower(node.text) CONTAINS toLower($state)" if state else ""
+def _where(state=None, chapter=None, year=None):
+    """Shared retrieval filters. Page 3+ keeps the front-matter org chapters."""
+    clauses = ["node.page >= 3", "size(node.text) > 150"]
+    if state:
+        clauses.append("toLower(node.text) CONTAINS toLower($state)")
     if chapter:
-        where += " AND toLower(node.chapter) CONTAINS toLower($chapter)"
+        clauses.append("toLower(node.chapter) CONTAINS toLower($chapter)")
+    if year:
+        clauses.append("d.title CONTAINS $year")
+    return " AND ".join(clauses)
+
+
+def _vector_query(index_name, vector, k, state=None, chapter=None, year=None):
+    params = {"k": k, "v": vector}
+    if state:
+        params["state"] = state
+    if chapter:
+        params["chapter"] = chapter
+    if year:
+        params["year"] = year
     with driver.session(database=DB) as s:
         return s.run(f"""
-            CALL db.index.vector.queryNodes('{VEC_INDEX}', $k, $v) YIELD node, score
+            CALL db.index.vector.queryNodes('{index_name}', $k, $v) YIELD node, score
             MATCH (d:MHADocument)-[:HAS_CHUNK]->(node)
-            WHERE node.page > 5 AND size(node.text) > 150 {where}
+            WHERE {_where(state, chapter, year)}
             RETURN node.id AS id, d.title AS title, node.page AS page, node.text AS text,
                    node.breadcrumb AS breadcrumb, score
             ORDER BY score DESC
-        """, k=k, v=qv, state=state, chapter=chapter).data()
+        """, **params).data()
 
 
-def fulltext_search(q, k, state=None, chapter=None):
+def _local_query_vector(text):
+    """TF-IDF query vector matching the populated :MHAChunk.embedding index."""
+    global _LOCAL_VOCAB
+    if _LOCAL_VOCAB is None:
+        try:
+            data = json.loads(LOCAL_VOCAB_PATH.read_text(encoding="utf-8"))
+            _LOCAL_VOCAB = (data.get("vocab") or {}, data.get("idf") or [])
+        except Exception:
+            _LOCAL_VOCAB = ({}, [])
+    vocab, idf = _LOCAL_VOCAB
+    if not vocab:
+        return None
+    v = [0.0] * len(vocab)
+    for tok, count in Counter(tokenize(text)).items():
+        idx = vocab.get(tok)
+        if idx is not None and idx < len(idf):
+            v[idx] = count * idf[idx]
+    norm = math.sqrt(sum(x * x for x in v)) or 1.0
+    return [x / norm for x in v]
+
+
+def vector_search(q, k, state=None, chapter=None, year=None):
+    # Merge semantic e5 (opt-in) with the complete TF-IDF index. The e5 index
+    # may be partially backfilled; merging means missing e5 chunks do not create
+    # a silent blind spot, while the semantic hits still contribute when present.
+    rows = []
+    if USE_E5:
+        try:
+            from embeddings import embed_query
+            rows = _vector_query(VEC_INDEX, embed_query(q), k, state, chapter, year)
+        except Exception:
+            rows = []
+    local = _local_query_vector(q)
+    if local:
+        rows += _vector_query(LOCAL_VEC_INDEX, local, k, state, chapter, year)
+    return rows
+
+
+def fulltext_search(q, k, state=None, chapter=None, year=None):
     qq = " ".join(tokenize(q))
     if not qq:
         return []
-    where = "AND toLower(node.text) CONTAINS toLower($state)" if state else ""
+    params = {"q": qq, "k": k}
+    if state:
+        params["state"] = state
     if chapter:
-        where += " AND toLower(node.chapter) CONTAINS toLower($chapter)"
+        params["chapter"] = chapter
+    if year:
+        params["year"] = year
     with driver.session(database=DB) as s:
         return s.run(f"""
             CALL db.index.fulltext.queryNodes('{FT_INDEX}', $q) YIELD node, score
             MATCH (d:MHADocument)-[:HAS_CHUNK]->(node)
-            WHERE node.page > 5 AND size(node.text) > 150 {where}
+            WHERE {_where(state, chapter, year)}
             RETURN node.id AS id, d.title AS title, node.page AS page, node.text AS text,
                    node.breadcrumb AS breadcrumb, score
             ORDER BY score DESC LIMIT $k
-        """, q=qq, k=k, state=state, chapter=chapter).data()
+        """, **params).data()
 
 
-def hybrid(q, k=6):
+def _rrf(fulltext_hits, vector_hits, k):
+    """Reciprocal rank fusion: neither retriever gets to monopolise the context."""
+    scores, rows = {}, {}
+    for rank, r in enumerate(fulltext_hits):
+        scores[r["id"]] = scores.get(r["id"], 0.0) + 1.0 / (60 + rank)
+        rows[r["id"]] = r
+    for rank, r in enumerate(vector_hits):
+        scores[r["id"]] = scores.get(r["id"], 0.0) + 1.0 / (60 + rank)
+        rows[r["id"]] = r
+    return sorted(rows.values(), key=lambda r: scores[r["id"]], reverse=True)[:k]
+
+
+def hybrid(q, k=8):
     states = known_states()
     state = next((s for s in states if s.lower() in q.lower()), None)
     ql = q.lower()
@@ -102,17 +158,19 @@ def hybrid(q, k=6):
             or any(x in ql for x in ["crpf", "bsf", "cisf", "itbp", "ssb", "assam rifles"])):
         chapter = "Police Forces"
     pool = max(k * 5, 30)
-    ft = fulltext_search(q, pool, state, chapter)
-    vec = vector_search(q, pool, state, chapter)
-    out, seen = [], set()
-    for r in ft + vec:
-        if r["id"] in seen:
-            continue
-        seen.add(r["id"])
-        out.append(r)
-        if len(out) >= k:
-            break
-    return out, state
+    years = sorted(set(re.findall(r"20\d{2}-\d{2}", q)))
+    ft, vec = [], []
+    # For comparison questions, pull evidence from each report year separately.
+    if years:
+        for y in years:
+            ft += fulltext_search(q, 12, None, chapter, y)
+            vec += vector_search(q, 12, None, chapter, y)
+    # Always add the global pool so single-year and topic questions still work.
+    ft += fulltext_search(q, pool, None, chapter)
+    vec += vector_search(q, pool, None, chapter)
+    # State is returned for the prompt, but not used as a hard text filter:
+    # "Jammu & Kashmir" vs "Jammu and Kashmir" was silently dropping the best chunks.
+    return _rrf(ft, vec, k), state
 
 
 def entity_context(q):
@@ -199,9 +257,66 @@ QUESTION:
 ANSWER:"""
 
 
-def answer(q, k=6):
+def expand_neighbors(hits, hops=4, max_add=6):
+    """Pull the chunks immediately after a hit so split lists/tables stay together."""
+    seen = {h["id"] for h in hits}
+    out = list(hits)
+    added = 0
+    for h in hits[:2]:
+        if added >= max_add:
+            break
+        with driver.session(database=DB) as s:
+            rows = s.run(f"""
+                MATCH (d:MHADocument)-[:HAS_CHUNK]->(c:MHAChunk {{id: $id}})
+                MATCH (c)-[:NEXT*1..{hops}]->(n:MHAChunk)
+                MATCH (d)-[:HAS_CHUNK]->(n)
+                RETURN n.id AS id, d.title AS title, n.page AS page, n.text AS text,
+                       n.breadcrumb AS breadcrumb, 0.0 AS score
+                ORDER BY n.page, n.idx
+                LIMIT {max_add - added}
+            """, id=h["id"]).data()
+        for r in rows:
+            if r["id"] not in seen:
+                seen.add(r["id"])
+                out.append(r)
+                added += 1
+    return out
+
+
+DOMAIN_EXPANSIONS = {
+    "narcotic": "NCB NDPS Narcotics Control Bureau drug seizure",
+    "ndps": "NCB Narcotics Control Bureau drug seizure",
+    "drug": "NCB NDPS Narcotics Control Bureau seizure",
+    "capf": "BSF CRPF CISF ITBP SSB Assam Rifles battalions sanctioned strength",
+    "central armed police": "BSF CRPF CISF ITBP SSB Assam Rifles battalions sanctioned strength",
+}
+
+
+def content_query(q):
+    """Strip citation boilerplate so the TOC page does not outrank the content."""
+    s = re.sub(r"(?i)^according to\s+", "", q)
+    s = re.sub(r"(?i)^what does\s+", "", s)
+    s = re.sub(r"(?i)\s+say about\s+", " ", s)
+    s = re.sub(r"(?i)\bannual report(s)?\b", " ", s)
+    s = re.sub(r"(?i)^the\s+", "", s)
+    s = re.sub(r"\s+", " ", s)
+    return s.strip(" ,.")
+
+
+def expand_domain(q):
+    ql = q.lower()
+    for key, extra in DOMAIN_EXPANSIONS.items():
+        if key in ql:
+            return f"{q} {extra}"
+    return q
+
+
+def answer(q, k=8):
     expanded_q, gmatches = expand_query(q, "Home Affairs")
-    hits, state = hybrid(expanded_q, k)
+    hits, state = hybrid(expand_domain(content_query(expanded_q)), k)
+    if any(w in q.lower() for w in ("division", "department", "organisation", "organization",
+                                    "structure", "list", "schemes")):
+        hits = expand_neighbors(hits)
     if not hits:
         return "No relevant chunks found.", hits, ""
     titles = list({h["title"] for h in hits})

@@ -254,7 +254,12 @@
     }
 
     // Read ?id= from URL, or fall back to a demo politician so the page always works
-    const ID = new URLSearchParams(window.location.search).get("id") || "demo-mp";
+    const _params = new URLSearchParams(window.location.search);
+    const ID = _params.get("id") || "demo-mp";
+    const NAME = _params.get("name") || "";
+    const CONSTITUENCY = _params.get("constituency") || "";
+    const FROM_NODE = _params.get("from") || "";
+    const RTI_API = "http://127.0.0.1:8001";
 
     // ═══════════════════════════════════════════════════════════════
     //  MOCK DATA — Offline Ready Demo for Bharat Praman
@@ -332,7 +337,10 @@ Yours faithfully,
     }
 
     function getMockRTIData(politicianId, topicId, district) {
-      const politician = MOCK_POLITICIANS[politicianId] || { name: "Hon'ble MP (ID: " + politicianId + ")", constituency: district || "N/A" };
+      const politician = MOCK_POLITICIANS[politicianId] || {
+        name: NAME || "Hon'ble MP (ID: " + politicianId + ")",
+        constituency: CONSTITUENCY || district || "N/A"
+      };
       return {
         politician,
         template: buildTemplate(topicId, politician),
@@ -396,7 +404,7 @@ Yours faithfully,
     //  APP COMPONENT — Retro Neobrutalist Workstation
     // ═══════════════════════════════════════════════════════════════
     function App() {
-      const [topics] = useState(MOCK_TOPICS);
+      const [topics, setTopics] = useState(MOCK_TOPICS);
       const [topic, setTopic] = useState("mplads");
       const [data, setData] = useState(null);
       const [err, setErr] = useState(null);
@@ -407,19 +415,52 @@ Yours faithfully,
       const [copied, setCopied] = useState(false);
       const [sugg, setSugg] = useState({ matches: [], other_topics: [] });
 
-      const load = (t, d) => {
+      const load = async (t, d) => {
         setTopic(t);
         setErr(null);
         try {
-          setData(getMockRTIData(ID, t, d));
+          if (ID && ID !== "demo-mp") {
+            const qs = d ? `?district=${encodeURIComponent(d)}` : "";
+            const r = await fetch(`${RTI_API}/politicians/${encodeURIComponent(ID)}/rti/${encodeURIComponent(t)}${qs}`);
+            if (r.ok) {
+              const payload = await r.json();
+              if (payload.template) {
+                setData(payload);
+                return;
+              }
+            }
+          }
+          const mockKey = { MPLADS_PROJECTS: "mplads", ATTENDANCE: "attendance", ALLOWANCES: "travel" }[t] || t;
+          setData(getMockRTIData(ID, mockKey, d));
         } catch (e) {
-          setErr(e.message);
+          const mockKey = { MPLADS_PROJECTS: "mplads", ATTENDANCE: "attendance", ALLOWANCES: "travel" }[t] || t;
+          setData(getMockRTIData(ID, mockKey, d));
         }
       };
 
-      // Load initial topic on mount
+      // Load real topics from the RTI server when a graph person is selected.
       useEffect(() => {
-        load("mplads", "");
+        let alive = true;
+        (async () => {
+          if (ID && ID !== "demo-mp") {
+            try {
+              const r = await fetch(`${RTI_API}/rti/topics`);
+              if (r.ok) {
+                const list = await r.json();
+                const icons = { MPLADS_PROJECTS: "🏛️", ATTENDANCE: "⏱️", ALLOWANCES: "💰" };
+                const mapped = list.map(x => ({ ...x, icon: icons[x.topic_id] || "📄" }));
+                if (!alive) return;
+                setTopics(mapped);
+                const first = mapped[0]?.topic_id || "MPLADS_PROJECTS";
+                setTopic(first);
+                load(first, "");
+                return;
+              }
+            } catch (e) { /* fall through to mock */ }
+          }
+          if (alive) load("mplads", "");
+        })();
+        return () => { alive = false; };
       }, []);
 
       // Interpolate user details into letter draft
@@ -539,10 +580,21 @@ Yours faithfully,
 
       useEffect(() => {
         if (!data || !data.template || !topic) return;
-        const t = setTimeout(() => {
-          setSugg(getMockSuggestions(topic, q));
+        let alive = true;
+        const t = setTimeout(async () => {
+          if (ID && ID !== "demo-mp") {
+            try {
+              const r = await fetch(`${RTI_API}/politicians/${encodeURIComponent(ID)}/rti/${encodeURIComponent(topic)}/suggest?q=${encodeURIComponent(q)}`);
+              if (r.ok) {
+                const payload = await r.json();
+                if (alive) setSugg(payload);
+                return;
+              }
+            } catch (e) { /* fall through to mock */ }
+          }
+          if (alive) setSugg(getMockSuggestions(topic, q));
         }, 120);
-        return () => clearTimeout(t);
+        return () => { alive = false; clearTimeout(t); };
       }, [q, topic, data]);
 
       const verdict = checkQuestion(q);
@@ -557,8 +609,11 @@ Yours faithfully,
                 <span>BHARAT PRAMAN // CITIZEN RTI DOCKET v1.2</span>
               </div>
               <div className="flex items-center gap-4 text-[11px]">
-                <a href="graphdashboard2.html" className="hover:underline flex items-center gap-1 font-bold">
-                  ← BACK TO KNOWLEDGE GRAPH DASHBOARD
+                <a
+                  href={FROM_NODE ? `node.html?id=${encodeURIComponent(FROM_NODE)}` : "graphdashboard2.html"}
+                  className="hover:underline flex items-center gap-1 font-bold"
+                >
+                  {FROM_NODE ? "← BACK TO MEMBER NODE" : "← BACK TO KNOWLEDGE GRAPH DASHBOARD"}
                 </a>
                 <span>•</span>
                 <a href="termsofservice.html" className="hover:underline">TERMS</a>

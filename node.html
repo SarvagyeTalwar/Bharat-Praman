@@ -12,6 +12,15 @@
     .brand,.mono,button,a.back { font-family:Consolas,monospace; }
     .brand { font-size:12px; font-weight:700; letter-spacing:.04em; }
     a.back,button { border:2px solid var(--line); border-radius:8px; background:white; color:var(--ink); padding:10px 13px; font-size:12px; font-weight:700; text-decoration:none; cursor:pointer; box-shadow:2px 2px 0 var(--line); }
+    .rti-btn { border:2px solid var(--line); border-radius:8px; background:#fbbf24; color:var(--ink); padding:10px 13px; font:700 12px Consolas,monospace; text-decoration:none; box-shadow:2px 2px 0 var(--line); }
+    .rti-btn:hover, a.back:hover, button:hover { transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--line); }
+    .trail { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px clamp(16px,4vw,48px); border-bottom:1px solid #e7e0d6; background:#fffefa; font:11px Consolas,monospace; }
+    .trail[hidden] { display:none; }
+    .trail button, .trail a { border:1px solid #c9c1b6; background:white; border-radius:6px; padding:4px 8px; font:11px Consolas,monospace; text-decoration:none; color:var(--ink); box-shadow:none; cursor:pointer; }
+    .trail a.current { background:#fbbf24; border-color:var(--line); font-weight:700; }
+    .trail .sep { color:#8a8175; }
+    .trail .trail-label { color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-right:2px; }
+    .trail button:disabled { opacity:.45; cursor:default; }
     main { width:min(1240px,calc(100% - 32px)); margin:28px auto 48px; }
     h1 { margin:0 0 6px; font-size:clamp(26px,4vw,38px); }
     .sub { margin:0 0 20px; color:var(--muted); font:12px/1.6 Consolas,monospace; }
@@ -44,8 +53,12 @@
 <body>
   <header>
     <div class="brand">BHARAT PRAMAN // NODE DETAILS</div>
-    <a id="back" class="back" href="graph.html">← Back to graph</a>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a id="rti-link" class="rti-btn" href="#" hidden>RTI Docket →</a>
+      <a id="back" class="back" href="graph.html">← Back to graph</a>
+    </div>
   </header>
+  <div id="trail" class="trail" hidden></div>
   <main>
     <h1 id="title">Loading graph node…</h1>
     <p id="subtitle" class="sub">Node, direct connections, and properties from Neo4j</p>
@@ -81,10 +94,83 @@
     let cy;
     let graphData;
 
+    // --- Navigation trail (survives page reloads via sessionStorage) ---
+    const TRAIL_KEY = 'bp_node_trail';
+    function readTrail() {
+      try { return JSON.parse(sessionStorage.getItem(TRAIL_KEY) || '[]'); } catch { return []; }
+    }
+    function writeTrail(trail) { sessionStorage.setItem(TRAIL_KEY, JSON.stringify(trail.slice(-25))); }
+    function graphHref(query) {
+      return `graph.html?${new URLSearchParams({ query: query || '', filter: 'all' })}`;
+    }
+    function renderTrail(trail) {
+      const el = document.getElementById('trail');
+      if (!el) return;
+      if (!trail.length) { el.hidden = true; return; }
+      el.hidden = false;
+      el.replaceChildren();
+
+      const label = document.createElement('span');
+      label.className = 'trail-label';
+      label.textContent = 'Trail';
+      el.append(label);
+
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.textContent = '← Back';
+      back.disabled = trail.length < 2;
+      back.addEventListener('click', () => {
+        if (trail.length < 2) return;
+        const prev = trail[trail.length - 2];
+        location.href = prev.type === 'graph' ? graphHref(prev.label) : `node.html?id=${encodeURIComponent(prev.id)}`;
+      });
+      el.append(back);
+
+      trail.forEach((item, index) => {
+        if (index) {
+          const sep = document.createElement('span');
+          sep.className = 'sep';
+          sep.textContent = '›';
+          el.append(sep);
+        }
+        const a = document.createElement('a');
+        a.href = item.type === 'graph' ? graphHref(item.label) : `node.html?id=${encodeURIComponent(item.id)}`;
+        a.textContent = item.label || item.id;
+        if (index === trail.length - 1) a.className = 'current';
+        el.append(a);
+      });
+
+      const reset = document.createElement('button');
+      reset.type = 'button';
+      reset.textContent = 'Start over';
+      reset.addEventListener('click', () => {
+        sessionStorage.removeItem(TRAIL_KEY);
+        location.href = 'graphdashboard2.html';
+      });
+      el.append(reset);
+    }
+    function updateTrail(id, label) {
+      const idStr = String(id);
+      let trail = readTrail();
+      if (!trail.length && fromQuery) {
+        trail.push({ id: '__graph__', label: fromQuery, type: 'graph' });
+      }
+      const existing = trail.findIndex(x => String(x.id) === idStr);
+      if (existing >= 0) {
+        trail = trail.slice(0, existing + 1);
+        if (label) trail[existing].label = label;
+      } else {
+        trail.push({ id: idStr, label: label || idStr });
+      }
+      writeTrail(trail);
+      renderTrail(trail);
+    }
+
     if (typeof cytoscape !== 'undefined') {
-      cy = cytoscape({ container:graphEl, elements:[], minZoom:.15, maxZoom:3, wheelSensitivity:.2,
+      cy = cytoscape({ container:graphEl, elements:[], minZoom:.15, maxZoom:3,
+        hideEdgesOnViewport:true, textureOnViewport:true, pixelRatio:1, motionBlur:false,
         style:[
-          {selector:'node',style:{label:'data(label)',shape:'round-rectangle',width:'label',height:40,padding:10,'background-color':'#dbeafe','border-color':'#292524','border-width':1.5,color:'#1c1917','font-size':11,'font-weight':600,'text-wrap':'ellipsis','text-max-width':170,'text-valign':'center','text-halign':'center'}},
+          {selector:'node',style:{label:'data(label)',shape:'round-rectangle',width:'label',height:40,padding:10,'background-color':'#dbeafe','border-color':'#292524','border-width':1.5,color:'#1c1917','font-size':11,'font-weight':600,'text-wrap':'ellipsis','text-max-width':170,'text-valign':'center','text-halign':'center','min-zoomed-font-size':8}},
           {selector:'node.focus',style:{'background-color':'#fbbf24','border-width':3,'font-size':13,'font-weight':800}},
           {selector:'node.party',style:{'background-color':'#fde68a'}},
           {selector:'node.person',style:{'background-color':'#bfdbfe'}},
@@ -96,10 +182,17 @@
           {selector:'node.criminalcase',style:{'background-color':'#fecaca'}},
           {selector:'node.section',style:{'background-color':'#fed7aa'}},
           {selector:'node.focus',style:{'background-color':'#fbbf24','border-width':3,'font-size':13,'font-weight':800}},
-          {selector:'edge',style:{'curve-style':'bezier','line-color':'#b5aa97',width:1.5,'target-arrow-shape':'triangle','target-arrow-color':'#8b8173',label:'data(label)','font-size':8,color:'#6b6256','text-rotation':'autorotate','text-background-color':'#fffefa','text-background-opacity':.9,'text-background-padding':2}}
+          {selector:'node.synthetic',style:{'border-style':'dashed','font-size':10,'font-weight':700}},
+          {selector:'node.synthetic-assets',style:{'background-color':'#bbf7d0'}},
+          {selector:'node.synthetic-liabilities',style:{'background-color':'#fecaca'}},
+          {selector:'node.synthetic-cases',style:{'background-color':'#fde68a'}},
+          {selector:'edge.synthetic',style:{'line-style':'dashed','target-arrow-shape':'none','line-color':'#8b8173','width':1.2}},
+          {selector:'edge',style:{'curve-style':'bezier','line-color':'#b5aa97',width:1.5,'target-arrow-shape':'triangle','target-arrow-color':'#8b8173',label:'','font-size':8,color:'#6b6256','text-rotation':'autorotate','text-background-color':'#fffefa','text-background-opacity':.9,'text-background-padding':2}}
         ], layout:{name:'cose',animate:false}
       });
-      cy.on('tap','node',event=>openNode(event.target.id()));
+      cy.on('tap','node',event=>{ if (event.target.hasClass('synthetic')) return; openNode(event.target.id()); });
+      cy.on('mouseover','edge',event=>{ event.target.style('label', event.target.data('label')); });
+      cy.on('mouseout','edge',event=>{ event.target.style('label',''); });
       cy.on('mouseover','node',()=>graphEl.style.cursor='pointer');
       cy.on('mouseout','node',()=>graphEl.style.cursor='default');
     } else {
@@ -136,11 +229,67 @@
       titleEl.textContent=focus.label || focus.labels?.[0] || 'Graph node';
       document.title=`${titleEl.textContent} — Bharat Praman`;
       document.getElementById('subtitle').textContent=`${(focus.labels||[]).join(' · ') || 'Node'} · ${data.total_edges} direct connections`;
+
+      // Record this node in the breadcrumb trail.
+      updateTrail(focus.id, focus.label || focus.properties?.name);
+
+      // Connect politician nodes to the RTI docket
+      const focusProps = focus.properties || {};
+      const focusLabels = (focus.labels || []).map(x => String(x).toLowerCase());
+      const isPolitician = ['person', 'mla', 'mp', 'minister'].some(l => focusLabels.includes(l));
+      const entityId = focusProps.entity_id || focusProps.id;
+      const rtiLink = document.getElementById('rti-link');
+      if (isPolitician && entityId) {
+        const consNode = (data.nodes || []).find(n => (n.labels || []).some(l => ['Constituency', 'AssemblyConstituency'].includes(l)));
+        const constituency = focusProps.constituency || focusProps.current_constituency || consNode?.label || '';
+        const rtiParams = new URLSearchParams({
+          id: String(entityId),
+          name: focus.label || focusProps.name || '',
+          constituency,
+          from: nodeId || ''
+        });
+        rtiLink.href = `rti/rti_page.html?${rtiParams.toString()}`;
+        rtiLink.hidden = false;
+        rtiLink.textContent = `RTI Docket for ${focus.label || focusProps.name || 'this member'} →`;
+      } else {
+        rtiLink.hidden = true;
+      }
       const elements=[];
       for (const node of data.nodes) elements.push({group:'nodes',data:{id:String(node.id),label:node.label||node.labels?.[0]||'Graph node'},classes:[...(node.labels||[]).map(x=>String(x).toLowerCase()),...(String(node.id)===String(focus.id)?['focus']:[])].join(' ')});
       for (const edge of data.edges) elements.push({group:'edges',data:{id:String(edge.id),source:String(edge.source),target:String(edge.target),label:edge.type}});
+
+      // Synthetic nodes: assets, liabilities and case counts are Neo4j properties,
+      // but we show them as Cytoscape nodes so the graph tells the full story.
+      const fmtMoney = (value) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? '₹' + n.toLocaleString('en-IN') : String(value);
+      };
+      const synthetic = [];
+      if (isPolitician) {
+        const hasCaseNode = data.nodes.some(n => (n.labels || []).includes('CriminalCase'));
+        if (focusProps.total_assets != null && focusProps.total_assets !== '') {
+          synthetic.push({ group:'nodes', data:{ id:'virtual-assets', label:`Assets: ${fmtMoney(focusProps.total_assets)}` }, classes:'synthetic synthetic-assets' });
+          synthetic.push({ group:'edges', data:{ id:'virtual-assets-edge', source:String(focus.id), target:'virtual-assets', label:'HAS_ASSETS' }, classes:'synthetic' });
+        }
+        if (focusProps.liabilities != null && focusProps.liabilities !== '') {
+          synthetic.push({ group:'nodes', data:{ id:'virtual-liabilities', label:`Liabilities: ${fmtMoney(focusProps.liabilities)}` }, classes:'synthetic synthetic-liabilities' });
+          synthetic.push({ group:'edges', data:{ id:'virtual-liabilities-edge', source:String(focus.id), target:'virtual-liabilities', label:'HAS_LIABILITIES' }, classes:'synthetic' });
+        }
+        if (!hasCaseNode && focusProps.criminal_case_count != null) {
+          synthetic.push({ group:'nodes', data:{ id:'virtual-cases', label:`Criminal cases: ${focusProps.criminal_case_count}` }, classes:'synthetic synthetic-cases' });
+          synthetic.push({ group:'edges', data:{ id:'virtual-cases-edge', source:String(focus.id), target:'virtual-cases', label:'HAS_CASES' }, classes:'synthetic' });
+        }
+      }
+      elements.push(...synthetic);
+
       cy.elements().remove(); cy.add(elements);
-      if (data.edges.length) { emptyEl.hidden=true; graphEl.hidden=false; cy.layout({name:'cose',animate:true,fit:true,padding:55,nodeRepulsion:9000,idealEdgeLength:115,numIter:450}).run(); }
+      if (data.edges.length) {
+        emptyEl.hidden=true; graphEl.hidden=false;
+        const layoutOptions = data.nodes.length > 120
+          ? {name:'grid',fit:true,padding:40,avoidOverlap:true,animate:false}
+          : {name:'cose',animate:false,randomize:false,fit:true,padding:45,nodeRepulsion:5000,idealEdgeLength:100,numIter:data.nodes.length > 60 ? 140 : 250};
+        cy.layout(layoutOptions).run();
+      }
       else { graphEl.hidden=true; emptyEl.hidden=false; }
 
       document.getElementById('count').textContent=`${data.nodes.length} nodes · ${data.edges.length} edges${data.truncated?' · first 100 shown':''}`;
@@ -149,7 +298,7 @@
       const otherNodes=data.nodes.filter(node=>String(node.id)!==String(focus.id));
       for (const node of otherNodes) addPropertyDetails(propertyEl,`Node: ${node.label} (${(node.labels||[]).join(', ')})`,node.properties);
       for (const edge of data.edges) addPropertyDetails(propertyEl,`Relationship: ${edge.type}`,edge.properties);
-      statusEl.textContent=data.truncated?'Showing the first 100 direct connections. More are available.':'Node details loaded from Neo4j.';
+      statusEl.textContent=(data.truncated?'Showing the first 100 direct connections. More are available.':'Node details loaded from Neo4j.') + (synthetic.length ? ' Dashed nodes are synthesized from node properties (assets, liabilities, cases).' : '');
     }
 
     async function loadMore() {
@@ -179,7 +328,10 @@
         document.getElementById('count').textContent=`${graphData.nodes.length} nodes · ${graphData.edges.length} edges`;
         statusEl.textContent=`Showing ${graphData.edges.length} of ${result.connection_count} direct connections.`;
         expandButton.hidden=!result.has_more_connections;
-        cy.layout({name:'cose',animate:true,fit:true,padding:55,nodeRepulsion:9000,idealEdgeLength:115}).run();
+        const layoutOptions = cy.nodes().length > 120
+          ? {name:'grid',fit:true,padding:40,avoidOverlap:true,animate:false}
+          : {name:'cose',animate:false,randomize:false,fit:true,padding:45,nodeRepulsion:5000,idealEdgeLength:100,numIter:120};
+        cy.layout(layoutOptions).run();
       }catch(error){statusEl.textContent=`Could not expand graph: ${error.message}`;statusEl.classList.add('error');}
       finally{expandButton.disabled=false;expandButton.textContent='Load more connections';}
     }

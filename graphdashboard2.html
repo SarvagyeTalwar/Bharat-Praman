@@ -146,7 +146,7 @@
     );
 
     // --- Search Component with Retro Neobrutalist Polish ---
-    function BharatPramanSearch({ items, onActionSelect, onSearch, externalQueryTrigger, glossary }) {
+    function BharatPramanSearch({ items, onActionSelect, onSearch, glossary, placeholder }) {
       const [isOpen, setIsOpen] = useState(false);
       const [query, setQuery] = useState('');
       const [activeSection, setActiveSection] = useState('All');
@@ -162,14 +162,6 @@
           .filter((x) => x.expansion)
           .slice(0, 4);
       }, [query, glossary]);
-
-      // Handle external clicks from sample pills
-      useEffect(() => {
-        if (externalQueryTrigger) {
-          setQuery(externalQueryTrigger);
-          setIsOpen(true);
-        }
-      }, [externalQueryTrigger]);
 
       const availableSections = useMemo(() => {
         const sections = Array.from(new Set(items.map((i) => i.section)));
@@ -272,7 +264,7 @@
                 <SearchIcon size={16} />
               </span>
               <span className="text-sm font-semibold text-stone-700 group-hover:text-stone-950 font-mono-retro">
-                Ask a question about MLAs, MPs or Ministries...
+                {placeholder || 'Ask a question...'}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -313,7 +305,7 @@
                       ref={inputRef}
                       type="text"
                       className="w-full bg-transparent text-sm font-semibold text-stone-900 placeholder-stone-400 outline-none font-mono-retro"
-                      placeholder="Type query (e.g., Lok Sabha, Freedom Fighter, Terms)..."
+                      placeholder={placeholder || 'Type your question...'}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -335,7 +327,7 @@
 
                     {/* Filter Pills */}
                     <div className="flex items-center gap-1 border-l-2 border-stone-300 pl-2.5 ml-1">
-                      {availableSections.map((sec) => (
+                      {availableSections.length > 1 && availableSections.map((sec) => (
                         <button
                           key={sec}
                           type="button"
@@ -374,7 +366,7 @@
                   <div className="custom-scrollbar flex-1 overflow-y-auto p-3 max-h-[380px] bg-[#fdfdfb]">
                     {filteredItems.length === 0 ? (
                       <div className="py-12 text-center text-xs font-mono-retro text-stone-500">
-                        // No matching graph entities found for "{query}"
+                        {query ? 'Press Enter to ask your question.' : 'Type a question and press Enter.'}
                       </div>
                     ) : (
                       <div className="space-y-3.5 py-1">
@@ -447,8 +439,8 @@
 
                   {/* Modal Footer Tip */}
                   <div className="border-t border-stone-200 bg-stone-100/80 px-4 py-2 text-[11px] font-mono-retro text-stone-500 flex justify-between items-center">
-                    <span>Use ↑ ↓ to navigate</span>
-                    <span>Press ↵ to select</span>
+                    <span>Type your question</span>
+                    <span>Press ↵ to ask</span>
                   </div>
                 </motion.div>
               </div>
@@ -457,56 +449,6 @@
         </div>
       );
     }
-
-    // --- Bharat Praman Dataset ---
-    const bharatPramanItems = [
-      {
-        id: '1',
-        title: 'Lok Sabha',
-        subtitle: '543 connected constituency nodes',
-        section: 'Nodes',
-        tag: 'NODE',
-        icon: <ArrowRightIcon size={16} />,
-        action: () => console.log('Lok Sabha'),
-      },
-      {
-        id: '2',
-        title: 'INC (Indian National Congress)',
-        subtitle: 'Connected to 48 legislative nodes',
-        section: 'Nodes',
-        tag: 'NODE',
-        icon: <ArrowRightIcon size={16} />,
-        action: () => console.log('INC'),
-      },
-      {
-        id: '3',
-        title: 'Constituency Records',
-        subtitle: 'Connected to 543 geographic nodes',
-        section: 'Nodes',
-        tag: 'CONCEPT',
-        icon: <ArrowRightIcon size={16} />,
-        action: () => console.log('Constituency'),
-      },
-      {
-        id: '4',
-        title: 'Is Freedom Fighter',
-        subtitle: '112 historical lineage connections',
-        section: 'Relations',
-        tag: 'RELATION',
-        icon: <ArrowRightIcon size={16} />,
-        action: () => console.log('Is Freedom Fighter'),
-      },
-      {
-        id: '5',
-        title: 'No of Terms Served',
-        subtitle: 'Indexed across 543 member tenures',
-        section: 'Relations',
-        tag: 'RELATION',
-        icon: <ArrowRightIcon size={16} />,
-        action: () => console.log('No of Terms'),
-      },
-      
-    ];
 
     // --- Team Data (3 Members) ---
     const TEAM_MEMBERS = [
@@ -536,18 +478,12 @@
       }
     ];
 
-    // Quick Prompt Suggestions
-    const SAMPLE_QUERIES = [
-      { label: 'Lok Sabha', query: 'Lok Sabha', icon: '🏛️' },
-      { label: 'Freedom Fighter Lineage', query: 'Freedom Fighter', icon: '📜' },
-      { label: 'Terms Served', query: 'Terms', icon: '⏱️' },
-      { label: 'Constituencies', query: 'Constituency', icon: '🗺️' },
-    ];
-
     // --- Glossary Modal (same retro paper system) ---
     function GlossaryModal({ open, onClose, glossary }) {
       const [q, setQ] = useState('');
       const [ministry, setMinistry] = useState('All');
+      const [tab, setTab] = useState('terms');
+      const [ipcItems, setIpcItems] = useState([]);
 
       const entries = useMemo(() => {
         const list = Object.entries(glossary || {}).map(([acronym, v]) => ({ acronym, ...v }));
@@ -563,6 +499,21 @@
           .sort((a, b) => (b.count || 0) - (a.count || 0) || a.acronym.localeCompare(b.acronym));
       }, [glossary, q, ministry]);
 
+      const filteredIpc = useMemo(() => {
+        const ql = q.trim().toLowerCase();
+        return (ipcItems || []).filter((e) =>
+          !ql || e.code.toLowerCase().includes(ql) || (e.explanation || '').toLowerCase().includes(ql)
+        );
+      }, [ipcItems, q]);
+
+      const loadIpc = () => {
+        if (ipcItems.length > 0) return;
+        fetch('http://127.0.0.1:8000/api/ipc-sections')
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error('ipc fetch failed'))))
+          .then((data) => setIpcItems(data.items || []))
+          .catch(() => { /* IPC glossary is optional */ });
+      };
+
       if (!open) return null;
 
       return (
@@ -575,7 +526,7 @@
                   <SearchIcon size={15} />
                 </span>
                 <h2 className="text-sm font-mono-retro font-bold uppercase tracking-wider text-stone-900">Glossary</h2>
-                <span className="text-[10px] font-mono-retro text-stone-500">{entries.length} terms</span>
+                <span className="text-[10px] font-mono-retro text-stone-500">{tab === 'terms' ? `${entries.length} terms` : `${ipcItems.length} sections`}</span>
               </div>
               <button
                 type="button"
@@ -587,58 +538,101 @@
               </button>
             </div>
 
+            <div className="flex border-b-2 border-stone-800 bg-[#f7f3ea]">
+              <button
+                type="button"
+                onClick={() => setTab('terms')}
+                className={`flex-1 px-3 py-2 text-xs font-mono-retro font-bold uppercase tracking-wider transition-colors ${
+                  tab === 'terms' ? 'bg-stone-900 text-stone-50' : 'bg-transparent text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                Terms
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTab('ipc'); loadIpc(); }}
+                className={`flex-1 px-3 py-2 text-xs font-mono-retro font-bold uppercase tracking-wider transition-colors ${
+                  tab === 'ipc' ? 'bg-stone-900 text-stone-50' : 'bg-transparent text-stone-600 hover:bg-stone-200'
+                }`}
+              >
+                IPC Sections
+              </button>
+            </div>
+
             <div className="border-b-2 border-stone-200 bg-[#fffefa] px-4 py-3">
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search acronyms (e.g. MHA, NEP, GER)..."
+                placeholder={tab === 'terms' ? 'Search acronyms (e.g. MHA, NEP, GER)...' : 'Search IPC sections (e.g. 420, 302, 153A)...'}
                 className="w-full rounded-lg border-2 border-stone-800 bg-white px-3 py-2 text-sm font-mono-retro text-stone-900 outline-none placeholder-stone-400"
               />
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                {['All', 'Home Affairs', 'Education'].map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMinistry(m)}
-                    className={`rounded border px-2 py-0.5 text-[10px] font-mono-retro font-bold uppercase tracking-wide transition-colors ${
-                      ministry === m
-                        ? 'border-stone-900 bg-stone-900 text-stone-50'
-                        : 'border-stone-300 bg-white text-stone-600 hover:border-stone-800 hover:text-stone-950'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
+              {tab === 'terms' && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {['All', 'Home Affairs', 'Education'].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMinistry(m)}
+                      className={`rounded border px-2 py-0.5 text-[10px] font-mono-retro font-bold uppercase tracking-wide transition-colors ${
+                        ministry === m
+                          ? 'border-stone-900 bg-stone-900 text-stone-50'
+                          : 'border-stone-300 bg-white text-stone-600 hover:border-stone-800 hover:text-stone-950'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="custom-scrollbar flex-1 overflow-y-auto p-3">
-              {entries.length === 0 ? (
-                <div className="py-12 text-center text-xs font-mono-retro text-stone-500">
-                  // No matching acronyms
-                </div>
-              ) : (
-                entries.map((e) => (
-                  <div key={e.acronym} className="flex items-start justify-between gap-3 border-b border-stone-200 px-2 py-2 last:border-0">
-                    <div className="min-w-0">
-                      <div className="font-mono-retro text-xs font-bold text-stone-900">{e.acronym}</div>
-                      <div className="text-sm text-stone-700">{e.expansion}</div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      {e.category && (
-                        <span className="rounded border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-[9px] font-mono-retro uppercase text-stone-600">
-                          {e.category}
-                        </span>
-                      )}
-                      <span className="text-[10px] font-mono-retro text-stone-400">{e.count || 0}×</span>
-                    </div>
+              {tab === 'terms' ? (
+                entries.length === 0 ? (
+                  <div className="py-12 text-center text-xs font-mono-retro text-stone-500">
+                    No matching acronyms
                   </div>
-                ))
+                ) : (
+                  entries.map((e) => (
+                    <div key={e.acronym} className="flex items-start justify-between gap-3 border-b border-stone-200 px-2 py-2 last:border-0">
+                      <div className="min-w-0">
+                        <div className="font-mono-retro text-xs font-bold text-stone-900">{e.acronym}</div>
+                        <div className="text-sm text-stone-700">{e.expansion}</div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        {e.category && (
+                          <span className="rounded border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-[9px] font-mono-retro uppercase text-stone-600">
+                            {e.category}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-mono-retro text-stone-400">{e.count || 0}×</span>
+                      </div>
+                    </div>
+                  ))
+                )
+              ) : (
+                filteredIpc.length === 0 ? (
+                  <div className="py-12 text-center text-xs font-mono-retro text-stone-500">
+                    {ipcItems.length === 0 ? 'Loading IPC sections...' : 'No matching IPC sections'}
+                  </div>
+                ) : (
+                  filteredIpc.map((e) => (
+                    <div key={e.code} className="flex items-start justify-between gap-3 border-b border-stone-200 px-2 py-2 last:border-0">
+                      <div className="min-w-0">
+                        <div className="font-mono-retro text-xs font-bold text-stone-900">IPC {e.code}</div>
+                        <div className="text-sm text-stone-700">{e.explanation}</div>
+                      </div>
+                      <span className="shrink-0 rounded border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-[10px] font-mono-retro text-stone-600">{e.mla_count} MLAs</span>
+                    </div>
+                  ))
+                )
               )}
             </div>
 
             <div className="border-t-2 border-stone-200 bg-[#f7f3ea] px-4 py-2 text-[10px] font-mono-retro text-stone-500">
-              Extracted from Ministry documents and validated. Overrides live in glossary_overrides.json.
+              {tab === 'terms'
+                ? 'Extracted from Ministry documents and validated. Overrides live in glossary_overrides.json.'
+                : 'Major IPC sections charged against MLAs in the graph, with live counts. One-line summaries, not legal advice.'}
             </div>
           </div>
         </div>
@@ -647,8 +641,7 @@
 
     // --- Main Page Component ---
     function App() {
-      const [selectedMessage, setSelectedMessage] = useState(null);
-      const [activeSampleQuery, setActiveSampleQuery] = useState('');
+      const [askMode, setAskMode] = useState('graph');
       const [glossaryOpen, setGlossaryOpen] = useState(false);
       const [glossary, setGlossary] = useState({});
 
@@ -663,17 +656,16 @@
           .catch(() => { /* glossary is optional; UI still works */ });
       }, []);
 
-      const triggerQuery = (queryText) => {
-        setActiveSampleQuery(queryText);
-      };
-
       const searchGraph = (queryText, filter) => {
-        if (!queryText) {
-          setSelectedMessage('Type a search term first.');
+        const q = (queryText || '').trim();
+        if (!q) return;
+        if (askMode === 'graph') {
+          const params = new URLSearchParams({ query: q, filter: filter || 'all' });
+          window.location.href = `graph.html?${params.toString()}`;
           return;
         }
-        const params = new URLSearchParams({ query: queryText, filter });
-        window.location.href = `graph.html?${params.toString()}`;
+        const params = new URLSearchParams({ ministry: askMode, q });
+        window.location.href = `ask.html?${params.toString()}`;
       };
 
       return (
@@ -687,6 +679,8 @@
               </div>
               <div className="flex items-center gap-4 text-[11px]">
                 <a href="#why-us" className="hover:underline">WHY US</a>
+                <span>•</span>
+                <a href="ask.html" className="hover:underline">ASK DOCS</a>
                 <span>•</span>
                 <button type="button" onClick={() => setGlossaryOpen(true)} className="hover:underline bg-transparent border-0 p-0 text-[11px] font-mono-retro font-bold text-stone-800 cursor-pointer">GLOSSARY</button>
                 <span>•</span>
@@ -706,6 +700,7 @@
                 <img
                   src="bharat_praman_logo.png"
                   alt="भारत प्रमाण"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   className="h-28 sm:h-36 md:h-44 w-auto max-w-full object-contain select-none transition-transform hover:scale-105 duration-200"
                 />
               </div>
@@ -725,41 +720,41 @@
             {/* Centered Search Component — full width of max-w-3xl container */}
             <div className="w-full">
               <BharatPramanSearch
-                items={bharatPramanItems}
-                externalQueryTrigger={activeSampleQuery}
+                items={[]}
                 onSearch={searchGraph}
                 glossary={glossary}
-                onActionSelect={(item) =>
-                  setSelectedMessage(`Selected: "${item.title}" [${item.section}]`)
-                }
+                placeholder={askMode === 'graph'
+                  ? 'Ask a question about MLAs, MPs or Ministries...'
+                  : 'Ask a question about Ministry documents...'}
+                onActionSelect={(item) => searchGraph(item.title, 'all')}
               />
             </div>
 
-            {/* Clickable Quick Sample Queries */}
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 w-full text-xs">
-              <span className="font-mono-retro text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1">
-                <SparklesIcon size={12} className="text-amber-600" />
-                Try queries:
+            {/* Ask scope selector — no preset questions, just where to search */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 w-full text-xs">
+              <span className="font-mono-retro text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                Ask about:
               </span>
-              {SAMPLE_QUERIES.map((sample) => (
+              {[
+                { id: 'graph', label: 'Political Graph' },
+                { id: 'education', label: 'Ministry of Education' },
+                { id: 'home', label: 'Ministry of Home Affairs' },
+                { id: 'both', label: 'Both Ministries' },
+              ].map((mode) => (
                 <button
-                  key={sample.label}
+                  key={mode.id}
                   type="button"
-                  onClick={() => triggerQuery(sample.query)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white/90 px-3 py-1 text-xs font-medium text-stone-700 shadow-sm hover:border-stone-800 hover:bg-amber-100 hover:text-stone-950 transition-all cursor-pointer"
+                  onClick={() => setAskMode(mode.id)}
+                  className={`rounded-full border px-3 py-1 text-xs font-mono-retro font-bold transition-all ${
+                    askMode === mode.id
+                      ? 'border-stone-900 bg-stone-900 text-stone-50 shadow-[2px_2px_0px_0px_#1c1917]'
+                      : 'border-stone-300 bg-white/90 text-stone-700 hover:border-stone-800 hover:bg-amber-100 hover:text-stone-950'
+                  }`}
                 >
-                  <span>{sample.icon}</span>
-                  <span>{sample.label}</span>
+                  {mode.label}
                 </button>
               ))}
             </div>
-
-            {/* Selected Action Feedback Banner */}
-            {selectedMessage && (
-              <div className="mt-6 w-full p-3 border-2 border-stone-800 bg-[#fdfdfb] text-xs font-mono-retro text-stone-900 rounded-xl text-center shadow-[3px_3px_0px_0px_#1c1917]">
-                ✓ {selectedMessage}
-              </div>
-            )}
           </main>
 
           {/* Section: Why Us */}

@@ -73,5 +73,24 @@
     "source_url": "https://mospi.gov.in/rti/rti-office-orders",
     "last_verified": null,
     "verified": false
+  },
+  "VIDHAN_SABHA_SECRETARIAT": {
+    "name": "State Legislative Assembly Secretariat",
+    "level": "STATE",
+    "website": null,
+    "pio_designation": "Public Information Officer, State Legislative Assembly Secretariat",
+    "pio_address": "[State Legislative Assembly Secretariat address to be confirmed]",
+    "portal_url": null,
+    "on_rtionline": false,
+    "fee": null,
+    "payment_mode": null,
+    "appellate_authority": {
+      "name": null,
+      "address": null
+    },
+    "source_url": null,
+    "last_verified": null,
+    "verified": false,
+    "research_note": "State Assembly RTI rules and PIO addresses vary by state; confirm on the state legislature website."
   }
 }

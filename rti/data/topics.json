@@ -6,7 +6,11 @@
     "already_on_profile": false,
     "profile_section": null,
     "needs_district": true,
-    "authority_by_house": {"LOK_SABHA": "DISTRICT_AUTHORITY", "RAJYA_SABHA": "DISTRICT_AUTHORITY"}
+    "authority_by_house": {
+      "LOK_SABHA": "DISTRICT_AUTHORITY",
+      "RAJYA_SABHA": "DISTRICT_AUTHORITY",
+      "VIDHAN_SABHA": "VIDHAN_SABHA_SECRETARIAT"
+    }
   },
   {
     "topic_id": "ATTENDANCE",
@@ -15,7 +19,11 @@
     "already_on_profile": false,
     "profile_section": null,
     "needs_district": false,
-    "authority_by_house": {"LOK_SABHA": "LOK_SABHA_SECRETARIAT", "RAJYA_SABHA": "RAJYA_SABHA_SECRETARIAT"}
+    "authority_by_house": {
+      "LOK_SABHA": "LOK_SABHA_SECRETARIAT",
+      "RAJYA_SABHA": "RAJYA_SABHA_SECRETARIAT",
+      "VIDHAN_SABHA": "VIDHAN_SABHA_SECRETARIAT"
+    }
   },
   {
     "topic_id": "ALLOWANCES",
@@ -24,6 +32,10 @@
     "already_on_profile": false,
     "profile_section": null,
     "needs_district": false,
-    "authority_by_house": {"LOK_SABHA": "LOK_SABHA_SECRETARIAT", "RAJYA_SABHA": "RAJYA_SABHA_SECRETARIAT"}
+    "authority_by_house": {
+      "LOK_SABHA": "LOK_SABHA_SECRETARIAT",
+      "RAJYA_SABHA": "RAJYA_SABHA_SECRETARIAT",
+      "VIDHAN_SABHA": "VIDHAN_SABHA_SECRETARIAT"
+    }
   }
 ]
