@@ -58,6 +58,7 @@
       background: #a89e8c;
     }
   </style>
+<script src="bp-config.js"></script>
 </head>
 <body class="min-h-screen selection:bg-amber-200 selection:text-stone-900">
   <div id="root"></div>
@@ -508,7 +509,7 @@
 
       const loadIpc = () => {
         if (ipcItems.length > 0) return;
-        fetch('http://127.0.0.1:8000/api/ipc-sections')
+        fetch(`${window.BP_CONFIG.apiBase}/api/ipc-sections`)
           .then((r) => (r.ok ? r.json() : Promise.reject(new Error('ipc fetch failed'))))
           .then((data) => setIpcItems(data.items || []))
           .catch(() => { /* IPC glossary is optional */ });
@@ -646,7 +647,7 @@
       const [glossary, setGlossary] = useState({});
 
       useEffect(() => {
-        fetch('http://127.0.0.1:8000/api/glossary?limit=1000')
+        fetch(`${window.BP_CONFIG.apiBase}/api/glossary?limit=1000`)
           .then((r) => (r.ok ? r.json() : Promise.reject(new Error('glossary fetch failed'))))
           .then((d) => {
             const map = {};

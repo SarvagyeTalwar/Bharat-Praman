@@ -49,13 +49,33 @@ The LLM handles *novel* phrasing, but every query — template or LLM — passes
   - Instance02 — ministry RAG (`Chunk`/`MHAChunk` nodes)
 - **A Gemini API key** (AI Studio free tier) for text-to-Cypher and RAG answer generation.
 
+## Quick start (portable)
+
+Requires Python 3.13+ (tested on 3.14) and network access to Neo4j Aura + Gemini.
+
+```bash
+python -m pip install -r requirements.txt
+python start_all.py
+```
+
+Then open `http://127.0.0.1:5500/graphdashboard2.html`.
+
+`start_all.py` binds all three services to `0.0.0.0`, so another machine on the
+same network can use `http://<this-machine-ip>:5500/graphdashboard2.html`.
+Override ports with `API_PORT`, `RTI_PORT`, `WEB_PORT`, and the bind address
+with `BP_HOST`.
+
+The runtime uses the local TF-IDF indexes; `torch`/`sentence-transformers` are
+not required. Vocabulary files live in `data/` and can be overridden with
+`MOE_VOCAB_PATH` and `MHA_VOCAB_PATH`.
+
 ## Setup
 
 ### 1. Configure environment
 
 Copy the examples and fill in real values. There are two env files; the backend loads **both**, and `BACKEND/.env` wins on conflict.
 
-**`.env`** (repo root):
+**`.env`** (repo root) — copy from [`.env.example`](.env.example):
 ```ini
 NEO4J_URI=neo4j+ssc://xxxx.databases.neo4j.io
 NEO4J_USERNAME=neo4j
@@ -65,7 +85,7 @@ LLM_MODEL=gemini-3.5-flash-lite
 FRONTEND_ORIGIN=http://localhost:5500
 ```
 
-**`BACKEND/.env`** — holds **both** database instances plus the RAG LLM key:
+**`BACKEND/.env`** — copy from [`.env.example`](BACKEND/.env.example). Holds **both** database instances plus the RAG LLM key:
 ```ini
 # Instance01 (politician graph)
 NEO4J_URI=neo4j+ssc://xxxx.databases.neo4j.io
@@ -88,10 +108,10 @@ LLM_MODEL=gemini-3.5-flash-lite
 ### 2. Install dependencies (on Python 3.14)
 
 ```bash
-py -3.14 -m pip install fastapi uvicorn neo4j python-dotenv google-genai sentence-transformers pydantic truststore pypdf
+python -m pip install -r requirements.txt
 ```
 
-`sentence-transformers` pulls in `torch` (~2GB) — a one-time cost.
+This installs only the runtime packages (fastapi, uvicorn, neo4j, python-dotenv, google-genai, pydantic, truststore). `torch` / `sentence-transformers` are **not** needed unless you use the optional semantic e5 path (see step 3).
 
 ### 3. (Optional) semantic embeddings
 
@@ -102,6 +122,53 @@ py -3.14 reembed_e5.py
 ```
 
 This is a one-time, resumable migration from the old TF-IDF vectors. The model downloads ~100MB on first use.
+
+## For the Judges — how to run Bharat Praman
+
+If the judges get the repo and want to run the app themselves, here is the complete path:
+
+### 1. Requirements
+- **Python 3.14** (recommended; `py -3.14` launcher is used in docs).
+- Internet access to **Neo4j Aura** and **Gemini** (Google AI Studio).
+
+### 2. Install dependencies
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 3. Configure environment
+```bash
+cp BACKEND/.env.example BACKEND/.env
+```
+Then edit `BACKEND/.env` and fill in real values:
+- `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD` — Neo4j instance **01** (politician graph)
+- `NEO4J_URI1`, `NEO4J_USERNAME1`, `NEO4J_PASSWORD1`, `NEO4J_DATABASE1` — Neo4j instance **02** (ministry RAG)
+- `GEMINI_API_KEY`, `GEMINI_API_KEY1`, `LLM_MODEL`, `LLM_MODEL1` — Gemini keys/models
+
+Full templates: [`.env.example`](.env.example) and [`BACKEND/.env.example`](BACKEND/.env.example).
+
+### 4. Start the app (one command)
+```bash
+python start_all.py
+```
+
+This starts:
+- Backend API → `http://127.0.0.1:8000` (health: `http://127.0.0.1:8000/health`)
+- RTI server → `http://127.0.0.1:8001` (RTI page: `http://127.0.0.1:8001/rti-page`)
+- Frontend → `http://127.0.0.1:5500`
+
+### 5. Open in browser
+```
+http://127.0.0.1:5500/graphdashboard2.html
+```
+
+### What the judges need before step 3
+- A **Neo4j Aura** free-tier account with both databases created and loaded (or a local Neo4j instance + data).
+- A **Gemini API key** (free tier from Google AI Studio).
+
+> Note: the live demo used the author's Neo4j Aura instances. A public GitHub repo can't embed live database access, so judges must supply their own Neo4j credentials (and Gemini key) to run the full stack end-to-end.
+
+---
 
 ## Starting the website
 
@@ -128,6 +195,8 @@ python -m http.server 5500
 ### Then open
 **http://localhost:5500/graphdashboard2.html**
 
+> 💡 **Easiest way:** just run `python start_all.py` from the repo root — it starts the backend, RTI server, and frontend together, then prints the URLs. (You can also use the three-terminal method above.)
+
 ---
 
 ## Project layout
@@ -137,15 +206,20 @@ python -m http.server 5500
 | `main.py` | FastAPI backend — graph search, text-to-Cypher, RAG, glossary, IPC sections |
 | `agent.py` | RAG over Ministry of Education (Instance02) |
 | `mha_agent.py` | RAG over Ministry of Home Affairs (Instance02) |
-| `embeddings.py` | Local `e5` embedding helper (384-dim) |
+| `embeddings.py` | Local TF-IDF / e5 embedding helper |
 | `rti/server.py`, `rti/engine.py` | RTI draft generation (port 8001) |
 | `ipc_sections.py` | Curated one-line explanations of major IPC sections |
 | `glossary.py` | Acronym glossary (expand + annotate) |
 | `reembed_e5.py` | One-time migration: TF-IDF → e5 embeddings |
 | `chunking.py`, `moe_ingest*.py`, `mha_ingest.py` | PDF → chunks → Neo4j ingestion |
 | `MLAs/`, `MPs_everything/` | Scraping / ingestion scripts and parsed data |
+| `data/` | Local TF-IDF vocab files (`moe_vocab.json`, `mha_vocab.json`) |
+| `start_all.py`, `start_backend.ps1` | One-command / Windows launchers |
+| `.env.example`, `BACKEND/.env.example` | Environment templates (real `.env` files are gitignored) |
+| `requirements.txt` | Runtime Python dependencies |
 | `graphdashboard2.html` | Main frontend dashboard |
 | `graph.html`, `node.html`, `ask.html` | Frontend pages (search, node detail, RAG ask) |
+| `bp-config.js` | Host-aware frontend API config |
 | `cypher_templates.py`, `cypher_examples.json` | Text-to-Cypher examples / templates |
 
 ## Notes & caveats

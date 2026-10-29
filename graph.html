@@ -164,6 +164,7 @@
     }
   </style>
   <script src="https://unpkg.com/cytoscape@3.33.0/dist/cytoscape.min.js"></script>
+<script src="bp-config.js"></script>
 </head>
 <body>
   <header>
@@ -251,7 +252,8 @@
   </main>
 
   <script>
-    const API_URL = 'http://127.0.0.1:8000/api/search';
+    const API_BASE = window.BP_CONFIG.apiBase;
+    const API_URL = `${API_BASE}/api/search`;
     const queryInput = document.getElementById('query');
     const filterInput = document.getElementById('filter');
     const form = document.getElementById('search-form');
@@ -275,7 +277,7 @@
     let connectionOffset = 0;
     let activeQuery = '';
 
-    fetch('http://127.0.0.1:8000/api/metadata')
+    fetch(`${API_BASE}/api/metadata`)
       .then(response => response.ok ? response.json() : Promise.reject(new Error('metadata unavailable')))
       .then(metadata => {
         const dateNote = metadata.latest_source_date
@@ -483,7 +485,7 @@
       expandButton.disabled = true;
       expandButton.textContent = 'Loading…';
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/graph/expand', {
+        const response = await fetch(`${API_BASE}/api/graph/expand`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ seed_ids: activeFocusIds, offset: connectionOffset, limit: 100 })
@@ -535,7 +537,7 @@
       searchButton.disabled = true;
       try {
         const isAsk = modeInput.value === 'ask';
-        const response = await fetch(isAsk ? 'http://127.0.0.1:8000/api/ask' : API_URL, {
+        const response = await fetch(isAsk ? `${API_BASE}/api/ask` : API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(isAsk
@@ -597,7 +599,7 @@
     }
 
     // --- Glossary (JSON-backed, no Neo4j writes) ---
-    const GLOSSARY_API = 'http://127.0.0.1:8000';
+    const GLOSSARY_API = API_BASE;
     let GLOSSARY = {};
     let glossaryFilter = 'All';
     const glossaryModal = document.getElementById('glossary-modal');

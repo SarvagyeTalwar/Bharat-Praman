@@ -49,6 +49,7 @@
     @media(max-width:640px) { header{padding:11px 14px}.brand{font-size:10px}main{width:calc(100% - 22px);margin-top:20px}#graph{min-height:340px;height:52vh} }
   </style>
   <script src="https://unpkg.com/cytoscape@3.33.0/dist/cytoscape.min.js"></script>
+<script src="bp-config.js"></script>
 </head>
 <body>
   <header>
@@ -78,7 +79,7 @@
     </section>
   </main>
   <script>
-    const API_BASE = 'http://127.0.0.1:8000';
+    const API_BASE = window.BP_CONFIG.apiBase;
     const params = new URLSearchParams(location.search);
     const nodeId = params.get('id');
     const fromQuery = params.get('from') || '';

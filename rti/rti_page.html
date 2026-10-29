@@ -259,7 +259,7 @@
     const NAME = _params.get("name") || "";
     const CONSTITUENCY = _params.get("constituency") || "";
     const FROM_NODE = _params.get("from") || "";
-    const RTI_API = "http://127.0.0.1:8001";
+    const RTI_API = location.port === "5500" ? `http://${location.hostname}:8001` : "";
 
     // ═══════════════════════════════════════════════════════════════
     //  MOCK DATA — Offline Ready Demo for Bharat Praman

@@ -8,10 +8,14 @@ Runs fully offline (no API, no quota). Resumable: re-running skips chunks
 that already have `embedding_e5`.
 """
 import os
+os.environ.setdefault('HF_HUB_OFFLINE', '1')
+os.environ.setdefault('TRANSFORMERS_OFFLINE', '1')
 from pathlib import Path
 
 from dotenv import load_dotenv, find_dotenv
 from neo4j import GraphDatabase
+import torch
+torch.set_num_threads(max(4, min(8, os.cpu_count() or 4)))
 
 from embeddings import embed_texts, DIM
 
@@ -27,10 +31,10 @@ driver = GraphDatabase.driver(URI, auth=(USER, PW))
 
 # (chunk label, new vector index name)
 TARGETS = [
-    ("Chunk", "chunk_embeddings_e5"),
     ("MHAChunk", "mha_chunk_embeddings_e5"),
+    ("Chunk", "chunk_embeddings_e5"),
 ]
-BATCH = 128
+BATCH = 512
 
 
 def create_index(label, index_name):
@@ -57,7 +61,7 @@ def reembed(label, index_name):
         chunk = rows[i:i + BATCH]
         ids = [r["id"] for r in chunk]
         texts = [r["text"] for r in chunk]
-        vecs = embed_texts(texts, batch=32)
+        vecs = embed_texts(texts, batch=128)
         params = [{"id": rid, "vec": v} for rid, v in zip(ids, vecs)]
         with driver.session() as s:
             s.execute_write(

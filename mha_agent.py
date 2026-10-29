@@ -29,7 +29,7 @@ LOCAL_VEC_INDEX = "mha_chunk_embeddings_local"
 # e5 is opt-in: torch/model loading is memory-heavy on the demo machine, and the
 # e5 index was historically empty. The complete TF-IDF index is the default.
 USE_E5 = os.getenv("MHA_USE_E5", "0").strip().lower() in {"1", "true", "yes"}
-LOCAL_VOCAB_PATH = Path(r"C:\Users\aarya\OneDrive\Documents\Default Project\mha_vocab.json")
+LOCAL_VOCAB_PATH = Path(os.getenv("MHA_VOCAB_PATH", str(HERE / "data" / "mha_vocab.json")))
 FT_INDEX = "mha_chunk_text_fulltext"
 _LOCAL_VOCAB = None
 

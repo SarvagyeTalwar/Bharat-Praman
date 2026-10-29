@@ -17,7 +17,6 @@ from neo4j import GraphDatabase
 from google import genai
 
 from glossary import expand_query, annotate_answer
-from embeddings import embed_query
 
 HERE = Path(__file__).resolve().parent
 load_dotenv(find_dotenv())
@@ -29,8 +28,10 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD1") or os.getenv("NEO4J_PASSWORD")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY1") or os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
 
-VECTOR_INDEX = "chunk_embeddings_e5"
+VECTOR_INDEX = "chunk_embeddings_local"
 FULLTEXT_INDEX = "chunk_text_fulltext"
+LOCAL_VOCAB_PATH = Path(os.getenv("MOE_VOCAB_PATH", str(HERE / "data" / "moe_vocab.json")))
+_LOCAL_VOCAB = None
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD), max_transaction_retry_time=120)
 gemini = genai.Client(api_key=GEMINI_API_KEY)
@@ -40,8 +41,23 @@ def tokenize(t):
     return re.findall(r"[A-Za-z0-9\u0900-\u097f]+", t.lower())
 
 
+def _local_query_vector(text):
+    global _LOCAL_VOCAB
+    if _LOCAL_VOCAB is None:
+        data = json.loads(LOCAL_VOCAB_PATH.read_text(encoding="utf-8"))
+        _LOCAL_VOCAB = (data["vocab"], data["idf"])
+    vocab, idf = _LOCAL_VOCAB
+    v = [0.0] * len(vocab)
+    for tok, count in Counter(tokenize(text)).items():
+        idx = vocab.get(tok)
+        if idx is not None and idx < len(idf):
+            v[idx] = count * idf[idx]
+    norm = math.sqrt(sum(x * x for x in v)) or 1.0
+    return [x / norm for x in v]
+
+
 def vector_search(question, k):
-    qv = embed_query(question)
+    qv = _local_query_vector(question)
     with driver.session() as s:
         return s.run(
             "CALL db.index.vector.queryNodes($idx, $k, $v) YIELD node, score "

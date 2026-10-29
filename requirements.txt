@@ -1,9 +1,7 @@
 fastapi
-uvicorn
+uvicorn[standard]
 neo4j
 python-dotenv
-pydantic
 google-genai
-sentence-transformers
+pydantic
 truststore
-pypdf

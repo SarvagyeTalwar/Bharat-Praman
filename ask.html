@@ -70,6 +70,7 @@
     .empty { padding: 46px 18px; text-align: center; color: var(--muted); font: 12px/1.7 "Space Mono", Consolas, monospace; }
     @media (max-width: 640px) { header { padding: 10px 14px; } main { width: calc(100% - 20px); margin-top: 22px; } }
   </style>
+<script src="bp-config.js"></script>
 </head>
 <body>
   <header>
@@ -108,7 +109,7 @@
   </main>
 
   <script>
-    const API = 'http://127.0.0.1:8000/api/rag/ask';
+    const API = `${window.BP_CONFIG.apiBase}/api/rag/ask`;
     const params = new URLSearchParams(location.search);
     let ministry = (params.get('ministry') || 'education').toLowerCase();
     const initialQuestion = params.get('q') || '';
