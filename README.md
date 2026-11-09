@@ -244,6 +244,4 @@ python -m http.server 5500
 
 🎥 Project Demo
 
-""Watch the Demo" (https://img.youtube.com/vi/MTdjGaeKVwc/maxresdefault.jpg)" (https://youtu.be/MTdjGaeKVwc)
-
-Click the thumbnail above to watch the video.
+[![Watch the Demo Video](https://img.youtube.com/vi/MTdjGaeKVwc/maxresdefault.jpg)](https://www.youtube.com/watch?v=MTdjGaeKVwc)
