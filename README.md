@@ -241,3 +241,9 @@ python -m http.server 5500
 | Text-to-Cypher returns 400 or a wrong answer | Rephrase, or stick to pre-tested demo questions. See `DOCS/DEMO_ACCURACY.md`. |
 | `pip install` of torch/sentence-transformers fails | You're on Python 3.15. Re-run with `py -3.14 -m pip install -r requirements.txt`. |
 | Model download is slow (HF warning) | The ~100MB e5 model downloads once from HuggingFace. Slow in some regions; try `$env:HF_ENDPOINT = "https://hf-mirror.com"` first. |
+
+🎥 Project Demo
+
+""Watch the Demo" (https://img.youtube.com/vi/MTdjGaeKVwc/maxresdefault.jpg)" (https://youtu.be/MTdjGaeKVwc)
+
+Click the thumbnail above to watch the video.
