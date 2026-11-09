@@ -1,5 +1,9 @@
 # Bharat Praman (भारत प्रमाण)
 
+# 📹 Project Demo
+
+[![Watch the Demo Video](https://img.youtube.com/vi/MTdjGaeKVwc/maxresdefault.jpg)](https://www.youtube.com/watch?v=MTdjGaeKVwc)
+
 A civic-tech platform that turns Indian political data and ministry documents into something a normal citizen can actually use — from *"who is my MLA?"* to a ready-to-file RTI request.
 
 ## What it does (three parts)
@@ -242,6 +246,4 @@ python -m http.server 5500
 | `pip install` of torch/sentence-transformers fails | You're on Python 3.15. Re-run with `py -3.14 -m pip install -r requirements.txt`. |
 | Model download is slow (HF warning) | The ~100MB e5 model downloads once from HuggingFace. Slow in some regions; try `$env:HF_ENDPOINT = "https://hf-mirror.com"` first. |
 
-# 📹 Project Demo
 
-[![Watch the Demo Video](https://img.youtube.com/vi/MTdjGaeKVwc/maxresdefault.jpg)](https://www.youtube.com/watch?v=MTdjGaeKVwc)
