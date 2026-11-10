@@ -13,10 +13,10 @@ A civic-tech platform that turns Indian political data and ministry documents in
    ## 📸 Screenshots
 
 ### Graph Explorer
-![Bharat Praman Graph Explorer](./assets/graph-explorer.png)
+![Bharat Praman Graph Explorer](./assets/Graph-Explorer.PNG)
 
 ### Node Details
-![Bharat Praman Node Details](./assets/node-details.png)
+![Bharat Praman Node Details](./assets/Node-Details.PNG)
 
 3. **Ministry GraphRAG** — ask questions about Ministry of Education / Home Affairs annual reports. Hybrid retrieval (semantic `e5` embeddings + full-text) over ingested PDF chunks, answered by an LLM with page citations.
 4. **RTI generation** — pick a politician and a topic, and get a ready-made, legally-formatted RTI request (draft), downloadable as a PDF.
