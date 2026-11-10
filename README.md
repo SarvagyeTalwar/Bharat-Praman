@@ -9,8 +9,17 @@ A civic-tech platform that turns Indian political data and ministry documents in
 ## What it does (three parts)
 
 1. **Politician graph search** — search MLAs/MPs and ask multi-hop questions in plain English ("average age of BJP ministers in North India"). Questions are translated to read-only Cypher against a Neo4j graph, with schema guardrails so the AI can't invent facts.
-2. **Ministry GraphRAG** — ask questions about Ministry of Education / Home Affairs annual reports. Hybrid retrieval (semantic `e5` embeddings + full-text) over ingested PDF chunks, answered by an LLM with page citations.
-3. **RTI generation** — pick a politician and a topic, and get a ready-made, legally-formatted RTI request (draft), downloadable as a PDF.
+
+   ## 📸 Screenshots
+
+### Graph Explorer
+![Bharat Praman Graph Explorer](./assets/graph-explorer.png)
+
+### Node Details
+![Bharat Praman Node Details](./assets/node-details.png)
+
+3. **Ministry GraphRAG** — ask questions about Ministry of Education / Home Affairs annual reports. Hybrid retrieval (semantic `e5` embeddings + full-text) over ingested PDF chunks, answered by an LLM with page citations.
+4. **RTI generation** — pick a politician and a topic, and get a ready-made, legally-formatted RTI request (draft), downloadable as a PDF.
 
 ## Architecture
 
