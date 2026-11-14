@@ -146,13 +146,53 @@
       </svg>
     );
 
+    const ANSWER_STYLES = [
+      {
+        id: 'auto',
+        label: '✨ Auto-Pick Best Mode',
+        hint: 'Smartly chooses Politician Graph, Quick Summary (DeepSeek V3), or Audit + RTI (DeepSeek R1).',
+      },
+      {
+        id: 'quick',
+        label: '⚡ Quick Plain Answer (DeepSeek V3)',
+        hint: 'Fast, plain-English explainer with key numbers — great for understanding any scheme.',
+      },
+      {
+        id: 'audit',
+        label: '📊 Full Budget Table & RTI Audit (DeepSeek R1)',
+        hint: 'Step-by-step BE vs RE math, shortfall %, missing-data flags & 1-click RTI draft.',
+      },
+      {
+        id: 'graph',
+        label: '🕸️ Politician & Party Graph',
+        hint: 'Interactive network of MPs, MLAs, constituencies, declared assets & criminal cases.',
+      },
+    ];
+
     // --- Search Component with Retro Neobrutalist Polish ---
     function BharatPramanSearch({ items, onActionSelect, onSearch, glossary, placeholder }) {
       const [isOpen, setIsOpen] = useState(false);
       const [query, setQuery] = useState('');
       const [activeSection, setActiveSection] = useState('All');
+      const [answerStyle, setAnswerStyle] = useState('auto');
       const [activeIndex, setActiveIndex] = useState(0);
       const inputRef = useRef(null);
+      const navigatedRef = useRef(false);
+
+      const submitTypedOrSelected = () => {
+        const q = query.trim();
+        const picked = filteredItems[activeIndex];
+        if (!q || (navigatedRef.current && picked)) {
+          if (picked) {
+            picked.action(answerStyle);
+            onActionSelect?.(picked, answerStyle);
+            setIsOpen(false);
+          }
+          return;
+        }
+        onSearch?.(q, answerStyle);
+        setIsOpen(false);
+      };
 
       const acronymMatches = useMemo(() => {
         const tokens = query.match(/\b[A-Z][A-Z0-9&]{1,9}\b/g) || [];
@@ -211,6 +251,7 @@
 
       useEffect(() => {
         setActiveIndex(0);
+        navigatedRef.current = false;
       }, [query, activeSection]);
 
       const groupedSections = useMemo(() => {
@@ -229,20 +270,23 @@
       const handleKeyDown = (e) => {
         if (e.key === 'ArrowDown') {
           e.preventDefault();
+          navigatedRef.current = true;
           if (filteredItems.length > 0) {
             setActiveIndex((prev) => (prev + 1) % filteredItems.length);
           }
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
+          navigatedRef.current = true;
           if (filteredItems.length > 0) {
             setActiveIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
           }
         } else if (e.key === 'Enter') {
           e.preventDefault();
-          onSearch?.(query.trim(), activeSection.toLowerCase());
-          setIsOpen(false);
+          submitTypedOrSelected();
         }
       };
+
+      const selectedAnswerMeta = ANSWER_STYLES.find((a) => a.id === answerStyle) || ANSWER_STYLES[0];
 
       const sharedTransition = {
         type: 'tween',
@@ -293,12 +337,12 @@
                   key="palette"
                   layoutId="search-box"
                   transition={sharedTransition}
-                  className="relative z-10 flex h-auto max-h-[520px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] shadow-[8px_8px_0px_0px_#1c1917]"
+                  className="relative z-10 flex h-auto max-h-[88vh] sm:max-h-[620px] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border-2 border-stone-900 bg-[#fdfdfb] shadow-[8px_8px_0px_0px_#1c1917]"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* Header with Search Input & Filter Pills */}
-                  <div className="flex items-center border-b-2 border-stone-800 bg-[#f7f3ea] px-4 py-3">
-                    <span className="pr-3 text-stone-700">
+                  {/* Header with Search Input & Ask Button */}
+                  <div className="flex items-center border-b-2 border-stone-800 bg-[#f7f3ea] px-4 py-3 gap-2">
+                    <span className="pr-1 text-stone-700">
                       <SearchIcon size={17} />
                     </span>
 
@@ -306,7 +350,7 @@
                       ref={inputRef}
                       type="text"
                       className="w-full bg-transparent text-sm font-semibold text-stone-900 placeholder-stone-400 outline-none font-mono-retro"
-                      placeholder={placeholder || 'Type your question...'}
+                      placeholder={placeholder || 'Type your question in plain English...'}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -320,34 +364,81 @@
                           setQuery('');
                           inputRef.current?.focus();
                         }}
-                        className="p-1 mr-1.5 text-stone-400 hover:text-stone-900 transition-colors"
+                        aria-label="Clear search query"
+                        className="p-1 text-stone-400 hover:text-stone-900 transition-colors"
                       >
                         <XIcon size={14} />
                       </button>
                     )}
 
-                    {/* Filter Pills */}
-                    <div className="flex items-center gap-1 border-l-2 border-stone-300 pl-2.5 ml-1">
-                      {availableSections.length > 1 && availableSections.map((sec) => (
+                    {/* Visible Submit Button for Mouse/Touch Accessibility */}
+                    <button
+                      type="button"
+                      onClick={submitTypedOrSelected}
+                      className="shrink-0 rounded-lg border-2 border-stone-900 bg-amber-300 hover:bg-amber-400 px-3 py-1 text-xs font-mono-retro font-bold text-stone-950 shadow-[2px_2px_0px_0px_#1c1917] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+                    >
+                      Ask ↵
+                    </button>
+
+                    {/* ESC hint */}
+                    <kbd className="hidden sm:inline-block rounded border border-stone-400 bg-white px-1.5 py-0.5 text-[10px] font-mono-retro font-bold text-stone-600 shadow-sm">
+                      ESC
+                    </kbd>
+                  </div>
+
+                  {/* Answer Type Selector (DeepSeek R1 vs V3 vs Politician Graph) */}
+                  <div className="border-b-2 border-stone-200 bg-[#f4eee2]/80 px-4 py-2.5">
+                    <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="Answer format and DeepSeek model">
+                      <span className="text-[10px] font-mono-retro font-bold uppercase tracking-wider text-stone-600 mr-1">
+                        Answer type:
+                      </span>
+                      {ANSWER_STYLES.map((st) => (
+                        <button
+                          key={st.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={answerStyle === st.id}
+                          title={st.hint}
+                          onClick={() => {
+                            setAnswerStyle(st.id);
+                            inputRef.current?.focus();
+                          }}
+                          className={`px-2.5 py-1 text-[11px] font-mono-retro font-bold rounded-lg border transition-all cursor-pointer ${
+                            answerStyle === st.id
+                              ? 'bg-amber-200 text-stone-950 border-stone-900 shadow-[2px_2px_0px_0px_#1c1917]'
+                              : 'bg-white text-stone-700 border-stone-300 hover:border-stone-800 hover:bg-amber-50'
+                          }`}
+                        >
+                          {st.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-1.5 text-[11px] font-mono-retro text-stone-600">
+                      {selectedAnswerMeta.hint}
+                    </p>
+                  </div>
+
+                  {/* Category Pills (own row so they never squash the input) */}
+                  {availableSections.length > 1 && (
+                    <div className="flex flex-wrap items-center gap-1.5 border-b-2 border-stone-200 bg-[#fbf8f1] px-4 py-2" role="tablist" aria-label="Question categories">
+                      {availableSections.map((sec) => (
                         <button
                           key={sec}
                           type="button"
+                          role="tab"
+                          aria-selected={activeSection === sec}
                           onClick={() => setActiveSection(sec)}
-                          className={`px-2 py-0.5 text-xs font-mono-retro font-bold rounded transition-all ${
+                          className={`px-2.5 py-1 text-xs font-mono-retro font-bold rounded-full border transition-all ${
                             activeSection === sec
-                              ? 'bg-stone-900 text-stone-50 shadow-[1.5px_1.5px_0px_0px_#78716c]'
-                              : 'text-stone-600 hover:text-stone-950 hover:bg-stone-200'
+                              ? 'bg-stone-900 text-stone-50 border-stone-900 shadow-[1.5px_1.5px_0px_0px_#78716c]'
+                              : 'bg-white text-stone-600 border-stone-300 hover:text-stone-950 hover:bg-amber-100 hover:border-stone-800'
                           }`}
                         >
                           {sec}
                         </button>
                       ))}
-
-                      <kbd className="ml-1 rounded border border-stone-400 bg-white px-1.5 py-0.5 text-[10px] font-mono-retro font-bold text-stone-600 shadow-sm">
-                        ESC
-                      </kbd>
                     </div>
-                  </div>
+                  )}
 
                   {/* Inline acronym hints */}
                   {acronymMatches.length > 0 && (
@@ -364,13 +455,22 @@
                   )}
 
                   {/* Results List */}
-                  <div className="custom-scrollbar flex-1 overflow-y-auto p-3 max-h-[380px] bg-[#fdfdfb]">
+                  <div className="custom-scrollbar flex-1 overflow-y-auto p-3 max-h-[320px] bg-[#fdfdfb]">
                     {filteredItems.length === 0 ? (
-                      <div className="py-12 text-center text-xs font-mono-retro text-stone-500">
-                        {query ? 'Press Enter to ask your question.' : 'Type a question and press Enter.'}
+                      <div className="py-10 text-center text-xs font-mono-retro text-stone-500">
+                        {query ? (
+                          <span>
+                            No matching preset — click <strong>Ask ↵</strong> or press Enter to ask with <strong>{selectedAnswerMeta.label}</strong>.
+                          </span>
+                        ) : 'Type a question and click Ask ↵.'}
                       </div>
                     ) : (
                       <div className="space-y-3.5 py-1">
+                        {!query && (
+                          <div className="px-2.5 text-[11px] font-mono-retro text-stone-500">
+                            Click any question below (each shows what answer format you get), or type your own above.
+                          </div>
+                        )}
                         {groupedSections.map((section) => (
                           <div key={section.name} className="space-y-1.5">
                             <h3 className="px-2.5 py-1 text-[11px] font-mono-retro font-bold tracking-wider text-stone-500 uppercase flex items-center gap-2">
@@ -388,15 +488,15 @@
                                   <button
                                     key={item.id}
                                     type="button"
-                                    className={`group flex w-full items-center justify-between rounded-lg px-3.5 py-2.5 text-left transition-all ${
+                                    className={`group flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-2.5 text-left transition-all ${
                                       isActive
                                         ? 'bg-amber-100/70 text-stone-950 border border-stone-900 shadow-[2px_2px_0px_0px_#1c1917]'
                                         : 'text-stone-700 hover:bg-stone-100 border border-transparent'
                                     }`}
                                     onMouseEnter={() => setActiveIndex(globalIndex)}
                                     onClick={() => {
-                                      item.action();
-                                      onActionSelect?.(item);
+                                      item.action(answerStyle);
+                                      onActionSelect?.(item, answerStyle);
                                       setIsOpen(false);
                                     }}
                                   >
@@ -416,9 +516,9 @@
                                       </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex shrink-0 items-center gap-2">
                                       {item.tag && (
-                                        <span className="text-[10px] uppercase px-1.5 py-0.5 rounded border border-stone-300 bg-white text-stone-700 font-mono-retro font-bold tracking-wider">
+                                        <span className="whitespace-nowrap text-[10px] uppercase px-1.5 py-0.5 rounded border border-stone-300 bg-white text-stone-700 font-mono-retro font-bold tracking-wider">
                                           {item.tag}
                                         </span>
                                       )}
@@ -439,9 +539,9 @@
                   </div>
 
                   {/* Modal Footer Tip */}
-                  <div className="border-t border-stone-200 bg-stone-100/80 px-4 py-2 text-[11px] font-mono-retro text-stone-500 flex justify-between items-center">
-                    <span>Type your question</span>
-                    <span>Press ↵ to ask</span>
+                  <div className="border-t border-stone-200 bg-stone-100/80 px-4 py-2 text-[11px] font-mono-retro text-stone-500 flex flex-wrap gap-2 justify-between items-center">
+                    <span><strong className="text-stone-700">R1</strong> = careful maths &amp; comparisons · <strong className="text-stone-700">V3</strong> = quick plain answers</span>
+                    <span>↑↓ pick · ↵ ask · Esc close</span>
                   </div>
                 </motion.div>
               </div>
@@ -640,6 +740,124 @@
       );
     }
 
+    // --- Suggested Questions (shown when the search bar opens) ---
+    // target: 'graph' -> graph.html (Instance01 politicians); otherwise ministry id -> ask.html (Instance02 reports)
+    // reason: 'reasoner' = DeepSeek R1 (step-by-step maths/comparisons), 'chat' = DeepSeek V3 (fast summaries)
+    const SUGGESTED_QUESTIONS = [
+      // Political Graph (Instance01)
+      { section: 'Politicians', target: 'graph', icon: 'network',
+        q: 'Which MPs and MLAs have declared criminal cases?',
+        answer: 'Interactive graph of leaders, parties & cases', tag: 'GRAPH' },
+      { section: 'Politicians', target: 'graph', icon: 'network',
+        q: 'Who are the richest MLAs and which party are they from?',
+        answer: 'Ranked list + connection graph', tag: 'GRAPH' },
+      { section: 'Politicians', target: 'graph', icon: 'network',
+        q: 'Show all MPs from Uttar Pradesh and their parties',
+        answer: 'Constituency → MP → party network', tag: 'GRAPH' },
+
+      // Money: where did it go? (Fast V3 structured tables by default; switch to R1 in Answer Type above for deep thinking)
+      { section: 'Budget Audit', target: 'education', reason: 'auto', detail: 'long', icon: 'zap',
+        q: 'How much money was planned vs actually spent on PM-SHRI and Samagra Shiksha in 2023-24?',
+        answer: 'Budget table (BE vs RE vs Actual) + shortfall % (Fast V3)', tag: 'TABLE' },
+      { section: 'Budget Audit', target: 'all', reason: 'auto', detail: 'long', icon: 'zap',
+        q: 'Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26',
+        answer: 'Year-by-year table + growth % per ministry (Fast V3)', tag: 'TABLE' },
+      { section: 'Budget Audit', target: 'home', reason: 'auto', detail: 'long', icon: 'zap',
+        q: 'How much was allocated to CRPF, BSF and police modernisation, and was it fully used?',
+        answer: 'Allocation table + unspent amount flags (Fast V3)', tag: 'TABLE' },
+      { section: 'Budget Audit', target: 'defence', reason: 'auto', detail: 'long', icon: 'zap',
+        q: 'What share of the Defence budget goes to new equipment vs salaries and pensions?',
+        answer: 'Capital vs revenue split + % share (Fast V3)', tag: 'TABLE' },
+      { section: 'Budget Audit', target: 'rural', reason: 'auto', detail: 'long', icon: 'zap',
+        q: 'Compare MGNREGA and PMGSY rural road funding allocations vs revised estimates across years',
+        answer: 'Scheme budget comparison + shortfall % (Fast V3)', tag: 'TABLE' },
+      { section: 'Budget Audit', target: 'finance', reason: 'auto', detail: 'long', icon: 'zap',
+        q: 'What does the Outcome Budget and Economic Survey show for major capital expenditure targets?',
+        answer: 'Multi-year outlay table + achievement ratios (Fast V3)', tag: 'TABLE' },
+
+      // Schemes & results (fast V3 summaries)
+      { section: 'Schemes', target: 'education', reason: 'chat', detail: 'short', icon: 'sparkles',
+        q: 'What is PM-SHRI and how many schools have been upgraded so far?',
+        answer: 'Plain-language explainer + key numbers (DeepSeek V3)', tag: 'V3 · QUICK' },
+      { section: 'Schemes', target: 'health', reason: 'chat', detail: 'short', icon: 'sparkles',
+        q: 'How many people were covered under Ayushman Bharat (PM-JAY) and what is the AIIMS outlay?',
+        answer: 'Quick summary with coverage & hospital figures (DeepSeek V3)', tag: 'V3 · QUICK' },
+      { section: 'Schemes', target: 'road', reason: 'chat', detail: 'short', icon: 'sparkles',
+        q: 'How many km of National Highways were built under NHAI and Bharatmala?',
+        answer: 'Fast target vs progress summary (DeepSeek V3)', tag: 'V3 · QUICK' },
+      { section: 'Schemes', target: 'agriculture', reason: 'chat', detail: 'short', icon: 'sparkles',
+        q: 'What were the outlays and farmer reach under PM-KISAN and Crop Insurance (PMFBY)?',
+        answer: 'Quick scheme highlights + beneficiary figures (DeepSeek V3)', tag: 'V3 · QUICK' },
+      { section: 'Schemes', target: 'home', reason: 'chat', detail: 'short', icon: 'sparkles',
+        q: 'What has been done for border security and fencing in recent years?',
+        answer: 'Short summary with page citations (DeepSeek V3)', tag: 'V3 · QUICK' },
+      { section: 'Schemes', target: 'defence', reason: 'chat', detail: 'short', icon: 'sparkles',
+        q: 'What is the Agnipath scheme and how many Agniveers were recruited?',
+        answer: 'Explainer + recruitment figures (DeepSeek V3)', tag: 'V3 · QUICK' },
+
+      // Accountability (gaps + RTI)
+      { section: 'Hold Accountable', target: 'all', reason: 'auto', detail: 'long', icon: 'help',
+        q: 'Which schemes got less money than promised (RE lower than BE) and by how much?',
+        answer: 'Shortfall table + missing-data list + 1-click RTI', tag: 'AUDIT + RTI' },
+      { section: 'Hold Accountable', target: 'education', reason: 'auto', detail: 'long', icon: 'help',
+        q: 'How many teacher posts are vacant in Kendriya Vidyalayas and Navodaya schools?',
+        answer: 'Vacancy numbers + what the report hides + RTI draft', tag: 'AUDIT + RTI' },
+      { section: 'Hold Accountable', target: 'all', reason: 'auto', detail: 'long', icon: 'help',
+        q: 'Audit Outcome Budget targets where physical achievement fell short of annual goals',
+        answer: 'Missed-target audit + Section 6(1) RTI generator', tag: 'AUDIT + RTI' },
+
+      // Explain simply (accessibility)
+      { section: 'Explain Simply', target: 'all', reason: 'chat', detail: 'short', icon: 'message',
+        q: 'Explain in simple words: what is the difference between BE, RE and Actuals?',
+        answer: 'Simple everyday explanation with one example (DeepSeek V3)', tag: 'V3 · SIMPLE' },
+      { section: 'Explain Simply', target: 'finance', reason: 'chat', detail: 'short', icon: 'message',
+        q: 'Where does the government\u2019s money come from and where does it go?',
+        answer: 'Simple Rupee-in / Rupee-out summary (DeepSeek V3)', tag: 'V3 · SIMPLE' },
+    ];
+
+    const suggestionIcon = (name) => {
+      if (name === 'network') return <NetworkIcon size={15} />;
+      if (name === 'zap') return <ZapIcon size={15} />;
+      if (name === 'help') return <HelpCircleIcon size={15} />;
+      if (name === 'message') return <MessageSquareIcon size={15} />;
+      return <SparklesIcon size={15} />;
+    };
+
+    const runSuggestion = (s, chosenStyle = 'auto') => {
+      if (s.target === 'graph') {
+        const params = new URLSearchParams({ query: s.q, filter: 'all', mode: 'ask' });
+        window.location.href = `graph.html?${params.toString()}`;
+        return;
+      }
+      const reason = chosenStyle === 'quick'
+        ? 'chat'
+        : chosenStyle === 'audit'
+          ? 'reasoner'
+          : (s.reason || 'auto');
+      const detail = chosenStyle === 'quick'
+        ? 'short'
+        : chosenStyle === 'audit'
+          ? 'long'
+          : (s.detail || 'long');
+      const params = new URLSearchParams({
+        ministry: s.target,
+        q: s.q,
+        reason,
+        detail,
+      });
+      window.location.href = `ask.html?${params.toString()}`;
+    };
+
+    const SUGGESTION_ITEMS = SUGGESTED_QUESTIONS.map((s, i) => ({
+      id: `sq-${i}`,
+      section: s.section,
+      title: s.q,
+      subtitle: `You get: ${s.answer}`,
+      tag: s.tag,
+      icon: suggestionIcon(s.icon),
+      action: (chosenStyle) => runSuggestion(s, chosenStyle),
+    }));
+
     // --- Main Page Component ---
     function App() {
       const [askMode, setAskMode] = useState('graph');
@@ -657,15 +875,38 @@
           .catch(() => { /* glossary is optional; UI still works */ });
       }, []);
 
-      const searchGraph = (queryText, filter) => {
+      const searchGraph = (queryText, chosenStyle = 'auto') => {
         const q = (queryText || '').trim();
         if (!q) return;
-        if (askMode === 'graph') {
-          const params = new URLSearchParams({ query: q, filter: filter || 'all' });
+        const style = chosenStyle || 'auto';
+        const qLower = q.toLowerCase();
+        const looksLikePoliticianGraph = /\b(mla|mlas|mp|mps|politician|politicians|party|parties|bjp|inc|constituency|criminal|election|elections|winner|candidate|myneta|affidavit)\b/i.test(q);
+
+        if (style === 'graph' || (style === 'auto' && askMode === 'graph' && looksLikePoliticianGraph)) {
+          const params = new URLSearchParams({ query: q, filter: 'all', mode: 'ask' });
           window.location.href = `graph.html?${params.toString()}`;
           return;
         }
-        const params = new URLSearchParams({ ministry: askMode, q });
+
+        let targetMinistry = askMode === 'graph' ? 'all' : askMode;
+        if (targetMinistry === 'health_rural') {
+          targetMinistry = /\b(rural|mgnrega|pmgsy|gram|panchayat|awaas|nrlm|village|job\s*card)\b/i.test(qLower)
+            ? 'rural'
+            : (/\b(health|ayushman|pm-?jay|aiims|nhm|hospital|medical|doctor|vaccine)\b/i.test(qLower) ? 'health' : 'all');
+        } else if (targetMinistry === 'road_agri') {
+          targetMinistry = /\b(agri|farmer|kisan|crop|pmfby|fasal|icar|msp|fertilis|irrigation)\b/i.test(qLower)
+            ? 'agriculture'
+            : (/\b(road|highway|nhai|bharatmala|expressway|toll|fastag|parivahan)\b/i.test(qLower) ? 'road' : 'all');
+        }
+
+        const reason = style === 'quick' ? 'chat' : (style === 'audit' ? 'reasoner' : 'auto');
+        const detail = style === 'quick' ? 'short' : 'long';
+        const params = new URLSearchParams({
+          ministry: targetMinistry,
+          q,
+          reason,
+          detail,
+        });
         window.location.href = `ask.html?${params.toString()}`;
       };
 
@@ -721,26 +962,29 @@
             {/* Centered Search Component — full width of max-w-3xl container */}
             <div className="w-full">
               <BharatPramanSearch
-                items={[]}
+                items={SUGGESTION_ITEMS}
                 onSearch={searchGraph}
                 glossary={glossary}
                 placeholder={askMode === 'graph'
                   ? 'Ask a question about MLAs, MPs or Ministries...'
                   : 'Ask a question about Ministry documents...'}
-                onActionSelect={(item) => searchGraph(item.title, 'all')}
               />
             </div>
 
-            {/* Ask scope selector — no preset questions, just where to search */}
+            {/* Ask scope selector — choose Political Graph or Ministry Audit */}
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2 w-full text-xs">
               <span className="font-mono-retro text-[11px] font-bold text-stone-500 uppercase tracking-wider">
                 Ask about:
               </span>
               {[
                 { id: 'graph', label: 'Political Graph' },
-                { id: 'education', label: 'Ministry of Education' },
-                { id: 'home', label: 'Ministry of Home Affairs' },
-                { id: 'both', label: 'Both Ministries' },
+                { id: 'all', label: 'All 8 Ministries' },
+                { id: 'education', label: 'Education' },
+                { id: 'home', label: 'Home Affairs' },
+                { id: 'defence', label: 'Defence' },
+                { id: 'finance', label: 'Finance & Budget' },
+                { id: 'health_rural', label: 'Health & Rural' },
+                { id: 'road_agri', label: 'Highways & Agri' },
               ].map((mode) => (
                 <button
                   key={mode.id}
