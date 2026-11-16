@@ -1,0 +1,9 @@
+mp_name,mp_entity_id,sitting_constituency,election_year,candidate_name,matched_constituency,party,match_type,source_url
+RAHUL GANDHI,sansad_mp_4074,Rae Bareli,2019,Rahul Gandhi,WAYANAD,INC,possible_seat_change,https://myneta.info/candidate.php?candidate_id=9208
+RAHUL GANDHI,sansad_mp_4074,Rae Bareli,2019,Rahul Gandhi,AMETHI,INC,possible_seat_change,https://myneta.info/LokSabha2019/candidate.php?candidate_id=11034
+SUNIL KUMAR,sansad_mp_5530,Valmiki Nagar,2019,Sunil Kumar Mondal,BARDHAMAN PURBA,AITC,possible_seat_change,https://myneta.info/candidate.php?candidate_id=10100
+SUNIL KUMAR,sansad_mp_5530,Valmiki Nagar,2019,Sunil Kumar Singh,CHATRA,BJP,possible_seat_change,https://myneta.info/candidate.php?candidate_id=10250
+SUNIL KUMAR,sansad_mp_5530,Valmiki Nagar,2019,Sunil Kumar Soni,RAIPUR,BJP,possible_seat_change,https://myneta.info/candidate.php?candidate_id=7502
+SUNIL KUMAR,sansad_mp_5530,Valmiki Nagar,2019,Sunil Kumar,SITAMARHI,JD(U),possible_seat_change,https://myneta.info/candidate.php?candidate_id=11096
+SUNIL KUMAR,sansad_mp_5530,Valmiki Nagar,2019,Sunil Kumar Chalamalasetty,KAKINADA,TDP,possible_seat_change,https://myneta.info/LokSabha2019/candidate.php?candidate_id=5022
+SUNIL KUMAR,sansad_mp_5530,Valmiki Nagar,2019,Sunil Kumar,NEW DELHI,Peoples Party of India (Democratic),possible_seat_change,https://myneta.info/LokSabha2019/candidate.php?candidate_id=13317

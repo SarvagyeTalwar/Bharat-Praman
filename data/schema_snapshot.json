@@ -1,0 +1,1583 @@
+{
+  "labels": [
+    "Affidavit",
+    "AffidavitChange",
+    "AssemblyConstituency",
+    "Constituency",
+    "CriminalCase",
+    "Election",
+    "ElectionRecord",
+    "ElectionResult",
+    "HistoricalMP",
+    "MLA",
+    "MP",
+    "Ministry",
+    "Party",
+    "PartyChange",
+    "Person",
+    "Section",
+    "State"
+  ],
+  "relationship_types": [
+    "CONTESTED",
+    "DISCLOSES",
+    "FACES",
+    "FILED",
+    "FILED_AFFIDAVIT",
+    "FOR_ELECTION",
+    "FROM_AFFIDAVIT",
+    "HAS_AFFIDAVIT_CHANGE",
+    "HAS_ELECTION_RECORD",
+    "HAS_PARTY_CHANGE",
+    "HOLDS_PORTFOLIO",
+    "IN_STATE",
+    "MEMBER_OF",
+    "REPRESENTS",
+    "TO_AFFIDAVIT",
+    "UNDER",
+    "WON_ELECTION"
+  ],
+  "label_counts": {
+    "Affidavit": 8099,
+    "AffidavitChange": 490,
+    "AssemblyConstituency": 5692,
+    "Constituency": 540,
+    "CriminalCase": 12189,
+    "Election": 42,
+    "ElectionRecord": 3742,
+    "ElectionResult": 1874,
+    "HistoricalMP": 2481,
+    "MLA": 5691,
+    "MP": 3021,
+    "Ministry": 56,
+    "Party": 121,
+    "PartyChange": 163,
+    "Person": 8738,
+    "Section": 639,
+    "State": 36
+  },
+  "label_properties": {
+    "Affidavit": [
+      "affidavit_id",
+      "criminal_case_count",
+      "election_id",
+      "election_source",
+      "election_verified",
+      "election_year",
+      "immovable_assets",
+      "liabilities",
+      "movable_assets",
+      "myneta_id",
+      "name",
+      "party_name",
+      "person_entity_id",
+      "source",
+      "source_url",
+      "total_assets"
+    ],
+    "AffidavitChange": [
+      "candidate_key",
+      "candidate_name",
+      "criminal_cases_count_change",
+      "criminal_cases_count_from",
+      "criminal_cases_count_to",
+      "from_election_id",
+      "from_party",
+      "from_year",
+      "id",
+      "liabilities_change",
+      "liabilities_from",
+      "liabilities_percent_change",
+      "liabilities_to",
+      "person_entity_id",
+      "source_from",
+      "source_to",
+      "to_election_id",
+      "to_party",
+      "to_year",
+      "total_assets_change",
+      "total_assets_from",
+      "total_assets_percent_change",
+      "total_assets_to"
+    ],
+    "AssemblyConstituency": [
+      "entity_id",
+      "name"
+    ],
+    "Constituency": [
+      "entity_id",
+      "name"
+    ],
+    "CriminalCase": [
+      "case_id",
+      "case_no",
+      "charges_framed",
+      "court",
+      "fir_no",
+      "ipc_sections",
+      "status"
+    ],
+    "Election": [
+      "election_id",
+      "state",
+      "type",
+      "year"
+    ],
+    "ElectionRecord": [
+      "candidate_key",
+      "candidate_name",
+      "constituency",
+      "data_source",
+      "election",
+      "election_id",
+      "election_year",
+      "id",
+      "is_winner",
+      "party",
+      "person_entity_id",
+      "record_type",
+      "source_url"
+    ],
+    "ElectionResult": [
+      "candidate_key",
+      "candidate_name",
+      "constituency",
+      "data_source",
+      "election",
+      "election_id",
+      "election_year",
+      "id",
+      "is_winner",
+      "party",
+      "person_entity_id",
+      "record_type",
+      "source_url"
+    ],
+    "HistoricalMP": [
+      "canonical_name_key",
+      "entity_id",
+      "name"
+    ],
+    "MLA": [
+      "age",
+      "criminal_case_count",
+      "education",
+      "election",
+      "election_year",
+      "entity_id",
+      "first_name",
+      "gender",
+      "immovable_assets",
+      "last_name",
+      "liabilities",
+      "movable_assets",
+      "myneta_id",
+      "myneta_name",
+      "nDaughters",
+      "nSons",
+      "name",
+      "party_name",
+      "person_id",
+      "person_key",
+      "profession",
+      "source_ids",
+      "terms",
+      "total_assets"
+    ],
+    "MP": [
+      "age",
+      "aliases",
+      "council_section",
+      "criminal_case_count",
+      "education",
+      "entity_id",
+      "first_name",
+      "gender",
+      "immovable_assets",
+      "last_name",
+      "liabilities",
+      "movable_assets",
+      "myneta_id",
+      "myneta_name",
+      "nDaughters",
+      "nSons",
+      "name",
+      "party_name",
+      "person_id",
+      "person_key",
+      "profession",
+      "source_document_date",
+      "source_ids",
+      "special_responsibilities",
+      "terms",
+      "total_assets"
+    ],
+    "Ministry": [
+      "name",
+      "portfolio_type",
+      "source_document_date"
+    ],
+    "Party": [
+      "entity_id",
+      "name"
+    ],
+    "PartyChange": [
+      "candidate_key",
+      "candidate_name",
+      "from_constituency",
+      "from_election_id",
+      "from_party",
+      "from_year",
+      "id",
+      "person_entity_id",
+      "source_from",
+      "source_to",
+      "to_constituency",
+      "to_election_id",
+      "to_party",
+      "to_year"
+    ],
+    "Person": [
+      "age",
+      "aliases",
+      "council_section",
+      "criminal_case_count",
+      "education",
+      "entity_id",
+      "first_name",
+      "gender",
+      "immovable_assets",
+      "last_name",
+      "liabilities",
+      "movable_assets",
+      "myneta_id",
+      "myneta_name",
+      "nDaughters",
+      "nSons",
+      "name",
+      "party_name",
+      "person_id",
+      "person_key",
+      "profession",
+      "source_document_date",
+      "source_ids",
+      "special_responsibilities",
+      "terms",
+      "total_assets"
+    ],
+    "Section": [
+      "code"
+    ],
+    "State": [
+      "entity_id",
+      "name"
+    ]
+  },
+  "relationship_patterns": [
+    {
+      "src_labels": [
+        "CriminalCase"
+      ],
+      "rel_type": "UNDER",
+      "dst_labels": [
+        "Section"
+      ],
+      "count": 32992
+    },
+    {
+      "src_labels": [
+        "Affidavit"
+      ],
+      "rel_type": "DISCLOSES",
+      "dst_labels": [
+        "CriminalCase"
+      ],
+      "count": 12189
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA"
+      ],
+      "rel_type": "FACES",
+      "dst_labels": [
+        "CriminalCase"
+      ],
+      "count": 10874
+    },
+    {
+      "src_labels": [
+        "Affidavit"
+      ],
+      "rel_type": "FOR_ELECTION",
+      "dst_labels": [
+        "Election"
+      ],
+      "count": 6231
+    },
+    {
+      "src_labels": [
+        "AssemblyConstituency"
+      ],
+      "rel_type": "IN_STATE",
+      "dst_labels": [
+        "State"
+      ],
+      "count": 5692
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA"
+      ],
+      "rel_type": "REPRESENTS",
+      "dst_labels": [
+        "AssemblyConstituency"
+      ],
+      "count": 5690
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA"
+      ],
+      "rel_type": "MEMBER_OF",
+      "dst_labels": [
+        "Party"
+      ],
+      "count": 5689
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA"
+      ],
+      "rel_type": "FILED",
+      "dst_labels": [
+        "Affidavit"
+      ],
+      "count": 5689
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA"
+      ],
+      "rel_type": "CONTESTED",
+      "dst_labels": [
+        "Election"
+      ],
+      "count": 5689
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP",
+        "HistoricalMP"
+      ],
+      "rel_type": "HAS_ELECTION_RECORD",
+      "dst_labels": [
+        "ElectionRecord",
+        "ElectionResult"
+      ],
+      "count": 1804
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP",
+        "HistoricalMP"
+      ],
+      "rel_type": "WON_ELECTION",
+      "dst_labels": [
+        "ElectionRecord",
+        "ElectionResult"
+      ],
+      "count": 1804
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP",
+        "HistoricalMP"
+      ],
+      "rel_type": "HAS_ELECTION_RECORD",
+      "dst_labels": [
+        "Affidavit",
+        "ElectionRecord"
+      ],
+      "count": 1592
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP",
+        "HistoricalMP"
+      ],
+      "rel_type": "FILED_AFFIDAVIT",
+      "dst_labels": [
+        "Affidavit",
+        "ElectionRecord"
+      ],
+      "count": 1592
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "FACES",
+      "dst_labels": [
+        "CriminalCase"
+      ],
+      "count": 1314
+    },
+    {
+      "src_labels": [
+        "Constituency"
+      ],
+      "rel_type": "IN_STATE",
+      "dst_labels": [
+        "State"
+      ],
+      "count": 540
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "MEMBER_OF",
+      "dst_labels": [
+        "Party"
+      ],
+      "count": 538
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "REPRESENTS",
+      "dst_labels": [
+        "Constituency"
+      ],
+      "count": 538
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "FILED",
+      "dst_labels": [
+        "Affidavit"
+      ],
+      "count": 538
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "CONTESTED",
+      "dst_labels": [
+        "Election"
+      ],
+      "count": 538
+    },
+    {
+      "src_labels": [
+        "AffidavitChange"
+      ],
+      "rel_type": "FROM_AFFIDAVIT",
+      "dst_labels": [
+        "Affidavit",
+        "ElectionRecord"
+      ],
+      "count": 490
+    },
+    {
+      "src_labels": [
+        "AffidavitChange"
+      ],
+      "rel_type": "TO_AFFIDAVIT",
+      "dst_labels": [
+        "Affidavit",
+        "ElectionRecord"
+      ],
+      "count": 311
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "HAS_ELECTION_RECORD",
+      "dst_labels": [
+        "Affidavit",
+        "ElectionRecord"
+      ],
+      "count": 276
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "FILED_AFFIDAVIT",
+      "dst_labels": [
+        "Affidavit",
+        "ElectionRecord"
+      ],
+      "count": 276
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "HAS_AFFIDAVIT_CHANGE",
+      "dst_labels": [
+        "AffidavitChange"
+      ],
+      "count": 270
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP",
+        "HistoricalMP"
+      ],
+      "rel_type": "HAS_AFFIDAVIT_CHANGE",
+      "dst_labels": [
+        "AffidavitChange"
+      ],
+      "count": 220
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP",
+        "HistoricalMP"
+      ],
+      "rel_type": "HAS_PARTY_CHANGE",
+      "dst_labels": [
+        "PartyChange"
+      ],
+      "count": 113
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "HOLDS_PORTFOLIO",
+      "dst_labels": [
+        "Ministry"
+      ],
+      "count": 71
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "HAS_ELECTION_RECORD",
+      "dst_labels": [
+        "ElectionRecord",
+        "ElectionResult"
+      ],
+      "count": 70
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "WON_ELECTION",
+      "dst_labels": [
+        "ElectionRecord",
+        "ElectionResult"
+      ],
+      "count": 70
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MP"
+      ],
+      "rel_type": "HAS_PARTY_CHANGE",
+      "dst_labels": [
+        "PartyChange"
+      ],
+      "count": 50
+    },
+    {
+      "src_labels": [
+        "Person"
+      ],
+      "rel_type": "HOLDS_PORTFOLIO",
+      "dst_labels": [
+        "Ministry"
+      ],
+      "count": 47
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA"
+      ],
+      "rel_type": "HOLDS_PORTFOLIO",
+      "dst_labels": [
+        "Ministry"
+      ],
+      "count": 5
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA",
+        "MP"
+      ],
+      "rel_type": "FILED",
+      "dst_labels": [
+        "Affidavit"
+      ],
+      "count": 4
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA",
+        "MP"
+      ],
+      "rel_type": "CONTESTED",
+      "dst_labels": [
+        "Election"
+      ],
+      "count": 4
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA",
+        "MP"
+      ],
+      "rel_type": "MEMBER_OF",
+      "dst_labels": [
+        "Party"
+      ],
+      "count": 2
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA",
+        "MP"
+      ],
+      "rel_type": "REPRESENTS",
+      "dst_labels": [
+        "Constituency"
+      ],
+      "count": 2
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA",
+        "MP"
+      ],
+      "rel_type": "REPRESENTS",
+      "dst_labels": [
+        "AssemblyConstituency"
+      ],
+      "count": 2
+    },
+    {
+      "src_labels": [
+        "Person",
+        "MLA",
+        "MP"
+      ],
+      "rel_type": "FACES",
+      "dst_labels": [
+        "CriminalCase"
+      ],
+      "count": 1
+    }
+  ],
+  "categorical_values": {
+    "parties": [
+      "AAP",
+      "AGP",
+      "AIADMK",
+      "AIFB",
+      "AIMIM",
+      "AITC",
+      "AJSU",
+      "AJSU Party",
+      "ASP (KR)",
+      "Aam Janata Unnayan party",
+      "All India Majlis-E-Ittehadul Muslimeen",
+      "All India N.R. Congress",
+      "All India Secular Front",
+      "All India United Democratic Front",
+      "Amma Makkal Munnettra Kazagam",
+      "Apna Dal (S)",
+      "Apna Dal (Soneylal)",
+      "Asom Gana Parishad",
+      "BAP",
+      "BJD",
+      "BJP",
+      "BRS",
+      "BSP",
+      "Bharat Adivasi Party",
+      "Bodoland Peoples Front",
+      "CPI",
+      "CPI(M)",
+      "CPI(ML)(L)",
+      "DMDK",
+      "DMK",
+      "Goa Forward Party",
+      "Gondvana Gantantra Party",
+      "HAM (S)",
+      "Haryana Janhit Congress (BL)",
+      "Hill State People’s Democratic Party",
+      "Hindustani Awam Morcha (Secular)",
+      "INC",
+      "INLD",
+      "IUML",
+      "Ind.",
+      "Indian Inclusive Party",
+      "Indian Union Muslim League",
+      "Indigenous Peoples Front of Tripura",
+      "J&KNC",
+      "JD(S)",
+      "JD(U)",
+      "JMM",
+      "JSP",
+      "Jammu & Kashmir National Conference",
+      "Jammu & Kashmir People Conference",
+      "Jammu & Kashmir Peoples Democratic Party",
+      "Jan Suraaj Party",
+      "Jan Surajya Shakti",
+      "Janasena Party",
+      "Jannayak Janta Party",
+      "Jansatta Dal Loktantrik",
+      "Jharkhand Loktantrik Krantikari Morcha",
+      "KEC",
+      "Kalyana Rajya Pragathi Paksha",
+      "Kerala Congress",
+      "Kerala Congress (Jacob)",
+      "Kuki Peoples Alliance",
+      "LJSP(RV)",
+      "Latchiya Jananayaka Katchi (LJK)",
+      "Lok Janshakti Party (Ram Vilas)",
+      "MDMK",
+      "MNF",
+      "Maharashtrawadi Gomantak",
+      "Manithaneya Makkal Katchi",
+      "NCP",
+      "NCP-Sharadchandra Pawar",
+      "NCPSP",
+      "NDPP",
+      "NPF",
+      "NPP",
+      "National Peoples Party",
+      "Neyam Makkal Kazhagam",
+      "Nirbal Indian Shoshit Hamara Aam Dal",
+      "OGP",
+      "PDF",
+      "PMK",
+      "Peasants And Workers Party of India",
+      "Peoples Party of Arunachal",
+      "Puthiya Thamilagam",
+      "RJD",
+      "RLD",
+      "RLP",
+      "RSP",
+      "Raijor Dal",
+      "Rajarshi Shahu Vikas Aghadi",
+      "Rashtriya Lok Morcha",
+      "Rashtriya Samaj Paksha",
+      "Rashtriya Yuva Swabhiman Party",
+      "Republican Party of India (Athawale)",
+      "Revolutionary Goans Party",
+      "Revolutionary Marxist Party of India",
+      "Revolutionary Socialist Party",
+      "SAD",
+      "SHSUBT",
+      "SKM"
+    ],
+    "states": [
+      "Andaman and Nicobar Islands",
+      "Andhra Pradesh",
+      "Arunachal Pradesh",
+      "Assam",
+      "Bihar",
+      "Chandigarh",
+      "Chhattisgarh",
+      "Dadra and Nagar Haveli and Daman and Diu",
+      "Goa",
+      "Gujarat",
+      "Haryana",
+      "Himachal Pradesh",
+      "Jammu and Kashmir",
+      "Jharkhand",
+      "Karnataka",
+      "Kerala",
+      "Ladakh",
+      "Lakshadweep",
+      "Madhya Pradesh",
+      "Maharashtra",
+      "Manipur",
+      "Meghalaya",
+      "Mizoram",
+      "NCT of Delhi",
+      "Nagaland",
+      "Odisha",
+      "Puducherry",
+      "Punjab",
+      "Rajasthan",
+      "Sikkim",
+      "Tamil Nadu",
+      "Telangana",
+      "Tripura",
+      "Uttar Pradesh",
+      "Uttarakhand",
+      "West Bengal"
+    ],
+    "elections": [
+      {
+        "election_id": "Assam2026",
+        "type": "State Assembly",
+        "year": 2026,
+        "state": "Assam"
+      },
+      {
+        "election_id": "Kerala2026",
+        "type": "State Assembly",
+        "year": 2026,
+        "state": "Kerala"
+      },
+      {
+        "election_id": "Puducherry2026",
+        "type": "State Assembly",
+        "year": 2026,
+        "state": "Puducherry"
+      },
+      {
+        "election_id": "WestBengal2026",
+        "type": "State Assembly",
+        "year": 2026,
+        "state": "West Bengal"
+      },
+      {
+        "election_id": "TamilNadu2026",
+        "type": "State Assembly",
+        "year": 2026,
+        "state": "Tamil Nadu"
+      },
+      {
+        "election_id": "Bihar2025",
+        "type": "State Assembly",
+        "year": 2025,
+        "state": "Bihar"
+      },
+      {
+        "election_id": "Delhi2025",
+        "type": "State Assembly",
+        "year": 2025,
+        "state": "NCT of Delhi"
+      },
+      {
+        "election_id": "AndhraPradesh2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Andhra Pradesh"
+      },
+      {
+        "election_id": "ArunachalPradesh2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Arunachal Pradesh"
+      },
+      {
+        "election_id": "Haryana2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Haryana"
+      },
+      {
+        "election_id": "JammuKashmir2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Jammu and Kashmir"
+      },
+      {
+        "election_id": "Jharkhand2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Jharkhand"
+      },
+      {
+        "election_id": "Maharashtra2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Maharashtra"
+      },
+      {
+        "election_id": "Odisha2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Odisha"
+      },
+      {
+        "election_id": "Sikkim2024",
+        "type": "State Assembly",
+        "year": 2024,
+        "state": "Sikkim"
+      },
+      {
+        "election_id": "LokSabha2024",
+        "type": "Lok Sabha",
+        "year": 2024,
+        "state": null
+      },
+      {
+        "election_id": "Chhattisgarh2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Chhattisgarh"
+      },
+      {
+        "election_id": "Karnataka2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Karnataka"
+      },
+      {
+        "election_id": "MadhyaPradesh2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Madhya Pradesh"
+      },
+      {
+        "election_id": "Meghalaya2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Meghalaya"
+      },
+      {
+        "election_id": "Mizoram2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Mizoram"
+      },
+      {
+        "election_id": "Nagaland2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Nagaland"
+      },
+      {
+        "election_id": "Rajasthan2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Rajasthan"
+      },
+      {
+        "election_id": "Telangana2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Telangana"
+      },
+      {
+        "election_id": "Tripura2023",
+        "type": "State Assembly",
+        "year": 2023,
+        "state": "Tripura"
+      },
+      {
+        "election_id": "Gujarat2022",
+        "type": "State Assembly",
+        "year": 2022,
+        "state": "Gujarat"
+      },
+      {
+        "election_id": "HimachalPradesh2022",
+        "type": "State Assembly",
+        "year": 2022,
+        "state": "Himachal Pradesh"
+      },
+      {
+        "election_id": "goa2022",
+        "type": "State Assembly",
+        "year": 2022,
+        "state": "Goa"
+      },
+      {
+        "election_id": "manipur2022",
+        "type": "State Assembly",
+        "year": 2022,
+        "state": "Manipur"
+      },
+      {
+        "election_id": "punjab2022",
+        "type": "State Assembly",
+        "year": 2022,
+        "state": "Punjab"
+      },
+      {
+        "election_id": "uttarakhand2022",
+        "type": "State Assembly",
+        "year": 2022,
+        "state": "Uttarakhand"
+      },
+      {
+        "election_id": "uttarpradesh2022",
+        "type": "State Assembly",
+        "year": 2022,
+        "state": "Uttar Pradesh"
+      },
+      {
+        "election_id": "TamilNadu2021",
+        "type": "State Assembly",
+        "year": 2021,
+        "state": "Tamil Nadu"
+      },
+      {
+        "election_id": "Odisha2019",
+        "type": "State Assembly",
+        "year": 2019,
+        "state": "Odisha"
+      },
+      {
+        "election_id": "Haryana2019",
+        "type": "State Assembly",
+        "year": 2019,
+        "state": "Haryana"
+      },
+      {
+        "election_id": "UttarPradesh2017",
+        "type": "State Assembly",
+        "year": 2017,
+        "state": "Uttar Pradesh"
+      },
+      {
+        "election_id": "TamilNadu2016",
+        "type": "State Assembly",
+        "year": 2016,
+        "state": "Tamil Nadu"
+      },
+      {
+        "election_id": "Haryana2014",
+        "type": "State Assembly",
+        "year": 2014,
+        "state": "Haryana"
+      },
+      {
+        "election_id": "Odisha2014",
+        "type": "State Assembly",
+        "year": 2014,
+        "state": "Odisha"
+      },
+      {
+        "election_id": "TamilNadu2011",
+        "type": "State Assembly",
+        "year": 2011,
+        "state": "Tamil Nadu"
+      },
+      {
+        "election_id": "Orissa2009",
+        "type": "State Assembly",
+        "year": 2009,
+        "state": "Odisha"
+      },
+      {
+        "election_id": "Orissa2004",
+        "type": "State Assembly",
+        "year": 2004,
+        "state": "Odisha"
+      }
+    ],
+    "criminal_case_statuses": [
+      "Pending",
+      "Convicted",
+      "Cognizance",
+      "Charges Framed"
+    ],
+    "top_sections": [
+      {
+        "code": "IPC",
+        "cases": 3170
+      },
+      {
+        "code": "143",
+        "cases": 2430
+      },
+      {
+        "code": "188",
+        "cases": 2237
+      },
+      {
+        "code": "341",
+        "cases": 1919
+      },
+      {
+        "code": "149",
+        "cases": 1814
+      },
+      {
+        "code": "147",
+        "cases": 1575
+      },
+      {
+        "code": "506",
+        "cases": 1414
+      },
+      {
+        "code": "34",
+        "cases": 1036
+      },
+      {
+        "code": "353",
+        "cases": 933
+      },
+      {
+        "code": "323",
+        "cases": 834
+      },
+      {
+        "code": "148",
+        "cases": 823
+      },
+      {
+        "code": "269",
+        "cases": 800
+      },
+      {
+        "code": "120B",
+        "cases": 694
+      },
+      {
+        "code": "427",
+        "cases": 690
+      },
+      {
+        "code": "504",
+        "cases": 626
+      },
+      {
+        "code": "283",
+        "cases": 549
+      },
+      {
+        "code": "420",
+        "cases": 531
+      },
+      {
+        "code": "294",
+        "cases": 527
+      },
+      {
+        "code": "270",
+        "cases": 441
+      },
+      {
+        "code": "332",
+        "cases": 392
+      },
+      {
+        "code": "307",
+        "cases": 356
+      },
+      {
+        "code": "BNS",
+        "cases": 352
+      },
+      {
+        "code": "336",
+        "cases": 319
+      },
+      {
+        "code": "186",
+        "cases": 290
+      },
+      {
+        "code": "290",
+        "cases": 275
+      },
+      {
+        "code": "447",
+        "cases": 274
+      },
+      {
+        "code": "471",
+        "cases": 233
+      },
+      {
+        "code": "342",
+        "cases": 214
+      },
+      {
+        "code": "468",
+        "cases": 212
+      },
+      {
+        "code": "379",
+        "cases": 209
+      },
+      {
+        "code": "153A",
+        "cases": 190
+      },
+      {
+        "code": "109",
+        "cases": 180
+      },
+      {
+        "code": "500",
+        "cases": 179
+      },
+      {
+        "code": "409",
+        "cases": 178
+      },
+      {
+        "code": "324",
+        "cases": 175
+      },
+      {
+        "code": "467",
+        "cases": 154
+      },
+      {
+        "code": "448",
+        "cases": 154
+      },
+      {
+        "code": "406",
+        "cases": 137
+      },
+      {
+        "code": "153",
+        "cases": 129
+      },
+      {
+        "code": "452",
+        "cases": 129
+      }
+    ],
+    "ministries": [
+      {
+        "name": "Department of Atomic Energy",
+        "portfolio_type": "department"
+      },
+      {
+        "name": "Department of Space",
+        "portfolio_type": "department"
+      },
+      {
+        "name": "Ministry of Agriculture and Farmers Welfare",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Ayush",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Chemicals and Fertilizers",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Civil Aviation",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Coal",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Commerce and Industry",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Communications",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Consumer Affairs, Food and Public Distribution",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Cooperation",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Corporate Affairs",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Culture",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Defence",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Development of North Eastern Region",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Earth Sciences",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Education",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Electronics and Information Technology",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Environment, Forest and Climate Change",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of External Affairs",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Finance",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Fisheries, Animal Husbandry and Dairying",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Food Processing Industries",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Health and Family Welfare",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Heavy Industries",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Home Affairs",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Housing and Urban Affairs",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Information and Broadcasting",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Jal Shakti",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Labour and Employment",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Law and Justice",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Micro, Small and Medium Enterprises",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Mines",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Minority Affairs",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of New and Renewable Energy",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Panchayati Raj",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Parliamentary Affairs",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Personnel, Public Grievances and Pensions",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Petroleum and Natural Gas",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Planning",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Ports, Shipping and Waterways",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Power",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Railways",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Road Transport and Highways",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Rural Development",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Science and Technology",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Skill Development and Entrepreneurship",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Social Justice and Empowerment",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Statistics and Programme Implementation",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Steel",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Textiles",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Tourism",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Tribal Affairs",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Women and Child Development",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Ministry of Youth Affairs and Sports",
+        "portfolio_type": "ministry"
+      },
+      {
+        "name": "Prime Minister's Office",
+        "portfolio_type": "office"
+      }
+    ],
+    "sample_people": [
+      "Surendra Patwa",
+      "S.Kathiravan",
+      "Chintamaneni Prabhakar",
+      "Anumula Revanth Reddy",
+      "Dean Kuriakose",
+      "Muhammed Sudheersha S",
+      "T. Raja Singh",
+      "Prince J G",
+      "Adv. O J Janeesh",
+      "K M Abhijith",
+      "Adv. K. Praveen Kumar",
+      "Vedma Bhojju",
+      "Rajesh Kumar S",
+      "Mohammed Shiyas",
+      "Ramesh Chandra Jena",
+      "Kalaivanan Poondi K.",
+      "Adv. Bindhu Krishna",
+      "Shafi Parambil",
+      "M.K. Stalin",
+      "Eatala Rajender",
+      "Ramesh Chandra Jena",
+      "Bandi Sanjay Kumar",
+      "V.T. Sooraj",
+      "B Nagendra",
+      "Rajesh Ranjan"
+    ],
+    "sample_constituencies": {
+      "Parliamentary": [
+        "Dharmapuri",
+        "Nilgiris",
+        "Raipur",
+        "Bhilwara",
+        "Jalaun",
+        "Anantnag-Rajouri",
+        "Uluberia",
+        "Inner Manipur",
+        "Vellore",
+        "Sheohar",
+        "Tiruvannamalai",
+        "Ghazipur",
+        "Pathanamthitta",
+        "Katihar",
+        "Outer Manipur",
+        "Mahbubnagar",
+        "Aurangabad",
+        "Amritsar",
+        "Kanpur",
+        "Virudhunagar",
+        "Sriperumbudur",
+        "Kolar",
+        "Daman and Diu",
+        "Bathinda",
+        "Agra"
+      ],
+      "Assembly": [
+        "Achanta",
+        "Addanki",
+        "Adoni",
+        "Allagadda",
+        "Alur",
+        "Amadalavalasa",
+        "Amalapuram",
+        "Anakapalle",
+        "Anaparthy",
+        "Araku Valley",
+        "Atmakur",
+        "Avanigadda",
+        "Badvel",
+        "Banaganapalle",
+        "Bapatla",
+        "Bhimavaram",
+        "Bobbili",
+        "Chandragiri",
+        "Cheepurupalle",
+        "Chilakaluripet",
+        "Chintalapudi",
+        "Chirala",
+        "Chittoor",
+        "Chodavaram",
+        "Denduluru"
+      ]
+    }
+  }
+}

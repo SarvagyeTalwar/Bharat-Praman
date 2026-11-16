@@ -1,0 +1,2120 @@
+{
+ "general_250": [
+  {
+   "category": "profile",
+   "question": "Who is Ajay Kumar?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Tell me about Naveen Patnaik",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "What is Pratap Keshari Deb's net worth?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Manohar Randhari profile",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Show me Sanjay Kumar's details",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Who is Ranendra Pratap Swain?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Tell me about Sanjay Kumar Singh",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "What is Aswini Kumar Patra's net worth?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Suresh Kumar profile",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Show me Anil Kumar's details",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Who is Vinod Kumar?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Tell me about Sanjeev Kumar",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "What is A . Vetriazhagan's net worth?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "A Anbalagan profile",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Show me A C Moideen's details",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Who is A C Srinivasa?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Tell me about A K M Ashraf",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "What is A Kiran Kumar Kodgi's net worth?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "A Laser profile",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Show me A Nyamnyei Konyak's details",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Who is A Pongshi Phom?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Tell me about A Prabhakaran",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "What is A Soundararajan's net worth?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "A Soundharapandian profile",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Show me Ajay Kumar's details",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Who is Naveen Patnaik?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Tell me about Pratap Keshari Deb",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "What is Manohar Randhari's net worth?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Sanjay Kumar profile",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Show me Ranendra Pratap Swain's details",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Who is Sanjay Kumar Singh?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Tell me about Aswini Kumar Patra",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "What is Suresh Kumar's net worth?",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Anil Kumar profile",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "profile",
+   "question": "Show me Vinod Kumar's details",
+   "template": "politician_profile",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Andhra Pradesh in 2024",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Arunachal Pradesh in 2024?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Assam 2026 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Bihar in 2025",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Chhattisgarh in 2023",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Goa in 2022?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Gujarat 2022 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Haryana in 2014",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Haryana in 2019",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Haryana in 2024?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Himachal Pradesh 2022 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Jammu and Kashmir in 2024",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Jharkhand in 2024",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Karnataka in 2023?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Kerala 2026 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Madhya Pradesh in 2023",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Maharashtra in 2024",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Manipur in 2022?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Meghalaya 2023 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Mizoram in 2023",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from NCT of Delhi in 2025",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Nagaland in 2023?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Odisha 2004 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Odisha in 2009",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Odisha in 2014",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Odisha in 2019?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Odisha 2024 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Puducherry in 2026",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Punjab in 2022",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Rajasthan in 2023?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Sikkim 2024 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Tamil Nadu in 2011",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Tamil Nadu in 2016",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Tamil Nadu in 2021?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Tamil Nadu 2026 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Telangana in 2023",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "List MLAs from Tripura in 2023",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Who were the MLAs in Uttar Pradesh in 2017?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "Show Uttar Pradesh 2022 assembly winners",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "roster",
+   "question": "MLAs elected in Uttarakhand in 2022",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Guntur West in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Jaggampeta?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Kalyandurg?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Etcherla in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Palakonda?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Kuppam?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Cheepurupalle in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Nellore Rural?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Visakhapatnam East?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Vijayawada Central in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Puthalapattu?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Palamaner?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Nagari in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Srikalahasti?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Kadiri?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Pattikonda in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Nandyal?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Palasa?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Pathapatnam in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Rajam?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Kodur?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Parvathipuram in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Salur?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Uravakonda?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Paderu in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Vijayawada West?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Narasannapeta?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won Giddalur in 2024?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who is the MLA of Banaganapalle?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Which MLA represents Dhone?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "richest MLA",
+   "template": "richest_mla",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top 10 MLAs by assets",
+   "template": "top_mlas_by_assets",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top 5 richest MLAs",
+   "template": "top_mlas_by_assets",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets above 1 crore",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets above 10 crore",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "highest liabilities MLA",
+   "template": "highest_liabilities_mla",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "how many MLAs have liabilities above 1 crore",
+   "template": "money_threshold_count",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with negative net worth",
+   "template": "negative_net_worth",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with liabilities more than assets",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "average assets of MLAs",
+   "template": "asset_stats",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top MLAs by liabilities",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets over 5 crore and criminal cases",
+   "template": "assets_and_cases_threshold",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "richest MLA",
+   "template": "richest_mla",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top 10 MLAs by assets",
+   "template": "top_mlas_by_assets",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top 5 richest MLAs",
+   "template": "top_mlas_by_assets",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets above 1 crore",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets above 10 crore",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "highest liabilities MLA",
+   "template": "highest_liabilities_mla",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "how many MLAs have liabilities above 1 crore",
+   "template": "money_threshold_count",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with negative net worth",
+   "template": "negative_net_worth",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with liabilities more than assets",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "average assets of MLAs",
+   "template": "asset_stats",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top MLAs by liabilities",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets over 5 crore and criminal cases",
+   "template": "assets_and_cases_threshold",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "richest MLA",
+   "template": "richest_mla",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top 10 MLAs by assets",
+   "template": "top_mlas_by_assets",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top 5 richest MLAs",
+   "template": "top_mlas_by_assets",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets above 1 crore",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with assets above 10 crore",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "highest liabilities MLA",
+   "template": "highest_liabilities_mla",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "how many MLAs have liabilities above 1 crore",
+   "template": "money_threshold_count",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with negative net worth",
+   "template": "negative_net_worth",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "MLAs with liabilities more than assets",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "money",
+   "question": "average assets of MLAs",
+   "template": "asset_stats",
+   "status": "ok"
+  },
+  {
+   "category": "money",
+   "question": "top MLAs by liabilities",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have criminal cases?",
+   "template": "count_mlas_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "top 10 tainted MLAs",
+   "template": "top_cases_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "top 5 MLAs with cases",
+   "template": "top_cases_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have zero cases?",
+   "template": "count_mlas_zero_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which IPC section is most common?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "MLAs charged under section 302",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs are charged under section 307?",
+   "template": "count_mlas_by_section",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which party has the most MLAs with cases?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have more than 5 cases?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "MLAs with cases in Uttar Pradesh",
+   "template": "mlas_in_state_filtered",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which party has the most MLAs charged under IPC 143?",
+   "template": "party_most_by_section",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have criminal cases in Tamil Nadu?",
+   "template": "count_mlas_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have criminal cases?",
+   "template": "count_mlas_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "top 10 tainted MLAs",
+   "template": "top_cases_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "top 5 MLAs with cases",
+   "template": "top_cases_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have zero cases?",
+   "template": "count_mlas_zero_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which IPC section is most common?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "MLAs charged under section 302",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs are charged under section 307?",
+   "template": "count_mlas_by_section",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which party has the most MLAs with cases?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have more than 5 cases?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "MLAs with cases in Uttar Pradesh",
+   "template": "mlas_in_state_filtered",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which party has the most MLAs charged under IPC 143?",
+   "template": "party_most_by_section",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have criminal cases in Tamil Nadu?",
+   "template": "count_mlas_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have criminal cases?",
+   "template": "count_mlas_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "top 10 tainted MLAs",
+   "template": "top_cases_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "top 5 MLAs with cases",
+   "template": "top_cases_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have zero cases?",
+   "template": "count_mlas_zero_cases",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which IPC section is most common?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "MLAs charged under section 302",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs are charged under section 307?",
+   "template": "count_mlas_by_section",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which party has the most MLAs with cases?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "cases",
+   "question": "how many MLAs have more than 5 cases?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "MLAs with cases in Uttar Pradesh",
+   "template": "mlas_in_state_filtered",
+   "status": "ok"
+  },
+  {
+   "category": "cases",
+   "question": "which party has the most MLAs charged under IPC 143?",
+   "template": "party_most_by_section",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does BJP have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which party has the most MLAs?",
+   "template": "party_most_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which state has the most MLAs?",
+   "template": "state_most_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "party-wise MLA count in Uttar Pradesh",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does INC have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does DMK have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which party has the most MLAs in Odisha?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "MLA count by party",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs are there?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MPs are there?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does BJP have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which party has the most MLAs?",
+   "template": "party_most_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which state has the most MLAs?",
+   "template": "state_most_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "party-wise MLA count in Uttar Pradesh",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does INC have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does DMK have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which party has the most MLAs in Odisha?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "MLA count by party",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs are there?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MPs are there?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does BJP have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which party has the most MLAs?",
+   "template": "party_most_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which state has the most MLAs?",
+   "template": "state_most_mlas",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "party-wise MLA count in Uttar Pradesh",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does INC have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs does DMK have?",
+   "template": "party_mla_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "which party has the most MLAs in Odisha?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "MLA count by party",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "party",
+   "question": "how many MLAs are there?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "party",
+   "question": "how many MPs are there?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Ajay Kumar's assets change across elections?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Show Naveen Patnaik's criminal case count across elections",
+   "template": "mla_case_change",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Did Pratap Keshari Deb contest under different parties?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Manohar Randhari's liabilities change?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Tell me about Sanjay Kumar's party history",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Ajay Kumar's assets change across elections?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Show Naveen Patnaik's criminal case count across elections",
+   "template": "mla_case_change",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Did Pratap Keshari Deb contest under different parties?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Manohar Randhari's liabilities change?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Tell me about Sanjay Kumar's party history",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Ajay Kumar's assets change across elections?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Show Naveen Patnaik's criminal case count across elections",
+   "template": "mla_case_change",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Did Pratap Keshari Deb contest under different parties?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Manohar Randhari's liabilities change?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Tell me about Sanjay Kumar's party history",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Ajay Kumar's assets change across elections?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Show Naveen Patnaik's criminal case count across elections",
+   "template": "mla_case_change",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Did Pratap Keshari Deb contest under different parties?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "How did Manohar Randhari's liabilities change?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Tell me about Sanjay Kumar's party history",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Which MLAs changed party?",
+   "template": "mla_party_switchers",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Which MLAs switched parties in Odisha?",
+   "template": "mla_party_switchers",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Which MLAs switched parties in Haryana?",
+   "template": "mla_party_switchers",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Which MLAs changed party in Tamil Nadu?",
+   "template": "mla_party_switchers",
+   "status": "ok"
+  },
+  {
+   "category": "cross",
+   "question": "Show party switchers",
+   "template": "mla_party_switchers",
+   "status": "ok"
+  },
+  {
+   "category": "meta",
+   "question": "How much data is in the graph?",
+   "template": "data_counts",
+   "status": "ok"
+  },
+  {
+   "category": "meta",
+   "question": "How many politicians are in the graph?",
+   "template": "data_counts",
+   "status": "ok"
+  },
+  {
+   "category": "meta",
+   "question": "What data do you have?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Who is the Prime Minister?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "What is the weather today?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Who won the 2024 Lok Sabha election?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Tell me about Rahul Gandhi's spouse",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "What is the capital of India?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Who is the Chief Minister of Tamil Nadu?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "How many constituencies are there?",
+   "template": "constituency_counts",
+   "status": "ok"
+  },
+  {
+   "category": "meta",
+   "question": "How much data is in the graph?",
+   "template": "data_counts",
+   "status": "ok"
+  },
+  {
+   "category": "meta",
+   "question": "How many politicians are in the graph?",
+   "template": "data_counts",
+   "status": "ok"
+  },
+  {
+   "category": "meta",
+   "question": "What data do you have?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Who is the Prime Minister?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "What is the weather today?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Who won the 2024 Lok Sabha election?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Tell me about Rahul Gandhi's spouse",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "What is the capital of India?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "Who is the Chief Minister of Tamil Nadu?",
+   "template": null,
+   "status": "fallback"
+  },
+  {
+   "category": "meta",
+   "question": "How many constituencies are there?",
+   "template": "constituency_counts",
+   "status": "ok"
+  }
+ ],
+ "multihop_50": [
+  {
+   "category": "A party-seats",
+   "question": "Which party has the most MLAs in Tamil Nadu 2021?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "A party-seats",
+   "question": "Party-wise seat count in Uttar Pradesh 2017",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "A party-seats",
+   "question": "How many MLAs does each party have in Odisha 2019?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "A party-seats",
+   "question": "Which party won the most seats in Haryana 2019?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "A party-seats",
+   "question": "Party seats in Tamil Nadu 2026",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "B party-section",
+   "question": "Which party's MLAs in Uttar Pradesh were charged under IPC 143?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "B party-section",
+   "question": "Which party in Odisha has the most MLAs charged under section 341?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "B party-section",
+   "question": "How many BJP MLAs in UP are charged under 302?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "B party-section",
+   "question": "Which party in Tamil Nadu has the most cases under section 307?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "B party-section",
+   "question": "Which party in Haryana is charged under IPC 188 the most?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "C state-cases",
+   "question": "Which state has the most MLAs with criminal cases?",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "C state-cases",
+   "question": "Which state has the most tainted MLAs?",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "C state-cases",
+   "question": "Rank states by number of MLAs with cases",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "C state-cases",
+   "question": "Which state has the fewest MLAs with cases?",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "C state-cases",
+   "question": "State-wise count of MLAs with criminal cases",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "D ministers",
+   "question": "Which ministers have criminal cases?",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "D ministers",
+   "question": "Ministers with the most cases",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "D ministers",
+   "question": "List ministers charged with cases and their ministries",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "D ministers",
+   "question": "Which ministry has a minister with cases?",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "D ministers",
+   "question": "Ministers with cases and their portfolios",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "E mp-mla",
+   "question": "How many MPs and MLAs does Uttar Pradesh have?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "E mp-mla",
+   "question": "Compare MPs and MLAs in Odisha",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "E mp-mla",
+   "question": "How many MPs and MLAs are there in Tamil Nadu?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "E mp-mla",
+   "question": "MP and MLA counts for Haryana",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "E mp-mla",
+   "question": "How many MPs and MLAs does Bihar have?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "F timeline",
+   "question": "How did Naveen Patnaik's assets change across elections?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "F timeline",
+   "question": "How did Bhupinder Singh Hooda's liabilities change?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "F timeline",
+   "question": "Show J Jayalalithaa's case count across elections",
+   "template": "mla_case_change",
+   "status": "ok"
+  },
+  {
+   "category": "F timeline",
+   "question": "Tell me about D K Shivakumar's party history",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "F timeline",
+   "question": "How did Atul Garg's assets change?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "G constituency",
+   "question": "Who won Srirangam in 2011?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "G constituency",
+   "question": "Who is the MLA of Hinjili?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "G constituency",
+   "question": "Who is the MLA of Jaggampeta?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "G constituency",
+   "question": "Who represented Alandur in 2011?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "G constituency",
+   "question": "Who won Phulpur in 2022?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "H party-sections",
+   "question": "Which IPC sections are most common among BJP MLAs?",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "H party-sections",
+   "question": "Top sections for DMK MLAs",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "H party-sections",
+   "question": "Which sections do INC MLAs get charged under most?",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "H party-sections",
+   "question": "Most common IPC section for BJD MLAs",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "H party-sections",
+   "question": "AIADMK MLAs: most common IPC sections",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "I state-assets",
+   "question": "What is the average asset of MLAs in Odisha?",
+   "template": "state_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "I state-assets",
+   "question": "Average assets of Tamil Nadu MLAs",
+   "template": "state_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "I state-assets",
+   "question": "Average assets of Uttar Pradesh MLAs",
+   "template": "state_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "I state-assets",
+   "question": "Which state's MLAs have the highest average assets?",
+   "template": "states_ranked_by_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "I state-assets",
+   "question": "Rank states by average MLA assets",
+   "template": "states_ranked_by_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "J largest-party",
+   "question": "In Odisha, which party has the most seats and what section are its MLAs charged under most?",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "J largest-party",
+   "question": "For the largest party in UP, which IPC section appears most?",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "J largest-party",
+   "question": "Largest party in Tamil Nadu and its top IPC section",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "J largest-party",
+   "question": "In Haryana, the biggest party's most common IPC section",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "J largest-party",
+   "question": "Largest party in Maharashtra and its top IPC section",
+   "template": "largest_party_section",
+   "status": "ok"
+  }
+ ],
+ "convoluted_50": [
+  {
+   "category": "party-seats",
+   "question": "Okay so I'm curious — which party ended up with the most MLAs in Tamil Nadu in 2021?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party-seats",
+   "question": "If I look at Uttar Pradesh in 2017, how many seats did each party get?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party-seats",
+   "question": "Out of all the parties in Odisha 2019, which one had the most MLAs?",
+   "template": "mla_election_roster",
+   "status": "ok"
+  },
+  {
+   "category": "party-seats",
+   "question": "For Haryana 2019, can you tell me which party won the most seats?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party-seats",
+   "question": "In Tamil Nadu 2026, what's the party-wise seat count looking like?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party-section",
+   "question": "Which party's MLAs in UP had the most charges under section 143?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party-section",
+   "question": "In Odisha, which party's people got charged under 341 the most?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party-section",
+   "question": "How many BJP MLAs from UP are charged under 302, roughly?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "party-section",
+   "question": "For Tamil Nadu, which party has the most cases under section 307?",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "party-section",
+   "question": "In Haryana, which party is charged under IPC 188 the most?",
+   "template": "party_section_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "state-cases",
+   "question": "I'm trying to figure out which state has the most MLAs with criminal cases — any idea?",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "state-cases",
+   "question": "Which state has the most tainted MLAs, like with cases?",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "state-cases",
+   "question": "Can you rank the states by how many MLAs have cases?",
+   "template": "entity_count",
+   "status": "ok"
+  },
+  {
+   "category": "state-cases",
+   "question": "Which state has the fewest MLAs with cases?",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "state-cases",
+   "question": "State-wise, how many MLAs have criminal cases?",
+   "template": "state_most_cases",
+   "status": "ok"
+  },
+  {
+   "category": "ministers",
+   "question": "Which ministers have criminal cases against them?",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "ministers",
+   "question": "Who are the ministers with the most cases?",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "ministers",
+   "question": "List the ministers who have cases and which ministry they run.",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "ministers",
+   "question": "Which ministry has a minister with cases?",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "ministers",
+   "question": "Ministers with cases — and their portfolios?",
+   "template": "ministers_with_cases",
+   "status": "ok"
+  },
+  {
+   "category": "mp-mla",
+   "question": "Between MPs and MLAs in Uttar Pradesh, how many of each are there?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "mp-mla",
+   "question": "If I compare MPs and MLAs in Odisha, what are the numbers?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "mp-mla",
+   "question": "How many MPs and MLAs are there in Tamil Nadu?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "mp-mla",
+   "question": "For Haryana, what are the MP and MLA counts?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "mp-mla",
+   "question": "How many MPs and MLAs does Bihar have?",
+   "template": "mp_mla_counts_by_state",
+   "status": "ok"
+  },
+  {
+   "category": "timeline",
+   "question": "What was Naveen Patnaik's asset situation across the elections he won?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "timeline",
+   "question": "Did Bhupinder Singh Hooda's liabilities go up or down over the elections?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "timeline",
+   "question": "Show me J Jayalalithaa's case count across the elections she won.",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "timeline",
+   "question": "I want to know how D K Shivakumar's party history looks.",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "timeline",
+   "question": "How did Atul Garg's assets change from election to election?",
+   "template": "mla_timeline",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "If I search for the MLA of Hinjili, who comes up?",
+   "template": "mlas_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who was the person who won Srirangam in 2011?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Can you tell me who represented Alandur back in 2011?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "For Jaggampeta, who is the MLA there?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "constituency",
+   "question": "Who won from Phulpur in 2022?",
+   "template": "constituency_winner",
+   "status": "ok"
+  },
+  {
+   "category": "party-sections",
+   "question": "That BJP MLA section question — which IPC sections show up most for them?",
+   "template": "mlas_in_state_filtered",
+   "status": "ok"
+  },
+  {
+   "category": "party-sections",
+   "question": "For DMK MLAs, what are the top sections they're charged under?",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "party-sections",
+   "question": "Which sections do INC MLAs get charged under the most?",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "party-sections",
+   "question": "What's the most common IPC section for BJD MLAs?",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "party-sections",
+   "question": "AIADMK MLAs — which IPC sections appear most?",
+   "template": "party_sections",
+   "status": "ok"
+  },
+  {
+   "category": "state-assets",
+   "question": "So basically I need the average assets of MLAs from Odisha — what's that number?",
+   "template": "state_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "state-assets",
+   "question": "What's the average asset figure for Tamil Nadu MLAs?",
+   "template": "state_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "state-assets",
+   "question": "For Uttar Pradesh MLAs, what's the average asset?",
+   "template": "state_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "state-assets",
+   "question": "Which state's MLAs have the highest average assets?",
+   "template": "states_ranked_by_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "state-assets",
+   "question": "Can you rank states by average MLA assets?",
+   "template": "states_ranked_by_avg_assets",
+   "status": "ok"
+  },
+  {
+   "category": "largest-party",
+   "question": "For the biggest party in Odisha, what section do their MLAs get charged under the most?",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "largest-party",
+   "question": "In UP, which party is the largest and what IPC section shows up most for them?",
+   "template": "party_seats_in_state",
+   "status": "ok"
+  },
+  {
+   "category": "largest-party",
+   "question": "Tamil Nadu's largest party — what's its top IPC section?",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "largest-party",
+   "question": "In Haryana, the biggest party's most common IPC section?",
+   "template": "largest_party_section",
+   "status": "ok"
+  },
+  {
+   "category": "largest-party",
+   "question": "For Maharashtra's largest party, which IPC section appears most?",
+   "template": "largest_party_section",
+   "status": "ok"
+  }
+ ],
+ "phase2_10": [
+  "How did Naveen Patnaik's assets change across elections?",
+  "Show Naveen Patnaik's criminal case count across elections",
+  "Did Naveen Patnaik contest under different parties?",
+  "Which MLAs changed party?",
+  "Which MLAs switched parties in Odisha?",
+  "List MLAs from Tamil Nadu in 2011",
+  "Who is J Jayalalithaa?",
+  "Tell me about D K Shivakumar",
+  "How did Bhupinder Singh Hooda's liabilities change?",
+  "List MLAs from Uttar Pradesh in 2017"
+ ]
+}

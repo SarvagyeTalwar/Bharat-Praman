@@ -5,3 +5,6 @@ python-dotenv
 google-genai
 pydantic
 truststore
+beautifulsoup4
+requests
+PyMuPDF

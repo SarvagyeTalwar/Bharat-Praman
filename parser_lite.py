@@ -7,10 +7,10 @@ Uses pymupdf + pymupdf4llm (already installed) to extract:
 
 Falls back gracefully.
 """
-import os, re, json, hashlib
+import os, re
 from pathlib import Path
 
-import fitz
+import pymupdf
 try:
     import pymupdf4llm
 except Exception:
@@ -24,27 +24,28 @@ MARKDOWN_MAX_PAGES = 60
 class Parser:
     def parse(self, pdf_path):
         p = Path(pdf_path)
-        doc = fitz.open(str(p))
+        doc = pymupdf.open(str(p))
         meta = doc.metadata or {}
         title = self.infer_title(p, doc, meta)
+        page_texts = []
+        for i in range(doc.page_count):
+            page = doc[i]
+            page_text = (page.get_text("text", sort=True) or "").strip()
+            page_texts.append((i + 1, page_text))
         text = None
         mode = 'text'
         if pymupdf4llm and doc.page_count <= MARKDOWN_MAX_PAGES:
             try:
-                md = pymupdf4llm.to_markdown(str(p))
-                if md and md.strip():
-                    text = md
+                md_pages = pymupdf4llm.to_markdown(str(p), page_chunks=True, show_progress=False)
+                if md_pages:
+                    page_texts = [(i + 1, page.get("text", "").strip())
+                                  for i, page in enumerate(md_pages)]
+                    text = '\n\n'.join(t for _, t in page_texts if t)
                     mode = 'markdown'
             except Exception as e:
                 print('pymupdf4llm failed, falling back to text:', e)
         if text is None:
-            parts = []
-            for i in range(doc.page_count):
-                t = doc[i].get_text('text') or ''
-                if t.strip():
-                    parts.append(t)
-            text = '\n\n'.join(parts)
-            mode = 'text'
+            text = '\n\n'.join(t for _, t in page_texts if t)
         pages = doc.page_count
         doc.close()
         return {
@@ -53,6 +54,7 @@ class Parser:
             'title': title,
             'mode': mode,
             'text': text,
+            'page_texts': page_texts,
             'pages': pages,
         }
 

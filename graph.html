@@ -3,247 +3,424 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bharat Praman — Graph Explorer</title>
+  <title>BHARAT PRAMAN // GRAPH EXPLORER</title>
+  <script>
+    (function () {
+      if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
   <style>
     :root {
       color-scheme: light;
-      --paper: #fbf8f1;
-      --ink: #1c1917;
-      --muted: #6b6256;
-      --line: #292524;
-      --amber: #fbbf24;
+      --bg: #ffffff;
+      --fg: #000000;
+      --muted: #525252;
+      --surface-alt: #f4f4f4;
+      --border: #000000;
+      --accent: #ff0000;
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: Consolas, Monaco, "Courier New", monospace;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background-color: var(--paper);
-      background-image: radial-gradient(#d8d0c2 1px, transparent 1px);
-      background-size: 22px 22px;
-      color: var(--ink);
-      font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    html.dark {
+      color-scheme: dark;
+      --bg: #000000;
+      --fg: #ffffff;
+      --muted: #a3a3a3;
+      --surface-alt: #111111;
+      --border: #ffffff;
+      --accent: #ff0000;
     }
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 5;
+    * { box-sizing: border-box; border-radius: 0 !important; box-shadow: none !important; transition: none !important; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.45 var(--font-sans); }
+    a { color: var(--accent); text-decoration: underline; }
+    a:hover { background: var(--accent); color: #ffffff; text-decoration: none; }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+    .alert { color: var(--accent); font-weight: 700; }
+
+    .topbar {
+      border-bottom: 2px solid var(--border);
+      background: var(--bg);
+      padding: 8px 16px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 14px clamp(16px, 4vw, 48px);
-      border-bottom: 2px solid var(--line);
-      background: #f4eee2;
+      gap: 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
     }
-    .brand { font: 700 12px/1.4 "Consolas", monospace; letter-spacing: .04em; }
-    .back-link, button {
-      border: 2px solid var(--line);
-      border-radius: 9px;
-      background: white;
-      color: var(--ink);
-      cursor: pointer;
-      font: 700 12px/1.2 "Consolas", monospace;
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-tag { background: var(--fg); color: var(--bg); padding: 3px 6px; }
+    .nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .nav a, .nav button {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--accent);
+      padding: 4px 8px;
+      font: 700 11px/1.2 var(--font-mono);
       text-decoration: none;
-      box-shadow: 2px 2px 0 var(--line);
-      transition: transform .12s ease, box-shadow .12s ease;
+      text-transform: uppercase;
+      cursor: pointer;
     }
-    .back-link { padding: 10px 13px; }
-    button { padding: 11px 16px; }
-    .back-link:hover, button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--line); }
-    main { width: min(1240px, calc(100% - 32px)); margin: 30px auto 48px; }
-    .heading { margin: 0 0 5px; font-size: clamp(24px, 4vw, 36px); font-weight: 850; }
-    .subheading { margin: 0 0 22px; color: var(--muted); font: 12px/1.6 "Consolas", monospace; }
-    .freshness-note { margin:-12px 0 16px; padding:10px 12px; border-left:4px solid #b45309; background:#fff7ed; color:#7c2d12; font:11px/1.6 Consolas,monospace; }
+    .nav button { color: var(--fg); }
+    .nav a:hover, .nav button:hover { background: var(--fg); color: var(--bg); }
+    .nav a.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+    main { max-width: 1440px; margin: 0 auto; padding: 14px 16px 48px; }
+    .page-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    h1 { margin: 0; font: 700 22px/1.15 var(--font-sans); text-transform: uppercase; letter-spacing: -0.01em; }
+    .freshness-note {
+      margin: 0 0 12px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      background: var(--surface-alt);
+      font: 11px/1.4 var(--font-mono);
+    }
+
+    /* Search Toolbar */
     .toolbar {
       display: flex;
-      gap: 10px;
+      flex-wrap: wrap;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      margin-bottom: 8px;
+    }
+    .toolbar select, .toolbar input, .toolbar button {
+      height: 40px;
+      border: 0;
+      border-right: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      font: 13px var(--font-mono);
+      padding: 0 10px;
+      outline: none;
+    }
+    .toolbar select { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .toolbar input { flex: 1; min-width: 240px; }
+    .toolbar input:focus { background: var(--surface-alt); }
+    .toolbar button {
+      border-right: 0;
+      background: var(--fg);
+      color: var(--bg);
+      padding: 0 18px;
+      font: 700 12px var(--font-mono);
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .toolbar button:hover { background: var(--accent); color: #ffffff; }
+    .toolbar button:disabled { opacity: 0.5; cursor: wait; }
+
+    .acronym-hint {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       align-items: center;
-      padding: 11px;
-      border: 2px solid var(--line);
-      border-radius: 12px;
-      background: #fffefa;
-      box-shadow: 4px 4px 0 var(--line);
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      font: 11px var(--font-mono);
     }
-    input, select {
-      min-width: 0;
-      height: 42px;
-      border: 1px solid #c9c1b6;
-      border-radius: 7px;
-      background: white;
-      color: var(--ink);
-      font: 14px "Consolas", monospace;
-      padding: 0 12px;
-    }
-    input { flex: 1; }
-    select { width: 145px; }
-    select#mode { width: 175px; }
-    button { background: var(--amber); }
+    .acronym-hint[hidden] { display: none; }
+    .acronym-chip { border: 1px solid var(--border); background: var(--bg); padding: 2px 6px; }
+
     .status-row {
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
       justify-content: space-between;
-      gap: 12px;
-      min-height: 42px;
-      color: var(--muted);
-      font: 11px/1.4 "Consolas", monospace;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      margin-bottom: 12px;
+      font: 11px/1.3 var(--font-mono);
     }
-    .legend { display:flex; flex-wrap:wrap; gap:8px 14px; margin:0 0 12px; color:var(--muted); font:10px Consolas,monospace; }
-    .legend span { display:inline-flex; align-items:center; gap:6px; }
-    .legend i { width:10px; height:10px; border:1px solid var(--line); border-radius:3px; }
-    #status.error { color: #b42318; }
-    .cypher-panel { margin:0 0 14px; border:1px solid #c9c1b6; border-radius:8px; padding:10px 13px; background:#fffefa; }
-    .cypher-panel summary { cursor:pointer; font:700 11px Consolas,monospace; }
-    .cypher-panel p { color:var(--muted); font-size:12px; }
-    .cypher-panel pre { overflow:auto; padding:12px; border-radius:6px; background:#292524; color:#f5f5f4; font:11px/1.6 Consolas,monospace; white-space:pre-wrap; }
-    .aggregate-results { margin:0 0 16px; padding:16px; border:2px solid var(--line); border-radius:12px; background:#fffefa; box-shadow:4px 4px 0 var(--line); }
-    .aggregate-results h2 { margin:0 0 6px; font-size:17px; }
-    .aggregate-results p { color:var(--muted); font:12px/1.6 Consolas,monospace; }
-    .aggregate-table-wrap { overflow:auto; max-height:55vh; border:1px solid #d6d3d1; border-radius:7px; }
-    .aggregate-table { width:100%; border-collapse:collapse; font:12px/1.5 Consolas,monospace; }
-    .aggregate-table th,.aggregate-table td { padding:9px 11px; border-bottom:1px solid #e7e5e4; text-align:left; vertical-align:top; }
-    .aggregate-table th { position:sticky; top:0; background:#f4eee2; }
-    .aggregate-table td { max-width:360px; overflow-wrap:anywhere; }
-    .graph-card {
-      overflow: hidden;
-      border: 2px solid var(--line);
-      border-radius: 12px;
-      background: #fffefa;
-      box-shadow: 5px 5px 0 var(--line);
+    #status.error { color: var(--accent); font-weight: 700; }
+
+    .section { border: 1px solid var(--border); margin-bottom: 14px; background: var(--bg); }
+    .section[hidden] { display: none; }
+    .section-head {
+      background: var(--fg);
+      color: var(--bg);
+      padding: 6px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
     }
-    .graph-heading {
+
+    /* Flat Open Cypher Trace */
+    .cypher-body { padding: 10px; }
+    .cypher-explanation { margin: 0 0 8px; font: 12px/1.4 var(--font-sans); }
+    .cypher-panel pre {
+      margin: 0;
+      padding: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--fg);
+      font: 12px/1.5 var(--font-mono);
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Raw Borders-On Table */
+    .table-wrap { overflow: auto; max-height: 68vh; }
+    table.raw-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    table.raw-table th, table.raw-table td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    table.raw-table thead th {
+      position: sticky;
+      top: 0;
+      background: var(--surface-alt);
+      color: var(--fg);
+      font: 700 10.5px/1.25 var(--font-mono);
+      text-transform: uppercase;
+    }
+    table.raw-table tbody tr:nth-child(even) td { background: var(--surface-alt); }
+
+    /* Graph Controls & Canvas */
+    .graph-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-alt);
+    }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font: 700 10.5px/1 var(--font-mono); text-transform: uppercase; }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .g-dot { width: 10px; height: 10px; display: inline-block; border-radius: 50% !important; }
+    .g-dot.solid-blk { background: var(--fg); border: 1.5px solid var(--fg); }
+    .g-dot.ring-blk { background: var(--bg); border: 2px solid var(--fg); }
+    .g-dot.ring-red { background: var(--bg); border: 2px solid var(--accent); }
+    .g-dot.solid-red { background: var(--accent); border: 1.5px solid var(--accent); }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      padding: 4px 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--fg); color: var(--bg); }
+    .btn-accent { border: 1px solid var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent); color: #ffffff; }
+
+    #graph { width: 100%; height: min(68vh, 660px); min-height: 440px; background: var(--bg); }
+    .empty-state { padding: 42px 16px; text-align: center; font: 12px/1.6 var(--font-mono); color: var(--muted); }
+
+    /* Glossary Modal (No blur, 0px radius) */
+    .glossary-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
       display: flex;
       align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.72);
+    }
+    .glossary-modal[hidden] { display: none; }
+    .glossary-card {
+      width: min(860px, 100%);
+      max-height: 84vh;
+      display: flex;
+      flex-direction: column;
+      border: 2px solid var(--border);
+      background: var(--bg);
+    }
+    .glossary-head {
+      display: flex;
       justify-content: space-between;
-      gap: 12px;
-      padding: 13px 16px;
-      border-bottom: 2px solid var(--line);
-      background: #f4eee2;
-      font: 700 12px/1.5 "Consolas", monospace;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--fg);
+      color: var(--bg);
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
     }
-    #graph { width: 100%; height: min(70vh, 680px); min-height: 430px; background: #fffefa; }
-    .graph-controls { display: flex; gap: 8px; }
-    .graph-controls button { padding: 7px 10px; background: white; }
-    .empty-state {
-      display: grid;
-      min-height: 430px;
-      place-items: center;
-      padding: 24px;
-      color: var(--muted);
-      text-align: center;
-      font: 13px/1.7 "Consolas", monospace;
+    .glossary-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .glossary-tab {
+      flex: 1;
+      border: 0;
+      border-right: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      padding: 7px 10px;
+      font: 700 11px var(--font-mono);
+      text-transform: uppercase;
+      cursor: pointer;
     }
-    /* Glossary */
-    .acronym-hint { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: -4px 0 14px; }
-    .acronym-chip { border: 1px solid #c9c1b6; background: #fffefa; border-radius: 8px; padding: 4px 8px; font: 11px/1.4 Consolas, monospace; color: #292524; }
-    .glossary-modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .glossary-modal[hidden], .acronym-hint[hidden] { display: none; }
-    .glossary-backdrop { position: absolute; inset: 0; background: rgba(28,25,23,.35); backdrop-filter: blur(2px); }
-    .glossary-card { position: relative; z-index: 1; width: min(680px, 100%); max-height: 80vh; display: flex; flex-direction: column; border: 2px solid var(--line); border-radius: 16px; background: #fdfdfb; box-shadow: 8px 8px 0 var(--line); overflow: hidden; }
-    .glossary-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 2px solid var(--line); background: #f7f3ea; }
-    .glossary-title { font: 700 13px/1.3 Consolas, monospace; text-transform: uppercase; letter-spacing: .04em; }
-    .glossary-close { padding: 6px 9px; background: white; }
-    .glossary-tools { padding: 12px 14px; border-bottom: 1px solid #e7e1d6; display: flex; flex-direction: column; gap: 8px; }
-    .glossary-tools input { border: 2px solid var(--line); border-radius: 8px; padding: 8px 10px; font: 12px Consolas, monospace; }
-    .glossary-filters { display: flex; gap: 6px; flex-wrap: wrap; }
-    .glossary-filter { border: 1px solid #c9c1b6; background: white; border-radius: 999px; padding: 4px 10px; font: 700 10px Consolas, monospace; cursor: pointer; }
-    .glossary-filter.active { background: #1c1917; color: #fbf8f1; border-color: #1c1917; }
-    .glossary-list { overflow: auto; padding: 8px 12px; }
-    .glossary-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 4px; border-bottom: 1px solid #ece6da; }
-    .glossary-row:last-child { border-bottom: 0; }
-    .glossary-acr { font: 700 12px Consolas, monospace; }
-    .glossary-exp { font: 13px/1.4 "Plus Jakarta Sans", sans-serif; color: #3f3a34; }
-    .glossary-count { font: 10px Consolas, monospace; color: #8a8175; }
-    @media (max-width: 640px) {
-      header { padding: 11px 14px; }
-      .brand { max-width: 55%; font-size: 10px; }
-      main { width: calc(100% - 22px); margin-top: 22px; }
-      .toolbar { flex-wrap: wrap; }
-      input { flex-basis: 100%; }
-      select { flex: 1; }
-      #graph { min-height: 390px; height: 62vh; }
+    .glossary-tab:last-child { border-right: 0; }
+    .glossary-tab.active { background: var(--fg); color: var(--bg); }
+    .glossary-tools { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .glossary-tools input {
+      flex: 1;
+      min-width: 220px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      padding: 6px 8px;
+      font: 12px var(--font-mono);
+    }
+    .glossary-list { overflow: auto; flex: 1; }
+
+    @media (max-width: 720px) {
+      .toolbar select, .toolbar input, .toolbar button { width: 100%; border-right: 0; border-bottom: 1px solid var(--border); }
+      .toolbar button { border-bottom: 0; }
     }
   </style>
   <script src="https://unpkg.com/cytoscape@3.33.0/dist/cytoscape.min.js"></script>
-<script src="bp-config.js"></script>
+  <script src="bp-config.js"></script>
 </head>
 <body>
-  <header>
-    <div class="brand">BHARAT PRAMAN // GRAPH EXPLORER</div>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <button id="glossary-open" type="button" title="Open acronym glossary">Glossary</button>
-      <a class="back-link" href="graphdashboard2.html">← Back to search</a>
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-tag">BHARAT PRAMAN // GRAPH EXPLORER</span>
+      <span class="mono" style="color:var(--muted)">NEO4J INSTANCE01 TOPOLOGY</span>
     </div>
+    <nav class="nav" aria-label="Primary">
+      <a href="graphdashboard2.html">01 QUERY CONSOLE</a>
+      <a class="active" href="graph.html">02 GRAPH EXPLORER</a>
+      <a href="ask.html">03 BUDGET DOSSIER</a>
+      <a href="rti/rti_page.html">04 RTI DESK</a>
+      <button id="glossary-open" type="button">GLOSSARY / IPC</button>
+      <button id="themeToggle" type="button">DARK MODE</button>
+    </nav>
   </header>
 
   <main>
-    <h1 class="heading">Explore the graph</h1>
-    <p class="subheading">Search a person, party, constituency, state, or relationship—or ask a question in plain English.</p>
-    <p id="freshness-note" class="freshness-note" role="status">Checking the graph's source-date coverage…</p>
+    <div class="page-title-row">
+      <h1>NEO4J POLITICAL GRAPH &amp; TEXT2CYPHER QUERY CONSOLE</h1>
+      <span class="mono" style="font-size:11px; color:var(--muted)">SCHEMAS: PERSON / MLA / MP / PARTY / CRIMINALCASE / SECTION / AFFIDAVIT</span>
+    </div>
+
+    <p id="freshness-note" class="freshness-note" role="status">CHECKING GRAPH SOURCE-DOCUMENT COVERAGE...</p>
 
     <form id="search-form" class="toolbar">
       <select id="mode" aria-label="Search mode">
-        <option value="keyword">Keyword search</option>
-        <option value="ask">Ask with Gemini</option>
+        <option value="keyword">KEYWORD SEARCH</option>
+        <option value="ask">NATURAL LANGUAGE QUERY</option>
       </select>
-      <input id="query" type="search" maxlength="200" placeholder="Search the graph…" autocomplete="off" aria-label="Search the graph" />
+      <input id="query" type="search" maxlength="200" placeholder="SEARCH PERSON, PARTY, CONSTITUENCY, IPC SECTION, OR QUESTION..." autocomplete="off" />
       <select id="filter" aria-label="Search filter">
-        <option value="all">All</option>
-        <option value="nodes">Nodes</option>
-        <option value="relations">Relations</option>
+        <option value="all">ALL</option>
+        <option value="nodes">NODES</option>
+        <option value="relations">RELATIONS</option>
       </select>
-      <button id="search-button" type="submit">Search</button>
+      <button id="search-button" type="submit">EXECUTE ↵</button>
     </form>
 
     <div id="acronym-hint" class="acronym-hint" hidden></div>
 
     <div class="status-row">
-      <span id="status" role="status">Enter a keyword to load a graph from Neo4j.</span>
-      <span>Drag nodes · Pan · Zoom</span>
-    </div>
-    <details id="cypher-panel" class="cypher-panel" hidden>
-      <summary>View the generated read-only Cypher</summary>
-      <p id="cypher-explanation"></p>
-      <pre id="cypher-text"></pre>
-    </details>
-    <section id="aggregate-results" class="aggregate-results" hidden aria-live="polite">
-      <h2>Tabular results from Neo4j</h2>
-      <p id="aggregate-explanation"></p>
-      <div id="aggregate-table-wrap" class="aggregate-table-wrap"></div>
-    </section>
-    <div class="legend" aria-label="Node color legend">
-      <span><i style="background:#fde68a"></i>Party</span><span><i style="background:#c4b5fd"></i>MLA</span>
-      <span><i style="background:#bfdbfe"></i>Person</span><span><i style="background:#bbf7d0"></i>State</span>
-      <span><i style="background:#a5f3fc"></i>Constituency</span><span><i style="background:#ddd6fe"></i>Ministry</span>
-      <span><i style="background:#fecaca"></i>Criminal case</span><span><i style="background:#fed7aa"></i>Section</span>
+      <span id="status" role="status">ENTER A KEYWORD OR NATURAL LANGUAGE AUDIT QUERY.</span>
+      <span id="perfTag" class="mono"></span>
     </div>
 
-    <section class="graph-card" aria-label="Neo4j graph results">
-      <div class="graph-heading">
-        <span id="graph-title">No search yet</span>
-        <div class="graph-controls">
-        <button id="expand-button" type="button" hidden>Load more connections</button>
-          <button id="fit-button" type="button" title="Fit graph to screen">Fit</button>
-          <button id="zoom-out" type="button" title="Zoom out">−</button>
-          <button id="zoom-in" type="button" title="Zoom in">+</button>
+    <!-- Flat Open Cypher Trace (Never Hidden) -->
+    <section id="cypher-panel" class="section cypher-panel" hidden>
+      <div class="section-head">
+        <span>EXECUTED READ-ONLY CYPHER QUERY</span>
+        <span id="cypher-meta" class="mono">SCHEMA-VALIDATED</span>
+      </div>
+      <div class="cypher-body">
+        <p id="cypher-explanation" class="cypher-explanation"></p>
+        <pre id="cypher-text"></pre>
+      </div>
+    </section>
+
+    <!-- Tabular Aggregate Results -->
+    <section id="aggregate-results" class="section" hidden aria-live="polite">
+      <div class="section-head">
+        <span>TABULAR QUERY RESULTS (NEO4J)</span>
+        <span id="aggregate-count" class="mono">0 ROWS</span>
+      </div>
+      <div style="padding:8px 10px; border-bottom:1px solid var(--border); font:12px/1.4 var(--font-sans);" id="aggregate-explanation"></div>
+      <div id="aggregate-table-wrap" class="table-wrap"></div>
+    </section>
+
+    <!-- Barebones Geometric Circle Graph -->
+    <section class="section graph-card" aria-label="Neo4j graph results">
+      <div class="section-head">
+        <span id="graph-title">NEO4J GRAPH CANVAS</span>
+        <span class="mono">CLICK NODE CIRCLE TO OPEN FULL AFFIDAVIT LEDGER</span>
+      </div>
+      <div class="graph-toolbar">
+        <div class="legend" aria-label="Geometric node key">
+          <span><i class="g-dot ring-red"></i> FOCUS</span>
+          <span><i class="g-dot solid-blk"></i> PERSON / MLA / MP</span>
+          <span><i class="g-dot ring-blk"></i> PARTY / STATE / MINISTRY</span>
+          <span><i class="g-dot solid-red"></i> CRIMINAL CASE / SECTION</span>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button id="toggle-edge-labels" class="btn" type="button">EDGE LABELS: OFF</button>
+          <button id="expand-button" class="btn btn-accent" type="button" hidden>LOAD +100 EDGES</button>
+          <button id="fit-button" class="btn" type="button">FIT</button>
+          <button id="zoom-out" class="btn" type="button">-</button>
+          <button id="zoom-in" class="btn" type="button">+</button>
         </div>
       </div>
       <div id="graph" aria-label="Graph visualization"></div>
-      <div id="empty-state" class="empty-state">Search from this page or use the search page to open a graph.</div>
+      <div id="empty-state" class="empty-state">ENTER A SEARCH ABOVE TO LOAD NODES AND EDGES FROM NEO4J.</div>
     </section>
 
+    <!-- Direct Node Roster Table (All Loaded Nodes Accessible Immediately) -->
+    <section id="node-roster-section" class="section" hidden>
+      <div class="section-head">
+        <span>LOADED ENTITIES INDEX (DIRECT LINKS TO FULL AFFIDAVITS)</span>
+        <span id="node-roster-count" class="mono">0 NODES</span>
+      </div>
+      <div id="node-roster-wrap" class="table-wrap"></div>
+    </section>
+
+    <!-- Glossary & IPC Modal -->
     <div id="glossary-modal" class="glossary-modal" hidden>
-      <div class="glossary-backdrop" data-close="1"></div>
       <div class="glossary-card">
         <div class="glossary-head">
-          <div class="glossary-title">Glossary</div>
-          <button id="glossary-close" class="glossary-close" type="button">Close</button>
+          <span>GOVERNMENT ACRONYMS &amp; IPC SECTIONS REFERENCE</span>
+          <button id="glossary-close" class="btn" type="button">CLOSE [ESC]</button>
+        </div>
+        <div class="glossary-tabs">
+          <button id="tab-terms" class="glossary-tab active" type="button">GOVERNMENT ACRONYMS</button>
+          <button id="tab-ipc" class="glossary-tab" type="button">IPC CRIMINAL SECTIONS</button>
         </div>
         <div class="glossary-tools">
-          <input id="glossary-search" type="search" placeholder="Search acronyms (e.g. MHA, NEP, GER)..." autocomplete="off" />
-          <div id="glossary-filters" class="glossary-filters">
-            <button type="button" class="glossary-filter active" data-filter="All">All</button>
-            <button type="button" class="glossary-filter" data-filter="Home Affairs">Home Affairs</button>
-            <button type="button" class="glossary-filter" data-filter="Education">Education</button>
+          <input id="glossary-search" type="search" placeholder="FILTER TERMS OR IPC CODES (E.G. 420, 302, NEP, CRPF)..." autocomplete="off" />
+          <div id="glossary-filters" style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button type="button" class="btn glossary-filter" data-filter="All">ALL</button>
+            <button type="button" class="btn glossary-filter" data-filter="Home Affairs">HOME AFFAIRS</button>
+            <button type="button" class="btn glossary-filter" data-filter="Education">EDUCATION</button>
           </div>
         </div>
         <div id="glossary-list" class="glossary-list"></div>
@@ -254,10 +431,19 @@
   <script>
     const API_BASE = window.BP_CONFIG.apiBase;
     const API_URL = `${API_BASE}/api/search`;
+    const CACHE_PREFIX = 'bp_graph_cache_v1::';
+
+    const themeBtn = document.getElementById('themeToggle');
+    function syncThemeBtn() {
+      themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'LIGHT MODE' : 'DARK MODE';
+    }
+    syncThemeBtn();
+
     const queryInput = document.getElementById('query');
     const filterInput = document.getElementById('filter');
     const form = document.getElementById('search-form');
-    const status = document.getElementById('status');
+    const statusEl = document.getElementById('status');
+    const perfTag = document.getElementById('perfTag');
     const graphTitle = document.getElementById('graph-title');
     const graphContainer = document.getElementById('graph');
     const emptyState = document.getElementById('empty-state');
@@ -266,32 +452,116 @@
     const modeInput = document.getElementById('mode');
     const cypherPanel = document.getElementById('cypher-panel');
     const cypherText = document.getElementById('cypher-text');
+    const cypherMeta = document.getElementById('cypher-meta');
     const cypherExplanation = document.getElementById('cypher-explanation');
     const aggregatePanel = document.getElementById('aggregate-results');
     const aggregateExplanation = document.getElementById('aggregate-explanation');
+    const aggregateCount = document.getElementById('aggregate-count');
     const aggregateTableWrap = document.getElementById('aggregate-table-wrap');
     const graphCard = document.querySelector('.graph-card');
+    const nodeRosterSection = document.getElementById('node-roster-section');
+    const nodeRosterWrap = document.getElementById('node-roster-wrap');
+    const nodeRosterCount = document.getElementById('node-roster-count');
     const freshnessNote = document.getElementById('freshness-note');
+
     let cy = null;
     let activeFocusIds = [];
     let connectionOffset = 0;
     let activeQuery = '';
+    let showEdgeLabels = false;
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function fmtCell(col, val) {
+      if (val === null || val === undefined || val === '') return '—';
+      if (Array.isArray(val)) return val.join(', ');
+      if (typeof val === 'object') return JSON.stringify(val);
+      if (typeof val === 'number' && /(?:asset|liabilit|shortfall|worth|value|rupee|crore|outlay)/i.test(col)) {
+        const abs = Math.abs(val);
+        const sign = val < 0 ? '-' : '';
+        const suffix = abs >= 1e7 ? ` (Rs.${(abs / 1e7).toFixed(2)}Cr)` : (abs >= 1e5 ? ` (Rs.${(abs / 1e5).toFixed(2)}L)` : '');
+        return `${sign}Rs.${abs.toLocaleString('en-IN')}${suffix}`;
+      }
+      return String(val);
+    }
 
     fetch(`${API_BASE}/api/metadata`)
-      .then(response => response.ok ? response.json() : Promise.reject(new Error('metadata unavailable')))
-      .then(metadata => {
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('metadata unavailable'))))
+      .then((metadata) => {
         const dateNote = metadata.latest_source_date
-          ? `Latest recorded source-document date: ${metadata.latest_source_date}. `
-          : 'The graph has no recorded source-document dates. ';
-        const coverage = `Only ${metadata.source_date_coverage_percent}% of nodes have a source-document date. `;
-        const stale = metadata.latest_source_date_over_one_year_old
-          ? 'That date is over a year old; this is not a live current-office roster. '
-          : '';
-        freshnessNote.textContent = `${dateNote}${coverage}${stale}${metadata.note || ''}`;
+          ? `LATEST SOURCE DATE: ${metadata.latest_source_date} | `
+          : 'NO RECORDED SOURCE DATES | ';
+        const coverage = `DATED NODES: ${metadata.source_date_coverage_percent}% (${metadata.dated_nodes}/${metadata.node_count}) | `;
+        const stale = metadata.latest_source_date_over_one_year_old ? 'AUDIT FLAG: ARCHIVAL CORPUS (>1 YR OLD), NOT LIVE ROSTER. ' : '';
+        freshnessNote.innerHTML = `<strong class="alert">AUDIT NOTICE:</strong> ${escapeHtml(dateNote + coverage + stale + (metadata.note || ''))}`;
       })
       .catch(() => {
-        freshnessNote.textContent = 'Could not read source-date coverage. Check that the FastAPI service and Neo4j are running.';
+        freshnessNote.innerHTML = '<strong class="alert">STATUS:</strong> COULD NOT READ METADATA FROM API (:8000).';
       });
+
+    function cyColors() {
+      const dark = document.documentElement.classList.contains('dark');
+      return { bg: dark ? '#000000' : '#ffffff', fg: dark ? '#ffffff' : '#000000', accent: '#ff0000' };
+    }
+
+    function applyCytoscapeStyle() {
+      if (!cy) return;
+      const c = cyColors();
+      cy.style([
+        {
+          selector: 'node',
+          style: {
+            'shape': 'ellipse',
+            'width': 20,
+            'height': 20,
+            'background-color': c.bg,
+            'border-color': c.fg,
+            'border-width': 1.5,
+            'label': 'data(label)',
+            'color': c.fg,
+            'font-family': 'Consolas, Monaco, "Courier New", monospace',
+            'font-size': 10,
+            'font-weight': 700,
+            'text-valign': 'bottom',
+            'text-halign': 'center',
+            'text-margin-y': 4,
+            'text-wrap': 'ellipsis',
+            'text-max-width': 150,
+            'text-background-color': c.bg,
+            'text-background-opacity': 0.85,
+            'text-background-padding': 1.5,
+            'min-zoomed-font-size': 7,
+          }
+        },
+        { selector: 'node.person, node.mla, node.mp', style: { 'background-color': c.fg, 'border-color': c.fg, 'width': 20, 'height': 20 } },
+        { selector: 'node.party, node.state, node.ministry', style: { 'background-color': c.bg, 'border-color': c.fg, 'border-width': 2.5, 'width': 24, 'height': 24 } },
+        { selector: 'node.criminalcase', style: { 'background-color': c.accent, 'border-color': c.fg, 'border-width': 1.5, 'width': 20, 'height': 20, 'color': c.accent } },
+        { selector: 'node.section', style: { 'background-color': c.bg, 'border-color': c.accent, 'border-width': 2, 'width': 18, 'height': 18, 'color': c.accent } },
+        { selector: 'node.focus', style: { 'background-color': c.bg, 'border-color': c.accent, 'border-width': 3.5, 'width': 30, 'height': 30, 'font-size': 11 } },
+        {
+          selector: 'edge',
+          style: {
+            'curve-style': 'straight',
+            'line-color': c.fg,
+            'width': 1.1,
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': c.fg,
+            'arrow-scale': 0.8,
+            'label': showEdgeLabels ? 'data(label)' : '',
+            'font-family': 'Consolas, Monaco, "Courier New", monospace',
+            'font-size': 8,
+            'color': c.fg,
+            'text-rotation': 'autorotate',
+            'text-background-color': c.bg,
+            'text-background-opacity': 0.9,
+            'text-background-padding': 1.5,
+          }
+        },
+        { selector: ':selected', style: { 'border-color': c.accent, 'border-width': 3.5 } },
+      ]);
+    }
 
     if (typeof cytoscape !== 'undefined') {
       cy = cytoscape({
@@ -299,80 +569,71 @@
         elements: [],
         minZoom: 0.15,
         maxZoom: 3,
-        hideEdgesOnViewport: true,
-        textureOnViewport: true,
-        pixelRatio: 1,
+        hideEdgesOnViewport: false,
+        pixelRatio: window.devicePixelRatio || 1,
         motionBlur: false,
-        style: [
-          {
-            selector: 'node',
-            style: {
-              'label': 'data(label)',
-              'shape': 'round-rectangle',
-              'width': 'label',
-              'height': 40,
-              'padding': '10px',
-              'background-color': '#dbeafe',
-              'border-color': '#292524',
-              'border-width': 1.5,
-              'color': '#1c1917',
-              'font-size': 11,
-              'font-weight': 600,
-              'text-wrap': 'ellipsis',
-              'text-max-width': 170,
-              'text-valign': 'center',
-              'text-halign': 'center',
-              'min-zoomed-font-size': 8
-            }
-          },
-          { selector: 'node.party', style: { 'background-color': '#fde68a' } },
-          { selector: 'node.state', style: { 'background-color': '#bbf7d0' } },
-          { selector: 'node.constituency', style: { 'background-color': '#a5f3fc' } },
-          { selector: 'node.assemblyconstituency', style: { 'background-color': '#99f6e4' } },
-          { selector: 'node.person', style: { 'background-color': '#bfdbfe' } },
-          { selector: 'node.mla', style: { 'background-color': '#c4b5fd' } },
-          { selector: 'node.ministry', style: { 'background-color': '#ddd6fe' } },
-          { selector: 'node.criminalcase', style: { 'background-color': '#fecaca' } },
-          { selector: 'node.section', style: { 'background-color': '#fed7aa' } },
-          { selector: 'node.focus', style: { 'background-color': '#fbbf24', 'border-width': 3, 'font-size': 13, 'font-weight': 800 } },
-          {
-            selector: 'edge',
-            style: {
-              'curve-style': 'bezier',
-              'line-color': '#b5aa97',
-              'width': 1.5,
-              'target-arrow-shape': 'triangle',
-              'target-arrow-color': '#8b8173',
-              'label': '',
-              'font-size': 8,
-              'color': '#6b6256',
-              'text-rotation': 'autorotate',
-              'text-background-color': '#fffefa',
-              'text-background-opacity': 0.9,
-              'text-background-padding': 2
-            }
-          },
-          { selector: ':selected', style: { 'border-color': '#b45309', 'border-width': 3, 'overlay-opacity': 0.08 } }
-        ],
         layout: { name: 'cose', animate: false }
       });
+      applyCytoscapeStyle();
+      cy.on('mouseover', 'edge', (e) => { if (!showEdgeLabels) e.target.style('label', e.target.data('label')); });
+      cy.on('mouseout', 'edge', (e) => { if (!showEdgeLabels) e.target.style('label', ''); });
+      cy.on('tap', 'node', (e) => {
+        window.location.href = `node.html?${new URLSearchParams({ id: e.target.id(), from: activeQuery })}`;
+      });
+      cy.on('mouseover', 'node', () => { graphContainer.style.cursor = 'pointer'; });
+      cy.on('mouseout', 'node', () => { graphContainer.style.cursor = 'default'; });
     } else {
-      status.textContent = 'Cytoscape.js did not load. Check your internet connection and reload this page.';
-      status.classList.add('error');
+      statusEl.textContent = 'CYTOSCAPE.JS FAILED TO LOAD.';
+      statusEl.classList.add('error');
     }
 
-    if (cy) {
-      // Show relationship labels only while hovering, so the canvas stays light.
-      cy.on('mouseover', 'edge', (e) => { e.target.style('label', e.target.data('label')); });
-      cy.on('mouseout', 'edge', (e) => { e.target.style('label', ''); });
-    }
+    themeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('bp_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      syncThemeBtn();
+      applyCytoscapeStyle();
+    });
+
+    document.getElementById('toggle-edge-labels').addEventListener('click', (e) => {
+      showEdgeLabels = !showEdgeLabels;
+      e.target.textContent = `EDGE LABELS: ${showEdgeLabels ? 'ON' : 'OFF'}`;
+      applyCytoscapeStyle();
+    });
 
     function showEmpty(message) {
       aggregatePanel.hidden = true;
+      nodeRosterSection.hidden = true;
       graphCard.hidden = false;
       emptyState.textContent = message;
       emptyState.hidden = false;
       graphContainer.hidden = true;
+    }
+
+    function renderNodeRoster(nodes) {
+      if (!nodes.length) {
+        nodeRosterSection.hidden = true;
+        return;
+      }
+      nodeRosterSection.hidden = false;
+      nodeRosterCount.textContent = `${nodes.length} NODES`;
+      const tbl = document.createElement('table');
+      tbl.className = 'raw-table';
+      tbl.innerHTML = '<thead><tr><th style="width:50px">#</th><th>ENTITY LABEL</th><th>NEO4J LABELS</th><th>ELEMENT ID</th><th style="width:120px">AFFIDAVIT LINK</th></tr></thead>';
+      const tb = document.createElement('tbody');
+      nodes.slice(0, 120).forEach((n, idx) => {
+        const isCrim = (n.labels || []).some((l) => /criminal|section/i.test(l));
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="num">${idx + 1}</td>
+          <td><strong>${escapeHtml(n.label || 'NODE')}</strong></td>
+          <td class="mono ${isCrim ? 'alert' : ''}">${escapeHtml((n.labels || []).join(' : ') || '—')}</td>
+          <td class="mono">${escapeHtml(n.id)}</td>
+          <td class="mono"><a href="node.html?${new URLSearchParams({ id: n.id, from: activeQuery })}">INSPECT →</a></td>
+        `;
+        tb.append(tr);
+      });
+      tbl.append(tb);
+      nodeRosterWrap.replaceChildren(tbl);
     }
 
     function renderGraph(data) {
@@ -380,89 +641,106 @@
       const edges = data.edges || [];
       aggregatePanel.hidden = true;
       graphCard.hidden = false;
-      cypherPanel.hidden = !data.cypher;
-      cypherText.textContent = data.cypher || '';
-      const promptNote = data.plan_cache_hit
-        ? 'Cached query plan; Gemini was not called for this repeat.'
-        : data.prompt_examples_used
-          ? `Used ${data.prompt_examples_used} relevant examples from the local catalog.`
-          : '';
-      cypherExplanation.textContent = [data.explanation || '', promptNote].filter(Boolean).join(' ');
+
+      if (data.cypher) {
+        cypherPanel.hidden = false;
+        cypherText.textContent = data.cypher;
+        cypherMeta.textContent = data.plan_cache_hit ? 'PLAN CACHE HIT' : `EXAMPLES: ${data.prompt_examples_used || 0}`;
+        cypherExplanation.textContent = data.explanation || '';
+      } else {
+        cypherPanel.hidden = true;
+      }
+
       if (data.result_type === 'unsupported') {
-        cy.elements().remove();
+        cy?.elements().remove();
         expandButton.hidden = true;
-        graphTitle.textContent = 'This question is not supported by the available graph data';
-        showEmpty(data.explanation || 'The Neo4j schema does not contain the requested information.');
+        graphTitle.textContent = 'UNSUPPORTED QUERY SCOPE';
+        showEmpty(data.explanation || 'SCHEMA DOES NOT CONTAIN REQUESTED DATA.');
         return;
       }
+
       if (data.result_type === 'aggregate') {
-        cy.elements().remove();
+        cy?.elements().remove();
         expandButton.hidden = true;
         graphCard.hidden = true;
+        nodeRosterSection.hidden = true;
         aggregatePanel.hidden = false;
-        aggregateExplanation.textContent = `${data.explanation || ''} ${data.row_count || 0} result row(s).`;
+        aggregateExplanation.textContent = data.explanation || '';
+        aggregateCount.textContent = `${data.row_count || 0} ROW(S)`;
         const records = data.records || [];
         aggregateTableWrap.replaceChildren();
         if (!records.length) {
-          aggregateTableWrap.textContent = 'Neo4j returned no matching rows for this question.';
+          aggregateTableWrap.innerHTML = '<div class="empty-state">NEO4J RETURNED ZERO MATCHING ROWS.</div>';
           return;
         }
-        const columns = [...new Set(records.flatMap(record => Object.keys(record)))];
+        const columns = [...new Set(records.flatMap((r) => Object.keys(r)))];
         const table = document.createElement('table');
-        table.className = 'aggregate-table';
+        table.className = 'raw-table';
         const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        for (const column of columns) {
+        const htr = document.createElement('tr');
+        const thIdx = document.createElement('th');
+        thIdx.textContent = '#';
+        thIdx.style.width = '46px';
+        htr.append(thIdx);
+        columns.forEach((col) => {
           const th = document.createElement('th');
           th.scope = 'col';
-          th.textContent = column.replaceAll('_', ' ');
-          headerRow.appendChild(th);
-        }
-        thead.appendChild(headerRow);
+          th.textContent = col.replaceAll('_', ' ');
+          htr.append(th);
+        });
+        thead.append(htr);
         const tbody = document.createElement('tbody');
-        for (const record of records) {
+        records.forEach((rec, rIdx) => {
           const tr = document.createElement('tr');
-          for (const column of columns) {
+          const tdIdx = document.createElement('td');
+          tdIdx.className = 'num';
+          tdIdx.textContent = rIdx + 1;
+          tr.append(tdIdx);
+          columns.forEach((col) => {
             const td = document.createElement('td');
-            const value = record[column];
-            td.textContent = value == null ? '—' : Array.isArray(value) ? value.join(', ') : typeof value === 'object' ? JSON.stringify(value) : String(value);
-            tr.appendChild(td);
-          }
-          tbody.appendChild(tr);
-        }
+            const val = rec[col];
+            const isNumeric = typeof val === 'number';
+            if (isNumeric) td.classList.add('num');
+            if ((/case|shortfall/i.test(col) && Number(val) > 0) || (Number(val) < 0 && /net|shortfall/i.test(col))) {
+              td.classList.add('alert');
+            }
+            if (/name/i.test(col) && typeof val === 'string' && val.trim()) {
+              const a = document.createElement('a');
+              a.href = `graph.html?${new URLSearchParams({ query: val.trim(), filter: 'nodes', mode: 'keyword' })}`;
+              a.textContent = val;
+              td.append(a);
+            } else {
+              td.textContent = fmtCell(col, val);
+            }
+            tr.append(td);
+          });
+          tbody.append(tr);
+        });
         table.append(thead, tbody);
-        aggregateTableWrap.appendChild(table);
+        aggregateTableWrap.append(table);
         return;
       }
+
       if (!nodes.length) {
-        cy.elements().remove();
+        cy?.elements().remove();
         expandButton.hidden = true;
-        graphTitle.textContent = `No matches for “${data.query}”`;
-        showEmpty(`No graph nodes or relationships matched “${data.query}”. Try a person, party, constituency, or state name.`);
+        graphTitle.textContent = `ZERO MATCHES: "${data.query}"`;
+        showEmpty(`NO NODES OR EDGES MATCHED "${data.query}".`);
         return;
       }
 
       const focusIds = new Set(data.focus_ids || []);
       const nodeElements = nodes.map((node) => {
         const labels = node.labels || [];
-        const category = labels.map(label=>String(label).toLowerCase()).find(label=>[
-          'party','state','constituency','assemblyconstituency','person','mla','ministry','criminalcase','section'
-        ].includes(label)) || 'node';
-        const classes = [...labels.map(label=>String(label).toLowerCase()), category, focusIds.has(node.id) ? 'focus' : ''].filter(Boolean).join(' ');
-        return {
-          group: 'nodes',
-          data: { id: String(node.id), label: node.label || labels[0] || 'Graph node', category },
-          classes
-        };
+        const category = labels.map((l) => String(l).toLowerCase()).find((l) =>
+          ['party', 'state', 'constituency', 'assemblyconstituency', 'person', 'mla', 'mp', 'ministry', 'criminalcase', 'section'].includes(l)
+        ) || 'node';
+        const classes = [...labels.map((l) => String(l).toLowerCase()), category, focusIds.has(node.id) ? 'focus' : ''].filter(Boolean).join(' ');
+        return { group: 'nodes', data: { id: String(node.id), label: node.label || labels[0] || 'NODE', category }, classes };
       });
       const edgeElements = edges.map((edge) => ({
         group: 'edges',
-        data: {
-          id: String(edge.id),
-          source: String(edge.source),
-          target: String(edge.target),
-          label: edge.type || 'RELATED'
-        }
+        data: { id: String(edge.id), source: String(edge.source), target: String(edge.target), label: edge.type || 'RELATED' },
       }));
 
       cy.elements().remove();
@@ -473,117 +751,221 @@
       expandButton.hidden = !data.has_more_connections;
       emptyState.hidden = true;
       graphContainer.hidden = false;
-      graphTitle.textContent = `“${data.query}” · ${nodes.length} nodes · ${edges.length} connections`;
+      graphTitle.textContent = `QUERY: "${data.query}" // ${nodes.length} NODES · ${edges.length} EDGES`;
       const layoutOptions = nodes.length > 120
-        ? { name: 'grid', fit: true, padding: 40, avoidOverlap: true, animate: false }
-        : { name: 'cose', animate: false, randomize: false, fit: true, padding: 45, nodeRepulsion: 5000, idealEdgeLength: 100, edgeElasticity: 90, gravity: 0.3, numIter: nodes.length > 60 ? 140 : 260 };
+        ? { name: 'grid', fit: true, padding: 36, avoidOverlap: true, animate: false }
+        : { name: 'cose', animate: false, randomize: false, fit: true, padding: 40, nodeRepulsion: 5000, idealEdgeLength: 100, edgeElasticity: 90, gravity: 0.3, numIter: nodes.length > 60 ? 140 : 250 };
       cy.layout(layoutOptions).run();
+      renderNodeRoster(nodes);
     }
 
     async function expandGraph() {
       if (!activeFocusIds.length) return;
       expandButton.disabled = true;
-      expandButton.textContent = 'Loading…';
+      expandButton.textContent = 'LOADING...';
       try {
         const response = await fetch(`${API_BASE}/api/graph/expand`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ seed_ids: activeFocusIds, offset: connectionOffset, limit: 100 })
+          body: JSON.stringify({ seed_ids: activeFocusIds, offset: connectionOffset, limit: 100 }),
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.detail || 'Could not load more connections.');
-        const newNodes = (result.nodes || []).map(node => ({
-          group: 'nodes',
-          data: { id: String(node.id), label: node.label || node.labels?.[0] || 'Graph node' },
-          classes: (node.labels || []).map(label => String(label).toLowerCase()).join(' ')
-        }));
-        const newEdges = (result.edges || []).map(edge => ({
-          group: 'edges',
-          data: { id: String(edge.id), source: String(edge.source), target: String(edge.target), label: edge.type || 'RELATED' }
-        }));
-        cy.add([...newNodes, ...newEdges]);
+        if (!response.ok) throw new Error(result.detail || 'Expand failed.');
+        const existingNodeIds = new Set(cy.nodes().map((n) => n.id()));
+        const existingEdgeIds = new Set(cy.edges().map((e) => e.id()));
+        const additions = [];
+        for (const n of result.nodes || []) {
+          if (!existingNodeIds.has(String(n.id))) {
+            additions.push({
+              group: 'nodes',
+              data: { id: String(n.id), label: n.label || n.labels?.[0] || 'NODE' },
+              classes: (n.labels || []).map((l) => String(l).toLowerCase()).join(' '),
+            });
+          }
+        }
+        for (const e of result.edges || []) {
+          if (!existingEdgeIds.has(String(e.id))) {
+            additions.push({
+              group: 'edges',
+              data: { id: String(e.id), source: String(e.source), target: String(e.target), label: e.type || 'RELATED' },
+            });
+          }
+        }
+        cy.add(additions);
         connectionOffset = result.connection_offset || connectionOffset;
-        graphTitle.textContent = `“${activeQuery}” · ${cy.nodes().length} nodes · ${cy.edges().length} connections`;
-        status.textContent = `Showing ${connectionOffset} of ${result.connection_count} direct connections.`;
+        graphTitle.textContent = `QUERY: "${activeQuery}" // ${cy.nodes().length} NODES · ${cy.edges().length} EDGES`;
+        statusEl.textContent = `SHOWING ${connectionOffset} OF ${result.connection_count} DIRECT CONNECTIONS.`;
         expandButton.hidden = !result.has_more_connections;
         const layoutOptions = cy.nodes().length > 120
-          ? { name: 'grid', fit: true, padding: 40, avoidOverlap: true, animate: false }
-          : { name: 'cose', animate: false, randomize: false, fit: true, padding: 45, nodeRepulsion: 5000, idealEdgeLength: 100, numIter: 120 };
+          ? { name: 'grid', fit: true, padding: 36, avoidOverlap: true, animate: false }
+          : { name: 'cose', animate: false, randomize: false, fit: true, padding: 40, nodeRepulsion: 5000, idealEdgeLength: 100, numIter: 120 };
         cy.layout(layoutOptions).run();
-      } catch (error) {
-        status.textContent = `Could not expand graph: ${error.message}`;
-        status.classList.add('error');
+      } catch (err) {
+        statusEl.textContent = `EXPAND ERROR: ${err.message}`;
+        statusEl.classList.add('error');
       } finally {
         expandButton.disabled = false;
-        expandButton.textContent = 'Load more connections';
+        expandButton.textContent = 'LOAD +100 EDGES';
       }
     }
 
     async function searchGraph(searchText) {
       const searchQuery = searchText.trim();
       if (!searchQuery) {
-        status.textContent = 'Enter a search term first.';
-        status.classList.add('error');
+        statusEl.textContent = 'ENTER A SEARCH TERM FIRST.';
+        statusEl.classList.add('error');
         queryInput.focus();
         return;
       }
-      if (!cy) return;
-      // A new graph search starts a fresh breadcrumb trail.
       sessionStorage.removeItem('bp_node_trail');
+      const isAsk = modeInput.value === 'ask';
+      const cacheKey = `${CACHE_PREFIX}${isAsk ? 'ask' : filterInput.value}::${searchQuery.toLowerCase()}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const t0 = performance.now();
+          const result = JSON.parse(cached);
+          activeQuery = searchQuery;
+          renderGraph(result);
+          statusEl.classList.remove('error');
+          statusEl.textContent = isAsk
+            ? (result.explanation || `RETURNED ${result.row_count || 0} RESULT(S).`)
+            : `GRAPH LOADED: ${(result.nodes || []).length} NODES, ${(result.edges || []).length} EDGES.`;
+          perfTag.textContent = `CACHE HIT: ${(performance.now() - t0).toFixed(1)} ms`;
+          const urlParams = new URLSearchParams({ query: searchQuery, filter: filterInput.value, mode: modeInput.value });
+          history.replaceState(null, '', `${location.pathname}?${urlParams.toString()}`);
+          return;
+        } catch {}
+      }
 
-      status.classList.remove('error');
-      status.textContent = 'Searching Neo4j…';
+      statusEl.classList.remove('error');
+      statusEl.textContent = isAsk ? 'TRANSLATING QUESTION TO READ-ONLY CYPHER...' : 'QUERYING NEO4J INSTANCE01...';
+      perfTag.textContent = '';
       cypherPanel.hidden = true;
       searchButton.disabled = true;
+      const t0 = performance.now();
       try {
-        const isAsk = modeInput.value === 'ask';
         const response = await fetch(isAsk ? `${API_BASE}/api/ask` : API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(isAsk
-            ? { question: searchQuery }
-            : { query: searchQuery, filter: filterInput.value })
+          body: JSON.stringify(isAsk ? { question: searchQuery } : { query: searchQuery, filter: filterInput.value }),
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.detail || 'Search failed.');
+        activeQuery = searchQuery;
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(result)); } catch {}
         renderGraph(result);
-        status.textContent = isAsk
-          ? `${result.explanation || `Neo4j returned ${result.row_count || 0} ${result.result_type === 'aggregate' ? 'aggregate rows' : 'graph paths'}.`} ${result.plan_cache_hit ? 'Cached plan; Gemini was not called.' : result.prompt_examples_used ? `Used ${result.prompt_examples_used} relevant examples.` : ''}`
-          : 'Connected to Bharat Praman’s Neo4j graph.';
-        const params = new URLSearchParams({ query: searchQuery, filter: filterInput.value, mode: modeInput.value });
-        history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
-      } catch (error) {
-        status.textContent = `Search failed: ${error.message}`;
-        status.classList.add('error');
-        aggregatePanel.hidden = true;
-        graphCard.hidden = false;
-        graphTitle.textContent = 'Could not load graph';
-        showEmpty('Check that the API is running on port 8000 and that Neo4j is reachable.');
+        statusEl.textContent = isAsk
+          ? (result.explanation || `RETURNED ${result.row_count || 0} ROW(S).`)
+          : `GRAPH LOADED: ${(result.nodes || []).length} NODES, ${(result.edges || []).length} EDGES.`;
+        perfTag.textContent = `QUERY LATENCY: ${Math.round(performance.now() - t0)} ms`;
+        const urlParams = new URLSearchParams({ query: searchQuery, filter: filterInput.value, mode: modeInput.value });
+        history.replaceState(null, '', `${location.pathname}?${urlParams.toString()}`);
+      } catch (err) {
+        statusEl.textContent = `ERROR: ${err.message}`;
+        statusEl.classList.add('error');
+        showEmpty('API (:8000) OR NEO4J INSTANCE01 UNREACHABLE.');
       } finally {
         searchButton.disabled = false;
       }
     }
 
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      searchGraph(queryInput.value);
-    });
+    form.addEventListener('submit', (e) => { e.preventDefault(); searchGraph(queryInput.value); });
     modeInput.addEventListener('change', () => {
       const askMode = modeInput.value === 'ask';
       filterInput.disabled = askMode;
-      queryInput.placeholder = askMode ? 'Ask, e.g. Which BJP MLAs face criminal cases?' : 'Search the graph…';
-      status.textContent = askMode ? 'Ask a question in plain English; Gemini will generate a schema-checked read-only graph or aggregate query.' : 'Enter a keyword to load a graph from Neo4j.';
+      queryInput.placeholder = askMode
+        ? 'E.G. WHICH BJP MLAS FACE CRIMINAL CASES OR COMPARE ASSET AVERAGES BY STATE?'
+        : 'SEARCH CANDIDATE, PARTY, CONSTITUENCY, OR RELATIONSHIP...';
     });
-    document.getElementById('fit-button').addEventListener('click', () => cy?.fit(undefined, 55));
+    document.getElementById('fit-button').addEventListener('click', () => cy?.fit(undefined, 40));
     document.getElementById('zoom-in').addEventListener('click', () => cy?.zoom({ level: cy.zoom() * 1.25, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
     document.getElementById('zoom-out').addEventListener('click', () => cy?.zoom({ level: cy.zoom() / 1.25, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
     expandButton.addEventListener('click', expandGraph);
-    cy?.on('tap', 'node', (event) => {
-      const params = new URLSearchParams({ id: event.target.id(), from: activeQuery });
-      window.location.href = `node.html?${params.toString()}`;
+
+    // Glossary & IPC Inspector
+    let GLOSSARY = {};
+    let IPC_ITEMS = [];
+    let glossaryTab = 'terms';
+    let glossaryFilter = 'All';
+    const glossaryModal = document.getElementById('glossary-modal');
+    const glossarySearch = document.getElementById('glossary-search');
+    const glossaryList = document.getElementById('glossary-list');
+    const glossaryFilters = document.getElementById('glossary-filters');
+    const acronymHint = document.getElementById('acronym-hint');
+
+    function renderGlossary() {
+      const q = (glossarySearch.value || '').trim().toLowerCase();
+      if (glossaryTab === 'terms') {
+        const items = Object.entries(GLOSSARY)
+          .map(([acronym, v]) => ({ acronym, ...v }))
+          .filter((e) => (!q || e.acronym.toLowerCase().includes(q) || (e.expansion || '').toLowerCase().includes(q)) &&
+            (glossaryFilter === 'All' || (e.ministry || '').toLowerCase().includes(glossaryFilter.toLowerCase())))
+          .sort((a, b) => (b.count || 0) - (a.count || 0) || a.acronym.localeCompare(b.acronym));
+        if (!items.length) {
+          glossaryList.innerHTML = '<div class="empty-state">NO MATCHING ACRONYMS.</div>';
+          return;
+        }
+        glossaryList.innerHTML = `<table class="raw-table"><thead><tr><th style="width:120px">ACRONYM</th><th>EXPANSION</th><th style="width:120px">MINISTRY</th><th style="width:70px">FREQ</th></tr></thead><tbody>${
+          items.map((e) => `<tr><td class="mono"><strong>${escapeHtml(e.acronym)}</strong></td><td>${escapeHtml(e.expansion || '')}</td><td class="mono">${escapeHtml(e.ministry || '—')}</td><td class="num">${e.count || 0}</td></tr>`).join('')
+        }</tbody></table>`;
+      } else {
+        const items = IPC_ITEMS.filter((e) => !q || e.code.toLowerCase().includes(q) || (e.explanation || '').toLowerCase().includes(q));
+        if (!items.length) {
+          glossaryList.innerHTML = `<div class="empty-state">${IPC_ITEMS.length ? 'NO MATCHING IPC SECTIONS.' : 'LOADING IPC SECTIONS...'}</div>`;
+          return;
+        }
+        glossaryList.innerHTML = `<table class="raw-table"><thead><tr><th style="width:110px">IPC CODE</th><th>STATUTORY PROVISION SUMMARY</th><th style="width:110px">MLAS CHARGED</th></tr></thead><tbody>${
+          items.map((e) => `<tr><td class="mono alert">IPC ${escapeHtml(e.code)}</td><td>${escapeHtml(e.explanation || '')}</td><td class="num">${e.mla_count || 0}</td></tr>`).join('')
+        }</tbody></table>`;
+      }
+    }
+
+    fetch(`${API_BASE}/api/glossary?limit=1000`).then((r) => r.ok ? r.json() : null).then((d) => {
+      if (!d) return;
+      (d.items || []).forEach((i) => { GLOSSARY[i.acronym] = i; });
+    }).catch(() => {});
+
+    document.getElementById('tab-terms').addEventListener('click', (e) => {
+      glossaryTab = 'terms';
+      e.target.classList.add('active');
+      document.getElementById('tab-ipc').classList.remove('active');
+      glossaryFilters.hidden = false;
+      renderGlossary();
     });
-    cy?.on('mouseover', 'node', () => { graphContainer.style.cursor = 'pointer'; });
-    cy?.on('mouseout', 'node', () => { graphContainer.style.cursor = 'default'; });
+    document.getElementById('tab-ipc').addEventListener('click', (e) => {
+      glossaryTab = 'ipc';
+      e.target.classList.add('active');
+      document.getElementById('tab-terms').classList.remove('active');
+      glossaryFilters.hidden = true;
+      if (!IPC_ITEMS.length) {
+        fetch(`${API_BASE}/api/ipc-sections`).then((r) => r.ok ? r.json() : null).then((d) => {
+          if (d) { IPC_ITEMS = d.items || []; renderGlossary(); }
+        }).catch(() => {});
+      }
+      renderGlossary();
+    });
+    document.getElementById('glossary-open').addEventListener('click', () => { glossaryModal.hidden = false; renderGlossary(); glossarySearch.focus(); });
+    document.getElementById('glossary-close').addEventListener('click', () => { glossaryModal.hidden = true; });
+    glossaryModal.addEventListener('click', (e) => { if (e.target === glossaryModal) glossaryModal.hidden = true; });
+    glossarySearch.addEventListener('input', renderGlossary);
+    glossaryFilters.addEventListener('click', (e) => {
+      const btn = e.target.closest('.glossary-filter');
+      if (!btn) return;
+      glossaryFilter = btn.dataset.filter || 'All';
+      renderGlossary();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !glossaryModal.hidden) glossaryModal.hidden = true;
+    });
+    queryInput.addEventListener('input', () => {
+      const tokens = (queryInput.value || '').match(/\b[A-Z][A-Z0-9&]{1,9}\b/g) || [];
+      const seen = new Set();
+      const matches = tokens.filter((t) => !seen.has(t) && seen.add(t)).map((t) => ({ acronym: t, ...(GLOSSARY[t] || {}) })).filter((x) => x.expansion).slice(0, 4);
+      if (!matches.length) { acronymHint.hidden = true; return; }
+      acronymHint.hidden = false;
+      acronymHint.innerHTML = '<strong>ACRONYM:</strong>' + matches.map((m) => `<span class="acronym-chip"><strong>${escapeHtml(m.acronym)}</strong> = ${escapeHtml(m.expansion)}</span>`).join('');
+    });
 
     const params = new URLSearchParams(location.search);
     const initialQuery = params.get('query') || '';
@@ -591,106 +973,11 @@
     const initialMode = params.get('mode') || 'keyword';
     if (['keyword', 'ask'].includes(initialMode)) modeInput.value = initialMode;
     filterInput.disabled = modeInput.value === 'ask';
-    if (modeInput.value === 'ask') queryInput.placeholder = 'Ask, e.g. Which BJP MLAs face criminal cases?';
     if (['all', 'nodes', 'relations'].includes(initialFilter)) filterInput.value = initialFilter;
     if (initialQuery) {
       queryInput.value = initialQuery;
       searchGraph(initialQuery);
     }
-
-    // --- Glossary (JSON-backed, no Neo4j writes) ---
-    const GLOSSARY_API = API_BASE;
-    let GLOSSARY = {};
-    let glossaryFilter = 'All';
-    const glossaryModal = document.getElementById('glossary-modal');
-    const glossaryOpen = document.getElementById('glossary-open');
-    const glossaryClose = document.getElementById('glossary-close');
-    const glossarySearch = document.getElementById('glossary-search');
-    const glossaryList = document.getElementById('glossary-list');
-    const glossaryFilters = document.getElementById('glossary-filters');
-    const acronymHint = document.getElementById('acronym-hint');
-
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-
-    function renderGlossary() {
-      if (!glossaryList) return;
-      const q = (glossarySearch?.value || '').trim().toLowerCase();
-      const items = Object.entries(GLOSSARY)
-        .map(([acronym, v]) => ({ acronym, ...v }))
-        .filter((e) => {
-          const mq = !q || e.acronym.toLowerCase().includes(q) || (e.expansion || '').toLowerCase().includes(q);
-          const mm = glossaryFilter === 'All' || (e.ministry || '').toLowerCase().includes(glossaryFilter.toLowerCase());
-          return mq && mm;
-        })
-        .sort((a, b) => (b.count || 0) - (a.count || 0) || a.acronym.localeCompare(b.acronym));
-      glossaryList.innerHTML = items.length
-        ? items.map((e) => `
-          <div class="glossary-row">
-            <div>
-              <div class="glossary-acr">${escapeHtml(e.acronym)}</div>
-              <div class="glossary-exp">${escapeHtml(e.expansion || '')}</div>
-            </div>
-            <div class="glossary-count">${e.count || 0}×</div>
-          </div>`).join('')
-        : '<div class="glossary-row"><div class="glossary-exp">No matching acronyms.</div></div>';
-    }
-
-    async function loadGlossary() {
-      try {
-        const r = await fetch(`${GLOSSARY_API}/api/glossary?limit=1000`);
-        if (!r.ok) return;
-        const d = await r.json();
-        GLOSSARY = {};
-        (d.items || []).forEach((i) => { GLOSSARY[i.acronym] = i; });
-        renderGlossary();
-      } catch (e) { /* optional feature */ }
-    }
-
-    function updateAcronymHint() {
-      if (!acronymHint) return;
-      const text = queryInput?.value || '';
-      const tokens = text.match(/\b[A-Z][A-Z0-9&]{1,9}\b/g) || [];
-      const seen = new Set();
-      const matches = tokens
-        .filter((t) => !seen.has(t) && seen.add(t))
-        .map((t) => ({ acronym: t, ...(GLOSSARY[t] || {}) }))
-        .filter((x) => x.expansion)
-        .slice(0, 4);
-      if (!matches.length) {
-        acronymHint.hidden = true;
-        acronymHint.innerHTML = '';
-        return;
-      }
-      acronymHint.hidden = false;
-      acronymHint.innerHTML =
-        `<span class="glossary-count" style="text-transform:uppercase;font-weight:700;">Acronym</span>` +
-        matches.map((m) => `<span class="acronym-chip"><strong>${escapeHtml(m.acronym)}</strong> → ${escapeHtml(m.expansion)}</span>`).join('');
-    }
-
-    glossaryOpen?.addEventListener('click', () => {
-      glossaryModal.hidden = false;
-      renderGlossary();
-      glossarySearch?.focus();
-    });
-    glossaryClose?.addEventListener('click', () => { glossaryModal.hidden = true; });
-    glossaryModal?.addEventListener('click', (e) => {
-      if (e.target?.dataset?.close === '1') glossaryModal.hidden = true;
-    });
-    glossarySearch?.addEventListener('input', renderGlossary);
-    glossaryFilters?.addEventListener('click', (e) => {
-      const btn = e.target.closest('.glossary-filter');
-      if (!btn) return;
-      glossaryFilter = btn.dataset.filter || 'All';
-      glossaryFilters.querySelectorAll('.glossary-filter').forEach((b) => b.classList.toggle('active', b === btn));
-      renderGlossary();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && glossaryModal && !glossaryModal.hidden) glossaryModal.hidden = true;
-    });
-    queryInput?.addEventListener('input', updateAcronymHint);
-    loadGlossary();
   </script>
 </body>
 </html>

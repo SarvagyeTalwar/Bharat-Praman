@@ -3,155 +3,786 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bharat Praman — Ask the Documents</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <title>BHARAT PRAMAN // BUDGET &amp; MINISTRY AUDIT DOSSIER</title>
+  <script>
+    (function () {
+      if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
   <style>
-    :root { color-scheme: light; --paper:#fbf8f1; --ink:#1c1917; --muted:#6b6256; --line:#292524; --amber:#fbbf24; }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; color: var(--ink);
-      background-color: var(--paper);
-      background-image: radial-gradient(#d8d0c2 1.25px, transparent 1.25px);
-      background-size: 22px 22px;
-      font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --fg: #000000;
+      --muted: #525252;
+      --surface-alt: #f4f4f4;
+      --border: #000000;
+      --accent: #ff0000;
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: Consolas, Monaco, "Courier New", monospace;
     }
-    header {
-      position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between;
-      gap: 16px; padding: 12px clamp(16px, 4vw, 48px); border-bottom: 2px solid var(--line); background: #f4eee2;
+    html.dark {
+      color-scheme: dark;
+      --bg: #000000;
+      --fg: #ffffff;
+      --muted: #a3a3a3;
+      --surface-alt: #111111;
+      --border: #ffffff;
+      --accent: #ff0000;
     }
-    .brand { font: 700 12px/1.4 "Space Mono", Consolas, monospace; letter-spacing: .04em; }
-    .back { border: 2px solid var(--line); border-radius: 9px; background: white; color: var(--ink); padding: 9px 12px;
-      font: 700 12px/1.2 "Space Mono", Consolas, monospace; text-decoration: none; box-shadow: 2px 2px 0 var(--line); }
-    .back:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--line); }
-    main { width: min(1080px, calc(100% - 32px)); margin: 32px auto 56px; }
-    .kicker { margin: 0 0 6px; color: var(--muted); font: 11px/1.5 "Space Mono", Consolas, monospace; text-transform: uppercase; letter-spacing: .08em; }
-    h1 { margin: 0 0 8px; font: 700 clamp(28px, 4.5vw, 44px)/1.05 "Instrument Serif", Georgia, serif; }
-    .sub { margin: 0 0 22px; max-width: 760px; color: var(--muted); font: 13px/1.7 "Plus Jakarta Sans", sans-serif; }
-    .panel { border: 2px solid var(--line); border-radius: 16px; background: #fdfdfb; box-shadow: 6px 6px 0 var(--line); overflow: hidden; }
-    .panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 12px 16px; border-bottom: 2px solid var(--line); background: #f7f3ea; }
-    .panel-title { font: 700 12px/1.3 "Space Mono", Consolas, monospace; text-transform: uppercase; letter-spacing: .05em; }
-    .modes { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 0; }
-    .mode { border: 1px solid #c9c1b6; background: white; border-radius: 999px; padding: 6px 12px; cursor: pointer;
-      font: 700 10px/1.2 "Space Mono", Consolas, monospace; text-transform: uppercase; letter-spacing: .04em; color: #57534e; }
-    .mode.active { background: var(--ink); color: #fbf8f1; border-color: var(--ink); }
-    .askbox { display: grid; gap: 10px; padding: 14px 16px 16px; }
+    * { box-sizing: border-box; border-radius: 0 !important; box-shadow: none !important; transition: none !important; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.5 var(--font-sans); }
+    a { color: var(--accent); text-decoration: underline; }
+    a:hover { background: var(--accent); color: #ffffff; text-decoration: none; }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+    .alert { color: var(--accent); font-weight: 700; }
+
+    .topbar {
+      border-bottom: 2px solid var(--border);
+      background: var(--bg);
+      padding: 8px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-tag { background: var(--fg); color: var(--bg); padding: 3px 6px; }
+    .nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .nav a, .nav button {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--accent);
+      padding: 4px 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-decoration: none;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .nav button { color: var(--fg); }
+    .nav a:hover, .nav button:hover { background: var(--fg); color: var(--bg); }
+    .nav a.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+    main { max-width: 1440px; margin: 0 auto; padding: 14px 16px 48px; }
+    .page-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    h1 { margin: 0; font: 700 22px/1.15 var(--font-sans); text-transform: uppercase; letter-spacing: -0.01em; }
+
+    /* Audit Query Control Panel */
+    .panel { border: 2px solid var(--border); margin-bottom: 14px; background: var(--bg); }
+    .panel-head {
+      background: var(--fg);
+      color: var(--bg);
+      padding: 6px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
+    }
+    .ctrl-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .ctrl-label {
+      font: 700 10.5px/1.2 var(--font-mono);
+      text-transform: uppercase;
+      color: var(--muted);
+      min-width: 105px;
+    }
+    .mode, .detail-btn {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      padding: 4px 8px;
+      font: 700 10.5px/1.2 var(--font-mono);
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .mode:hover, .detail-btn:hover { background: var(--surface-alt); }
+    .mode.active, .detail-btn.active { background: var(--fg); color: var(--bg); }
+
+    .askbox { padding: 10px; }
     textarea {
-      width: 100%; min-height: 96px; resize: vertical; padding: 12px 14px; border: 2px solid var(--line); border-radius: 12px;
-      background: white; color: var(--ink); font: 14px/1.6 "Plus Jakarta Sans", sans-serif; outline: none;
+      width: 100%;
+      min-height: 76px;
+      resize: vertical;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      font: 13px/1.45 var(--font-mono);
+      outline: none;
     }
-    textarea:focus { box-shadow: 0 0 0 3px #fde68a; }
-    .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
-    .hint { color: var(--muted); font: 11px/1.5 "Space Mono", Consolas, monospace; }
-    button.ask { border: 2px solid var(--line); border-radius: 10px; background: var(--amber); color: var(--ink);
-      padding: 11px 18px; cursor: pointer; font: 700 12px/1.2 "Space Mono", Consolas, monospace;
-      box-shadow: 3px 3px 0 var(--line); }
-    button.ask:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--line); }
-    button.ask:disabled { opacity: .55; cursor: wait; transform: none; box-shadow: 3px 3px 0 var(--line); }
-    #status { min-height: 20px; padding: 0 16px 12px; color: var(--muted); font: 11px/1.5 "Space Mono", Consolas, monospace; }
-    #status.error { color: #b42318; }
-    #results { display: grid; gap: 18px; margin-top: 22px; }
-    .result { border: 2px solid var(--line); border-radius: 14px; background: #fffefa; box-shadow: 4px 4px 0 var(--line); overflow: hidden; }
-    .result-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
-      padding: 10px 14px; border-bottom: 2px solid var(--line); background: #f7f3ea; }
-    .badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #c9c1b6; background: white; border-radius: 999px;
-      padding: 4px 9px; font: 700 10px/1.2 "Space Mono", Consolas, monospace; text-transform: uppercase; letter-spacing: .04em; }
-    .dot { width: 7px; height: 7px; border-radius: 999px; background: #059669; }
-    .answer { padding: 16px; white-space: pre-wrap; font: 14px/1.75 "Plus Jakarta Sans", sans-serif; }
-    .meta { padding: 0 16px 14px; }
-    details.ctx { border: 1px solid #e7e0d6; border-radius: 8px; background: #fdfcf8; padding: 10px 12px; margin: 0 0 10px; }
-    details.ctx summary { cursor: pointer; font: 700 10px/1.3 "Space Mono", Consolas, monospace; text-transform: uppercase; letter-spacing: .05em; color: #57534e; }
-    details.ctx pre { margin: 8px 0 0; white-space: pre-wrap; font: 11px/1.6 "Space Mono", Consolas, monospace; color: #44403c; }
-    .sources { font: 11px/1.6 "Space Mono", Consolas, monospace; color: #57534e; }
-    .sources strong { text-transform: uppercase; letter-spacing: .05em; font-size: 10px; }
-    .sources ul { margin: 6px 0 0; padding-left: 18px; }
-    .empty { padding: 46px 18px; text-align: center; color: var(--muted); font: 12px/1.7 "Space Mono", Consolas, monospace; }
-    @media (max-width: 640px) { header { padding: 10px 14px; } main { width: calc(100% - 20px); margin-top: 22px; } }
+    textarea:focus { border-color: var(--accent); }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .preset-chip {
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--accent);
+      padding: 4px 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .preset-chip:hover { background: var(--accent); color: #ffffff; text-decoration: none; }
+
+    .action-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    button.ask {
+      border: 1px solid var(--fg);
+      background: var(--fg);
+      color: var(--bg);
+      padding: 8px 16px;
+      font: 700 12px/1.2 var(--font-mono);
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    button.ask:hover { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+    button.ask:disabled { opacity: 0.5; cursor: wait; }
+
+    .status-bar {
+      border-top: 1px solid var(--border);
+      background: var(--surface-alt);
+      padding: 6px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      font: 11px/1.3 var(--font-mono);
+    }
+    #status.error { color: var(--accent); font-weight: 700; }
+
+    /* Dossier Output */
+    #results { display: grid; gap: 16px; }
+    .result { border: 2px solid var(--border); background: var(--bg); }
+    .result-head {
+      background: var(--fg);
+      color: var(--bg);
+      padding: 6px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
+    }
+
+    /* Raw 4-Cell KPI Ledger Row */
+    .kpi-table { width: 100%; border-collapse: collapse; border-bottom: 1px solid var(--border); }
+    .kpi-table td {
+      width: 25%;
+      border: 1px solid var(--border);
+      border-top: 0;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    .kpi-label { font: 700 10px/1.2 var(--font-mono); color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
+    .kpi-val { font: 700 15px/1.2 var(--font-mono); color: var(--fg); }
+    .kpi-val.alert { color: var(--accent); }
+    .kpi-sub { font: 11px/1.3 var(--font-sans); color: var(--muted); margin-top: 2px; }
+
+    /* Barebones SVG Schematic */
+    .subgraph-box { border-bottom: 1px solid var(--border); padding: 10px; background: var(--bg); }
+    .subgraph-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      font: 700 10.5px/1.2 var(--font-mono);
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .subgraph-svg { width: 100%; min-width: 640px; height: 136px; display: block; border: 1px solid var(--border); background: var(--bg); }
+
+    /* Structured Audit Sections & Tables */
+    .answer { padding: 12px; }
+    .audit-section {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      background: var(--bg);
+    }
+    .audit-section.limitations {
+      border: 2px solid var(--accent);
+    }
+    .audit-section h2 {
+      margin: 0 0 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border);
+      font: 700 12px/1.2 var(--font-mono);
+      text-transform: uppercase;
+    }
+    .audit-section.limitations h2 { color: var(--accent); border-bottom-color: var(--accent); }
+    .answer p { margin: 0 0 8px; }
+    .answer ul, .answer ol { margin: 4px 0 10px; padding-left: 18px; }
+    .answer li { margin-bottom: 4px; }
+    .cite-pill {
+      display: inline-block;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0 4px;
+      margin: 0 2px;
+      font: 700 11px/1.35 var(--font-mono);
+    }
+    .num-hi { font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums; text-decoration: underline; }
+
+    .table-wrap { width: 100%; overflow-x: auto; margin: 8px 0 10px; }
+    table.audit-table, table.raw-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    table.audit-table th, table.audit-table td,
+    table.raw-table th, table.raw-table td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    table.audit-table thead th, table.raw-table thead th {
+      background: var(--fg);
+      color: var(--bg);
+      font: 700 10.5px/1.25 var(--font-mono);
+      text-transform: uppercase;
+    }
+    table.audit-table tbody tr:nth-child(even) td,
+    table.raw-table tbody tr:nth-child(even) td { background: var(--surface-alt); }
+    table.audit-table td.num-cell { font: 700 12px/1.35 var(--font-mono); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    /* Open R1 Trace & Governance Context (Zero Hidden Accordions) */
+    .flat-block {
+      border: 1px solid var(--border);
+      margin: 0 12px 12px;
+      background: var(--bg);
+    }
+    .flat-block-head {
+      background: var(--surface-alt);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font: 700 10.5px/1.2 var(--font-mono);
+      text-transform: uppercase;
+    }
+    .flat-block pre {
+      margin: 0;
+      padding: 10px;
+      white-space: pre-wrap;
+      font: 11.5px/1.5 var(--font-mono);
+      color: var(--fg);
+    }
+    .rti-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--border); background: var(--surface-alt); }
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      padding: 5px 10px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--fg); color: var(--bg); }
+    .btn-accent { border: 1px solid var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent); color: #ffffff; }
+    .empty { padding: 28px 12px; text-align: center; font: 12px/1.5 var(--font-mono); color: var(--muted); border: 1px solid var(--border); }
+
+    @media (max-width: 820px) {
+      .kpi-table tr { display: grid; grid-template-columns: 1fr 1fr; }
+      .kpi-table td { width: auto; }
+    }
   </style>
-<script src="bp-config.js"></script>
+  <script src="bp-config.js"></script>
 </head>
 <body>
-  <header>
-    <div class="brand">BHARAT PRAMAN // ASK THE DOCUMENTS</div>
-    <a class="back" href="graphdashboard2.html">← Back to dashboard</a>
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-tag">BHARAT PRAMAN // FISCAL AUDIT DOSSIER</span>
+      <span class="mono" style="color:var(--muted)">INSTANCE02 VECTOR + BM25 RRF</span>
+    </div>
+    <nav class="nav" aria-label="Primary">
+      <a href="graphdashboard2.html">01 QUERY CONSOLE</a>
+      <a href="graph.html">02 GRAPH EXPLORER</a>
+      <a class="active" href="ask.html">03 BUDGET DOSSIER</a>
+      <a href="rti/rti_page.html">04 RTI DESK</a>
+      <button id="themeToggle" type="button">DARK MODE</button>
+    </nav>
   </header>
 
   <main>
-    <p class="kicker">Ministry annual reports · grounded answers with citations</p>
-    <h1>Ask the Ministry Documents</h1>
-    <p class="sub">Ask about the Ministry of Education, the Ministry of Home Affairs, or both annual-report collections. Answers are retrieved from the ingested documents and cite the source page.</p>
+    <div class="page-title-row">
+      <h1>UNION MINISTRY BUDGET &amp; ANNUAL REPORT AUDIT DOSSIER</h1>
+      <span class="mono" style="font-size:11px; color:var(--muted)">CORPUS: 8 MINISTRIES // FY 2021-22 TO 2025-26 // BE VS RE VARIANCE</span>
+    </div>
 
-    <section class="panel" aria-label="Ask the documents">
+    <section class="panel" aria-label="Audit query parameters">
       <div class="panel-head">
-        <span class="panel-title">Question</span>
-        <span class="hint">Grounded in annual reports · no graph writes</span>
+        <span>AUDIT QUERY PARAMETERS &amp; MODEL ROUTING</span>
+        <span class="mono">QWEN3-1024D + BM25 RRF + SECTION 6(1) RTI</span>
       </div>
-      <div class="modes" id="modes">
-        <button type="button" class="mode" data-mode="education">Ministry of Education</button>
-        <button type="button" class="mode" data-mode="home">Ministry of Home Affairs</button>
-        <button type="button" class="mode" data-mode="both">Both Ministries</button>
+
+      <div class="ctrl-row" id="modes">
+        <span class="ctrl-label">MINISTRY:</span>
+        <button type="button" class="mode" data-mode="all">ALL MINISTRIES</button>
+        <button type="button" class="mode" data-mode="education">EDUCATION</button>
+        <button type="button" class="mode" data-mode="home">HOME AFFAIRS</button>
+        <button type="button" class="mode" data-mode="finance">FINANCE</button>
+        <button type="button" class="mode" data-mode="health">HEALTH</button>
+        <button type="button" class="mode" data-mode="defence">DEFENCE</button>
+        <button type="button" class="mode" data-mode="rural">RURAL DEV</button>
+        <button type="button" class="mode" data-mode="road">HIGHWAYS</button>
+        <button type="button" class="mode" data-mode="agriculture">AGRICULTURE</button>
       </div>
-      <div class="askbox">
-        <textarea id="question" placeholder="e.g. What is the mandate of the Ministry of Home Affairs?"></textarea>
-        <div class="row">
-          <span class="hint">Tip: ask a specific question; page citations appear under each answer.</span>
-          <button id="ask" class="ask" type="button">Ask →</button>
+
+      <div class="ctrl-row" id="yearModes">
+        <span class="ctrl-label">FISCAL YEARS:</span>
+        <button type="button" class="mode active" data-year="all">ALL YEARS</button>
+        <button type="button" class="mode" data-year="2021-22">2021-22</button>
+        <button type="button" class="mode" data-year="2022-23">2022-23</button>
+        <button type="button" class="mode" data-year="2023-24">2023-24</button>
+        <button type="button" class="mode" data-year="2024-25">2024-25</button>
+        <button type="button" class="mode" data-year="2025-26">2025-26</button>
+      </div>
+
+      <div class="ctrl-row">
+        <span class="ctrl-label">ENGINE / DEPTH:</span>
+        <div id="reasonToggle" style="display:flex; gap:4px; margin-right:16px;">
+          <button type="button" class="detail-btn active" data-reason="auto">AUTO (V3 FAST)</button>
+          <button type="button" class="detail-btn" data-reason="chat">V3 PLAIN</button>
+          <button type="button" class="detail-btn" data-reason="reasoner">R1 REASONER</button>
+        </div>
+        <div id="detailToggle" style="display:flex; gap:4px;">
+          <button type="button" class="detail-btn" data-detail="short">BRIEF</button>
+          <button type="button" class="detail-btn active" data-detail="long">FULL AUDIT DOSSIER</button>
         </div>
       </div>
-      <div id="status" role="status"></div>
+
+      <div class="askbox">
+        <textarea id="question" placeholder="ENTER AUDIT QUERY (E.G. COMPARE BE VS RE ALLOCATION AND ACTUAL RELEASES FOR PM-SHRI AND SAMAGRA SHIKSHA IN 2023-24)..."></textarea>
+        <div class="preset-bar" id="presetBar">
+          <span class="ctrl-label" style="min-width:auto;">BENCHMARK AUDITS:</span>
+          <button type="button" class="preset-chip" data-q="What was the BE vs RE budget outlay and actual funds released for PM-SHRI, Samagra Shiksha, and school infrastructure in 2023-24?" data-min="education">[PM-SHRI &amp; SAMAGRA SHIKSHA BE VS RE GAP]</button>
+          <button type="button" class="preset-chip" data-q="How much was allocated to CRPF, BSF and police modernisation, and was it fully used?" data-min="home">[CRPF &amp; BSF MODERNISATION AUDIT]</button>
+          <button type="button" class="preset-chip" data-q="Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26" data-min="all">[MULTI-MINISTRY 5-YR BUDGET GROWTH]</button>
+        </div>
+        <div class="action-footer">
+          <span class="mono" style="font-size:11px; color:var(--muted);">UNITS PRESERVED VERBATIM // CTRL+ENTER TO EXECUTE</span>
+          <button id="ask" class="ask" type="button">EXECUTE AUDIT DOSSIER ↵</button>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <span id="status" role="status">READY. SELECT PARAMETERS OR ENTER AN AUDIT QUERY ABOVE.</span>
+        <span id="perfTag" class="mono"></span>
+      </div>
     </section>
 
     <section id="results" aria-live="polite">
-      <div class="empty">Type a question and press <strong>Ask</strong>.</div>
+      <div class="empty">NO AUDIT LOADED. CLICK A BENCHMARK AUDIT OR ENTER A QUERY ABOVE.</div>
     </section>
   </main>
 
   <script>
     const API = `${window.BP_CONFIG.apiBase}/api/rag/ask`;
+    const CACHE_PREFIX = 'bp_rag_cache_v1::';
+
+    const themeBtn = document.getElementById('themeToggle');
+    function syncThemeBtn() {
+      themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'LIGHT MODE' : 'DARK MODE';
+    }
+    syncThemeBtn();
+    themeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('bp_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      syncThemeBtn();
+    });
+
     const params = new URLSearchParams(location.search);
-    let ministry = (params.get('ministry') || 'education').toLowerCase();
+    let ministry = (params.get('ministry') || 'all').toLowerCase();
+    if (ministry === 'both') ministry = 'all';
+    let detailLevel = (params.get('detail') || 'long').toLowerCase() === 'short' ? 'short' : 'long';
+    let reasoningMode = (params.get('reason') || 'auto').toLowerCase();
+    let selectedYears = new Set();
     const initialQuestion = params.get('q') || '';
+
     const questionEl = document.getElementById('question');
     const askButton = document.getElementById('ask');
     const statusEl = document.getElementById('status');
+    const perfTag = document.getElementById('perfTag');
     const resultsEl = document.getElementById('results');
     const modesEl = document.getElementById('modes');
+    const yearModesEl = document.getElementById('yearModes');
+    const detailToggleEl = document.getElementById('detailToggle');
+    const reasonToggleEl = document.getElementById('reasonToggle');
+    const presetBarEl = document.getElementById('presetBar');
 
-    const labelFor = { education: 'Ministry of Education', home: 'Ministry of Home Affairs', both: 'Both Ministries' };
+    const labelFor = {
+      all: 'ALL MINISTRIES',
+      education: 'MINISTRY OF EDUCATION',
+      home: 'MINISTRY OF HOME AFFAIRS',
+      finance: 'MINISTRY OF FINANCE',
+      health: 'MINISTRY OF HEALTH & FAMILY WELFARE',
+      defence: 'MINISTRY OF DEFENCE',
+      rural: 'MINISTRY OF RURAL DEVELOPMENT',
+      road: 'MINISTRY OF ROAD TRANSPORT & HIGHWAYS',
+      agriculture: 'MINISTRY OF AGRICULTURE & FARMERS WELFARE',
+    };
 
     function setMode(mode) {
       ministry = mode;
       [...modesEl.querySelectorAll('.mode')].forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+    }
+    function setDetail(level) {
+      detailLevel = level === 'short' ? 'short' : 'long';
+      [...detailToggleEl.querySelectorAll('.detail-btn')].forEach((b) => b.classList.toggle('active', b.dataset.detail === detailLevel));
+    }
+    function setReasoning(mode) {
+      reasoningMode = ['auto', 'chat', 'reasoner'].includes(mode) ? mode : 'auto';
+      [...reasonToggleEl.querySelectorAll('.detail-btn')].forEach((b) => b.classList.toggle('active', b.dataset.reason === reasoningMode));
+    }
+    function syncYearButtons() {
+      yearModesEl.querySelector('[data-year="all"]').classList.toggle('active', selectedYears.size === 0);
+      [...yearModesEl.querySelectorAll('[data-year]')].forEach((b) => {
+        if (b.dataset.year !== 'all') b.classList.toggle('active', selectedYears.has(b.dataset.year));
+      });
     }
 
     function escapeHtml(value) {
       return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
+    function formatInline(raw) {
+      let s = escapeHtml(raw);
+      s = s.replace(/\[([^\[\]]*?\bp\.\s*\d+[^\[\]]*?)\]/gi, '<span class="cite-pill">[CIT: $1]</span>');
+      s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;!?)]|$)/g, '$1<em>$2</em>');
+      s = s.replace(/`([^`]+)`/g, '<code class="mono">$1</code>');
+      s = s.replace(/\b((?:Rs\.?|₹)\s*[\d,]+(?:\.\d+)?\s*(?:Crore|Cr\.?|Lakh|Lac)?)\b/gi, '<span class="num-hi">$1</span>');
+      return s;
+    }
+
+    function renderStructuredMarkdown(rawAnswer) {
+      if (!rawAnswer) return '<p>NO CONTENT RETURNED.</p>';
+      let text = String(rawAnswer);
+
+      let r1Html = '';
+      const detailsMatch = text.match(/<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/i);
+      if (detailsMatch) {
+        r1Html = `<section class="audit-section"><h2 class="alert">AUDIT REASONING TRACE // ${escapeHtml(detailsMatch[1].trim())}</h2><pre class="mono" style="margin:0;white-space:pre-wrap;font-size:11.5px;">${escapeHtml(detailsMatch[2].trim())}</pre></section>`;
+        text = text.replace(detailsMatch[0], '').trim();
+      }
+
+      const lines = text.split(/\r?\n/);
+      const sections = [];
+      let currentSection = { title: '', isLimitations: false, blocks: [] };
+      let i = 0;
+
+      while (i < lines.length) {
+        const trimmed = lines[i].trim();
+        if (!trimmed) { i++; continue; }
+
+        const hMatch = trimmed.match(/^(#{1,3})\s+(.*)$/);
+        if (hMatch) {
+          if (currentSection.title || currentSection.blocks.length) sections.push(currentSection);
+          const hTitle = hMatch[2].replace(/\*\*/g, '').trim();
+          currentSection = { title: hTitle, isLimitations: /not\s+disclosed|limitation|scope/i.test(hTitle), blocks: [] };
+          i++;
+          continue;
+        }
+
+        if (trimmed.startsWith('|') && trimmed.split('|').length >= 3) {
+          const tableLines = [];
+          while (i < lines.length && lines[i].trim().startsWith('|')) {
+            tableLines.push(lines[i].trim());
+            i++;
+          }
+          const validRows = tableLines.filter((r) => !/^\|[\s\-:|]+\|$/.test(r));
+          if (validRows.length >= 1) {
+            const parseCells = (rowStr) => rowStr.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+            const headerCells = parseCells(validRows[0]);
+            const bodyRows = validRows.slice(1).map(parseCells);
+            let tbl = '<div class="table-wrap"><table class="audit-table"><thead><tr>';
+            headerCells.forEach((h) => { tbl += `<th>${formatInline(h)}</th>`; });
+            tbl += '</tr></thead><tbody>';
+            bodyRows.forEach((row) => {
+              if (row.every((c) => !c)) return;
+              tbl += '<tr>';
+              for (let cIdx = 0; cIdx < headerCells.length; cIdx++) {
+                const cellVal = row[cIdx] ?? '—';
+                const isNum = /(?:Rs\.?|₹|\d+\.\d+|\bCr\b|\bLakh\b|\bBE\b|\bRE\b|%)/i.test(cellVal) && cellVal.length < 48;
+                const isAlert = /shortfall|reduction|decrease|unspent|not\s+disclosed|-\s*\d+(?:\.\d+)?%/i.test(cellVal);
+                tbl += `<td class="${isNum ? 'num-cell' : ''} ${isAlert ? 'alert' : ''}">${formatInline(cellVal)}</td>`;
+              }
+              tbl += '</tr>';
+            });
+            tbl += '</tbody></table></div>';
+            currentSection.blocks.push(tbl);
+            continue;
+          }
+        }
+
+        if (/^(?:[-*•]|\d+[.)])\s+/.test(trimmed)) {
+          const isOrdered = /^\d+[.)]\s+/.test(trimmed);
+          const tag = isOrdered ? 'ol' : 'ul';
+          const items = [];
+          while (i < lines.length && /^(?:[-*•]|\d+[.)])\s+/.test(lines[i].trim())) {
+            const itemTxt = lines[i].trim().replace(/^(?:[-*•]|\d+[.)])\s+/, '');
+            items.push(`<li>${formatInline(itemTxt)}</li>`);
+            i++;
+          }
+          currentSection.blocks.push(`<${tag}>${items.join('')}</${tag}>`);
+          continue;
+        }
+
+        const paraLines = [trimmed];
+        i++;
+        while (i < lines.length && lines[i].trim() && !lines[i].trim().startsWith('#') && !lines[i].trim().startsWith('|') && !/^(?:[-*•]|\d+[.)])\s+/.test(lines[i].trim())) {
+          paraLines.push(lines[i].trim());
+          i++;
+        }
+        currentSection.blocks.push(`<p>${formatInline(paraLines.join(' '))}</p>`);
+      }
+
+      if (currentSection.title || currentSection.blocks.length) sections.push(currentSection);
+
+      const sectionsHtml = sections.map((sec) => {
+        const cls = sec.isLimitations ? 'audit-section limitations' : 'audit-section';
+        const titleHtml = sec.title ? `<h2>${sec.isLimitations ? 'CRITICAL SCOPE FLAG // ' : ''}${escapeHtml(sec.title)}</h2>` : '';
+        return `<section class="${cls}">${titleHtml}${sec.blocks.join('')}</section>`;
+      }).join('');
+
+      return r1Html + sectionsHtml;
+    }
+
+    function extractAuditKpis(r) {
+      const ans = String(r.answer || '');
+      const sources = r.sources || [];
+      const moneyMatches = [...ans.matchAll(/(?:Rs\.?|₹)\s*([\d,]+(?:\.\d+)?)\s*(Crore|Cr\.?|Lakh|Lac)?/gi)];
+      const primaryFig = moneyMatches.length ? moneyMatches[0][0] : `${sources.length} PASSAGES`;
+      const hasBeRe = /\bBE\b[\s\S]{0,80}\bRE\b/i.test(ans) || /Revised Estimate/i.test(ans);
+      const distinctYears = [...new Set(sources.map((s) => s.year).filter(Boolean))];
+      const distinctPages = [...new Set(sources.map((s) => `p.${s.page}`).filter((x) => x !== 'p.undefined'))];
+      return [
+        { label: 'PRIMARY AUDITED FIGURE', val: primaryFig, sub: `${moneyMatches.length} monetary tokens extracted`, cls: '' },
+        { label: 'BE VS RE VARIANCE SIGNAL', val: hasBeRe ? 'BE/RE COMPARISON PRESENT' : 'SOURCE GROUNDED', sub: 'Verbatim units enforced', cls: hasBeRe ? 'alert' : '' },
+        { label: 'NEO4J GRAPH EVIDENCE', val: `${sources.length} CHUNKS / ${distinctPages.length || 1} PAGES`, sub: `YEARS: ${distinctYears.join(', ') || 'ALL INGESTED'}`, cls: '' },
+        { label: 'SYNTHESIS ENGINE', val: (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DEEPSEEK R1 REASONER' : 'DEEPSEEK V3 + RRF', sub: 'Qwen3-1024d + BM25 Hybrid', cls: '' },
+      ];
+    }
+
+    /* Barebones Monochrome Geometric-Circle SVG Lineage Diagram */
+    function renderSubgraphSvg(r) {
+      const dark = document.documentElement.classList.contains('dark');
+      const fg = dark ? '#ffffff' : '#000000';
+      const bg = dark ? '#000000' : '#ffffff';
+      const minLabel = (r.ministry || 'MINISTRY').replace(/^Ministry of\s+/i, '').toUpperCase().slice(0, 22);
+      const sources = (r.sources || []).slice(0, 4);
+      const docs = [...new Set(sources.map((s) => `${(s.title || 'REPORT').slice(0, 20).toUpperCase()} (${s.year || 'FY'})`))].slice(0, 2);
+      if (!docs.length) docs.push('ANNUAL REPORT (FY)');
+
+      let edgesSvg = '';
+      let nodesSvg = '';
+
+      // Node 1: Ministry Circle (cx=90, cy=68)
+      nodesSvg += `
+        <circle cx="90" cy="68" r="20" fill="${bg}" stroke="#ff0000" stroke-width="2.5"/>
+        <text x="90" y="71" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="9" font-weight="700">:MINISTRY</text>
+        <text x="90" y="106" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="10" font-weight="700">${escapeHtml(minLabel)}</text>
+      `;
+
+      // Node 2..3: Document Circles (cx=340)
+      docs.forEach((dLabel, dIdx) => {
+        const y = docs.length === 1 ? 68 : (dIdx === 0 ? 40 : 96);
+        edgesSvg += `<line x1="110" y1="68" x2="322" y2="${y}" stroke="${fg}" stroke-width="1.3"/>`;
+        edgesSvg += `<text x="216" y="${(68 + y) / 2 - 4}" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="8.5">:PUBLISHED</text>`;
+        nodesSvg += `
+          <circle cx="340" cy="${y}" r="16" fill="${bg}" stroke="${fg}" stroke-width="2"/>
+          <text x="340" y="${y + 3}" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="8" font-weight="700">DOC</text>
+          <text x="340" y="${y + 27}" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="9" font-weight="700">${escapeHtml(dLabel)}</text>
+        `;
+      });
+
+      // Node 4..7: Chunk Circles (cx=540)
+      sources.forEach((s, sIdx) => {
+        const y = 22 + sIdx * 30;
+        const docY = docs.length === 1 ? 68 : (sIdx % 2 === 0 ? 40 : 96);
+        edgesSvg += `<line x1="356" y1="${docY}" x2="528" y2="${y}" stroke="${fg}" stroke-width="1.1"/>`;
+        const secShort = (s.section || s.title || 'CHUNK').replace(/^Scheme\/Section:\s*/i, '').slice(0, 28);
+        nodesSvg += `
+          <circle cx="536" cy="${y}" r="7" fill="${sIdx === 0 ? '#ff0000' : fg}" stroke="${fg}" stroke-width="1"/>
+          <text x="550" y="${y + 3}" fill="${fg}" font-family="Consolas,monospace" font-size="9.5" font-weight="700">:Chunk p.${escapeHtml(s.page ?? '?')} | ${escapeHtml(secShort)}</text>
+        `;
+      });
+
+      return `
+        <div class="subgraph-box">
+          <div class="subgraph-head">
+            <span>STRUCTURAL EVIDENCE LINEAGE (:MINISTRY -> :DOCUMENT -> :CHUNK)</span>
+            <span>INDEX: QWEN_CHUNK_EMBEDDINGS (1024D) + CHUNK_FULLTEXT</span>
+          </div>
+          <svg class="subgraph-svg" viewBox="0 0 820 136" xmlns="http://www.w3.org/2000/svg">
+            ${edgesSvg}
+            ${nodesSvg}
+          </svg>
+        </div>`;
+    }
+
+    function buildRtiDraft(r, qText) {
+      const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+      const minName = r.ministry && r.ministry !== 'All Ministries' ? `Ministry of ${r.ministry.replace(/^Ministry of\s+/i, '')}` : 'The Concerned Union Ministry';
+      const srcLines = (r.sources || []).slice(0, 6).map((s, i) =>
+        `  ${i + 1}. ${s.title || 'Annual Report'} (${s.year || 'FY'}) — Page ${s.page ?? 'N/A'}${s.section ? ` [Section: ${s.section}]` : ''}`
+      ).join('\n') || '  1. Ministry Annual Report (as cited above)';
+      const summarySnippet = String(r.answer || '').replace(/<details>[\s\S]*?<\/details>/gi, '').replace(/[#*|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 460);
+      return [
+        `APPLICATION UNDER SECTION 6(1) OF THE RIGHT TO INFORMATION ACT, 2005`,
+        `Date: ${today}`,
+        ``,
+        `To,`,
+        `The Central Public Information Officer (CPIO),`,
+        `${minName},`,
+        `Government of India, New Delhi`,
+        ``,
+        `Subject: Request for certified financial/physical audit records under Section 6(1) of the RTI Act, 2005 regarding: "${qText}"`,
+        ``,
+        `Sir / Madam,`,
+        `With reference to official disclosures in the published Annual Report(s) of the Ministry:`,
+        srcLines,
+        ``,
+        `Published Finding / Discrepancy Summary:`,
+        `"${summarySnippet}..."`,
+        ``,
+        `Please provide certified information under Section 6(1) of the RTI Act, 2005:`,
+        `1. Scheme-wise and state/institution-wise breakup of Budget Estimates (BE), Revised Estimates (RE), and Actual Releases.`,
+        `2. Official file notings and sanction orders explaining any variance/shortfall between BE and RE / Actual Releases.`,
+        `3. Certified Utilization Certificates (UCs) and physical target vs. achievement tables for the cited fiscal years.`,
+        `4. Disaggregated records absent from the published Annual Report annexures for this query.`,
+        ``,
+        `Fee of Rs. 10/- enclosed. I state that I am a citizen of India.`,
+        ``,
+        `Yours faithfully,`,
+        `[Applicant Name]`,
+        `[Address / Email / Contact]`
+      ].join('\n');
+    }
+
     function renderResults(results) {
       if (!results || !results.length) {
-        resultsEl.innerHTML = '<div class="empty">No answer was returned.</div>';
+        resultsEl.innerHTML = '<div class="empty">NO AUDIT DOSSIER RETURNED.</div>';
         return;
       }
-      resultsEl.innerHTML = results.map((r) => {
-        const sources = (r.sources || []).slice(0, 8).map((s) =>
-          `<li>${escapeHtml(s.title || 'Document')}${s.page != null ? ` — page ${escapeHtml(s.page)}` : ''}</li>`
-        ).join('');
-        const ctx = r.graph_context
-          ? `<details class="ctx"><summary>Graph context</summary><pre>${escapeHtml(r.graph_context)}</pre></details>`
-          : '';
+      const qText = questionEl.value.trim();
+      const rtiPortalUrl = 'rti/rti_page.html';
+
+      resultsEl.innerHTML = results.map((r, idx) => {
+        const kpis = extractAuditKpis(r);
+        const kpiCells = kpis.map((k) => `
+          <td>
+            <div class="kpi-label">${escapeHtml(k.label)}</div>
+            <div class="kpi-val ${k.cls}">${escapeHtml(k.val)}</div>
+            <div class="kpi-sub">${escapeHtml(k.sub)}</div>
+          </td>`).join('');
+
+        const sourceRows = (r.sources || []).map((s, sIdx) => `
+          <tr>
+            <td class="num">${sIdx + 1}</td>
+            <td><strong>${escapeHtml(s.title || 'Annual Report')}</strong></td>
+            <td class="mono">${escapeHtml(s.ministry || '—')}</td>
+            <td class="mono">${escapeHtml(s.year || '—')}</td>
+            <td class="num">p.${escapeHtml(s.page ?? '?')}</td>
+            <td class="mono">${escapeHtml(s.section || s.breadcrumb || '—')}</td>
+            <td class="num">${s.score != null ? Number(s.score).toFixed(4) : '—'}</td>
+          </tr>`).join('');
+
+        const modelBadge = (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DEEPSEEK R1 REASONER' : 'DEEPSEEK V3 + GRAPH RRF';
+        const rtiDraft = buildRtiDraft(r, qText);
+        const structuredHtml = renderStructuredMarkdown(r.answer);
+        const subgraphHtml = renderSubgraphSvg(r);
+
         return `
           <article class="result">
             <div class="result-head">
-              <span class="badge"><span class="dot"></span>${escapeHtml(r.ministry)}</span>
-              <span class="hint">${r.sources ? r.sources.length : 0} source(s)</span>
+              <span>${escapeHtml(r.ministry)} // ${escapeHtml((r.detail_level || detailLevel).toUpperCase())} DOSSIER // ${modelBadge}</span>
+              <span>${r.sources ? r.sources.length : 0} CHUNK CITATION(S)</span>
             </div>
-            <div class="answer">${escapeHtml(r.answer)}</div>
-            <div class="meta">
-              ${ctx}
-              <div class="sources"><strong>Sources</strong><ul>${sources || '<li>No page citations returned.</li>'}</ul></div>
+            <table class="kpi-table"><tr>${kpiCells}</tr></table>
+            ${subgraphHtml}
+            <div class="answer">${structuredHtml}</div>
+
+            <div class="flat-block">
+              <div class="flat-block-head">
+                <span>VERIFIED PAGE CITATIONS LEDGER (${(r.sources || []).length} PASSAGES RETRIEVED FROM NEO4J)</span>
+                <span class="mono">RRF SCORED</span>
+              </div>
+              <table class="raw-table">
+                <thead><tr><th style="width:45px">#</th><th>DOCUMENT TITLE</th><th>MINISTRY</th><th style="width:90px">FISCAL YR</th><th style="width:70px">PAGE</th><th>SECTION / BREADCRUMB</th><th style="width:85px">RRF SCORE</th></tr></thead>
+                <tbody>${sourceRows || '<tr><td colspan="7" class="mono">NO CITATIONS RETURNED.</td></tr>'}</tbody>
+              </table>
+            </div>
+
+            ${r.graph_context ? `
+              <div class="flat-block">
+                <div class="flat-block-head"><span>NEO4J GRAPH GOVERNANCE &amp; MINISTER TRAVERSAL TRACE</span><span>RAW CONTEXT</span></div>
+                <pre>${escapeHtml(r.graph_context)}</pre>
+              </div>` : ''}
+
+            <div class="flat-block">
+              <div class="flat-block-head">
+                <span>SECTION 6(1) RTI APPLICATION DRAFT (PRE-FILLED WITH REPORT PAGE CITATIONS)</span>
+                <span class="alert">STATUTORY CPIO FILING FORMAT</span>
+              </div>
+              <div style="padding:10px;">
+                <textarea id="rti-text-${idx}" style="min-height:210px;">${escapeHtml(rtiDraft)}</textarea>
+              </div>
+              <div class="rti-actions">
+                <button type="button" class="btn btn-accent" data-rti-copy="${idx}">COPY RTI TEXT</button>
+                <button type="button" class="btn" data-rti-download="${idx}">DOWNLOAD .TXT</button>
+                <button type="button" class="btn" data-rti-print="${idx}">PRINT / SAVE PDF</button>
+                <a class="btn" href="${rtiPortalUrl}">OPEN POLITICIAN RTI DESK ↗</a>
+              </div>
             </div>
           </article>`;
       }).join('');
@@ -160,50 +791,132 @@
     async function ask() {
       const question = questionEl.value.trim();
       if (!question) {
-        statusEl.textContent = 'Type a question first.';
+        statusEl.textContent = 'ENTER AN AUDIT QUESTION OR SELECT A BENCHMARK AUDIT.';
         statusEl.classList.add('error');
         questionEl.focus();
         return;
       }
+      const yearsArr = selectedYears.size ? [...selectedYears].sort() : null;
+      const cacheKey = `${CACHE_PREFIX}${ministry}::${detailLevel}::${reasoningMode}::${(yearsArr || []).join(',')}::${question.toLowerCase()}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const t0 = performance.now();
+          const payload = JSON.parse(cached);
+          renderResults(payload.results || []);
+          statusEl.classList.remove('error');
+          statusEl.textContent = `AUDIT LOADED (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
+          perfTag.textContent = `CLIENT CACHE HIT: ${(performance.now() - t0).toFixed(1)} ms`;
+          return;
+        } catch {}
+      }
+
       statusEl.classList.remove('error');
-      statusEl.textContent = `Searching ${labelFor[ministry] || ministry} documents…`;
+      statusEl.textContent = `AUDITING ${labelFor[ministry] || ministry} (${detailLevel.toUpperCase()}, ${reasoningMode.toUpperCase()})...`;
+      perfTag.textContent = '';
       askButton.disabled = true;
-      askButton.textContent = 'Asking…';
-      resultsEl.innerHTML = '<div class="empty">Retrieving passages and drafting the answer…</div>';
+      askButton.textContent = 'EXECUTING...';
+      resultsEl.innerHTML = '<div class="empty">QUERYING NEO4J INSTANCE02 HYBRID INDEX + SYNTHESIZING AUDIT TABLES...</div>';
+      const t0 = performance.now();
       try {
         const response = await fetch(API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, ministry })
+          body: JSON.stringify({ question, ministry, detail_level: detailLevel, reasoning_mode: reasoningMode, years: yearsArr }),
         });
         const payload = await response.json();
-        if (!response.ok) throw new Error(payload.detail || 'Ask failed.');
+        if (!response.ok) throw new Error(payload.detail || 'Audit failed.');
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(payload)); } catch {}
         renderResults(payload.results || []);
-        statusEl.textContent = `Answered ${payload.results?.length || 0} collection(s).`;
-      } catch (error) {
-        statusEl.textContent = `Could not answer: ${error.message}`;
+        statusEl.textContent = `AUDIT COMPLETE (${payload.results?.[0]?.sources?.length || 0} CHUNK CITATIONS).`;
+        perfTag.textContent = `LATENCY: ${Math.round(performance.now() - t0)} ms`;
+      } catch (err) {
+        statusEl.textContent = `AUDIT FAILED: ${err.message}`;
         statusEl.classList.add('error');
-        resultsEl.innerHTML = '<div class="empty">Check that the API is running on port 8000 and that the document RAG indexes are loaded.</div>';
+        resultsEl.innerHTML = '<div class="empty alert">API (:8000) OR NEO4J INSTANCE02 UNREACHABLE.</div>';
       } finally {
         askButton.disabled = false;
-        askButton.textContent = 'Ask →';
+        askButton.textContent = 'EXECUTE AUDIT DOSSIER ↵';
       }
     }
 
-    modesEl.addEventListener('click', (event) => {
-      const btn = event.target.closest('.mode');
+    resultsEl.addEventListener('click', (event) => {
+      const copyBtn = event.target.closest('[data-rti-copy]');
+      if (copyBtn) {
+        const ta = document.getElementById(`rti-text-${copyBtn.dataset.rtiCopy}`);
+        if (ta) {
+          navigator.clipboard.writeText(ta.value);
+          copyBtn.textContent = 'COPIED TO CLIPBOARD';
+          setTimeout(() => { copyBtn.textContent = 'COPY RTI TEXT'; }, 1500);
+        }
+        return;
+      }
+      const dlBtn = event.target.closest('[data-rti-download]');
+      if (dlBtn) {
+        const ta = document.getElementById(`rti-text-${dlBtn.dataset.rtiDownload}`);
+        if (ta) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([ta.value], { type: 'text/plain;charset=utf-8' }));
+          a.download = `Bharat_Praman_RTI_Draft_${dlBtn.dataset.rtiDownload}.txt`;
+          a.click();
+        }
+        return;
+      }
+      const printBtn = event.target.closest('[data-rti-print]');
+      if (printBtn) {
+        const ta = document.getElementById(`rti-text-${printBtn.dataset.rtiPrint}`);
+        if (ta) {
+          const w = window.open('', '_blank');
+          if (w) {
+            w.document.write(`<pre style="font:13px/1.6 Consolas,monospace;white-space:pre-wrap;padding:28px;">${escapeHtml(ta.value)}</pre>`);
+            w.document.close();
+            w.print();
+          }
+        }
+      }
+    });
+
+    presetBarEl.addEventListener('click', (event) => {
+      const chip = event.target.closest('.preset-chip');
+      if (!chip) return;
+      questionEl.value = chip.dataset.q || '';
+      if (chip.dataset.min) setMode(chip.dataset.min);
+      ask();
+    });
+    modesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mode');
       if (!btn) return;
       setMode(btn.dataset.mode);
       const url = new URL(location.href);
       url.searchParams.set('ministry', ministry);
       history.replaceState(null, '', url);
     });
+    yearModesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mode');
+      if (!btn) return;
+      const yr = btn.dataset.year;
+      if (yr === 'all') selectedYears.clear();
+      else if (selectedYears.has(yr)) selectedYears.delete(yr);
+      else selectedYears.add(yr);
+      syncYearButtons();
+    });
+    detailToggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.detail-btn');
+      if (btn) setDetail(btn.dataset.detail);
+    });
+    reasonToggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.detail-btn');
+      if (btn) setReasoning(btn.dataset.reason);
+    });
     askButton.addEventListener('click', ask);
-    questionEl.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); ask(); }
+    questionEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); ask(); }
     });
 
-    setMode(labelFor[ministry] ? ministry : 'education');
+    setMode(labelFor[ministry] ? ministry : 'all');
+    setDetail(detailLevel);
+    setReasoning(reasoningMode);
+    syncYearButtons();
     if (initialQuestion) {
       questionEl.value = initialQuestion;
       ask();

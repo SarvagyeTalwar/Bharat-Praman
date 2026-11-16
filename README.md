@@ -71,6 +71,22 @@ not required. Vocabulary files live in `data/` and can be overridden with
 
 ## Setup
 
+### Instance02 PDF chunking
+
+The Education `:Document` / `:Chunk` ingestion uses page-aware, heading-aware passages (about 320 lexical tokens with up to 45 tokens of overlap). Each chunk stores its starting/ending PDF pages and detected headings. PDFs up to 60 pages use PyMuPDF4LLM Markdown extraction, and detected Markdown tables repeat their headers when split across chunks. Larger reports use fast per-page text extraction; their tables can be flattened, so numeric table answers may need a dedicated layout/table extraction pass. Scanned pages and garbled embedded text can need OCR or manual review. Preview a PDF or folder without writing chunks:
+
+```powershell
+python ingest_bulk.py "C:\path\to\pdf-or-folder" --ministry Education --dry-run
+```
+
+To replace the old chunks and vectors after reviewing the preview, use `--rechunk`:
+
+```powershell
+python ingest_bulk.py "C:\path\to\pdf-or-folder" --ministry Education --rechunk
+```
+
+This writes versioned chunks first, then removes the old derived chunks after the new batches are stored. The PDF source files are required; legacy `:Document` nodes do not retain reliable local paths. Restart the RAG service after updating its code. MHA uses a separate `:MHAChunk` pipeline and is not changed by this command.
+
 ### 1. Configure environment
 
 Copy the examples and fill in real values. There are two env files; the backend loads **both**, and `BACKEND/.env` wins on conflict.

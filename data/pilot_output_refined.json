@@ -1,0 +1,349 @@
+[
+  {
+    "mp": "Amit Shah",
+    "role": "Home Minister (Sitting MP)",
+    "base_constituency": "Gandhinagar",
+    "affidavits": [
+      {
+        "election": "LS2024",
+        "match_type": "exact",
+        "candidate_name": "Amit Shah",
+        "party": "BJP",
+        "constituency": "GANDHINAGAR",
+        "state": "GUJARAT",
+        "total_assets": 656712498,
+        "liabilities": 4209587,
+        "criminal_cases": 3,
+        "education": "12th Pass",
+        "profile_url": "https://myneta.info/LokSabha2024/candidate.php?candidate_id=4427"
+      },
+      {
+        "election": "LS2019",
+        "match_type": "exact",
+        "candidate_name": "Amit Shah",
+        "party": "BJP",
+        "constituency": "GANDHINAGAR",
+        "state": "GUJARAT",
+        "total_assets": 403275307,
+        "liabilities": 4769587,
+        "criminal_cases": 4,
+        "education": "12th Pass",
+        "profile_url": "https://myneta.info/LokSabha2019/candidate.php?candidate_id=8016"
+      },
+      {
+        "election": "LS2014",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      },
+      {
+        "election": "LS2009",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      }
+    ]
+  },
+  {
+    "mp": "Rajnath Singh",
+    "role": "Cabinet Minister (Defence)",
+    "base_constituency": "Lucknow",
+    "affidavits": [
+      {
+        "election": "LS2024",
+        "match_type": "exact",
+        "candidate_name": "Raj Nath Singh",
+        "party": "BJP",
+        "constituency": "LUCKNOW",
+        "state": "UTTAR PRADESH",
+        "total_assets": 73684617,
+        "liabilities": 0,
+        "criminal_cases": 0,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2024/candidate.php?candidate_id=7169"
+      },
+      {
+        "election": "LS2019",
+        "match_type": "exact",
+        "candidate_name": "Rajnath Singh",
+        "party": "BJP",
+        "constituency": "LUCKNOW",
+        "state": "UTTAR PRADESH",
+        "total_assets": 51492709,
+        "liabilities": 0,
+        "criminal_cases": 0,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2019/candidate.php?candidate_id=11464"
+      },
+      {
+        "election": "LS2014",
+        "match_type": "exact",
+        "candidate_name": "Raj Nath Singh",
+        "party": "BJP",
+        "constituency": "LUCKNOW",
+        "state": "UTTAR PRADESH Loksabha 2014",
+        "total_assets": 29240729,
+        "liabilities": 0,
+        "criminal_cases": 0,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/ls2014/candidate.php?candidate_id=5743"
+      },
+      {
+        "election": "LS2009",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      }
+    ]
+  },
+  {
+    "mp": "Bansuri Swaraj",
+    "role": "Single-Term MP (First elected 2024)",
+    "base_constituency": "New Delhi",
+    "affidavits": [
+      {
+        "election": "LS2024",
+        "match_type": "exact",
+        "candidate_name": "Bansuri Swaraj",
+        "party": "BJP",
+        "constituency": "NEW DELHI",
+        "state": "DELHI",
+        "total_assets": 192946528,
+        "liabilities": 0,
+        "criminal_cases": 0,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2024/candidate.php?candidate_id=7901"
+      },
+      {
+        "election": "LS2019",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      },
+      {
+        "election": "LS2014",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      },
+      {
+        "election": "LS2009",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      }
+    ]
+  },
+  {
+    "mp": "Rahul Gandhi",
+    "role": "Seat / Constituency Switcher",
+    "base_constituency": "Rae Bareli",
+    "affidavits": [
+      {
+        "election": "LS2024",
+        "match_type": "exact",
+        "candidate_name": "Rahul Gandhi",
+        "party": "INC",
+        "constituency": "RAE BARELI",
+        "state": "UTTAR PRADESH",
+        "total_assets": 203961862,
+        "liabilities": 5454314,
+        "criminal_cases": 18,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2024/candidate.php?candidate_id=7651"
+      },
+      {
+        "election": "LS2024",
+        "match_type": "seat_change",
+        "candidate_name": "Rahul Gandhi",
+        "party": "INC",
+        "constituency": "WAYANAD",
+        "state": "KERALA",
+        "total_assets": 203961862,
+        "liabilities": 4979184,
+        "criminal_cases": 18,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2024/candidate.php?candidate_id=2195"
+      },
+      {
+        "election": "LS2019",
+        "match_type": "seat_change",
+        "candidate_name": "Rahul Gandhi",
+        "party": "INC",
+        "constituency": "WAYANAD",
+        "state": "KERALA",
+        "total_assets": 158877063,
+        "liabilities": 7201904,
+        "criminal_cases": 5,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2019/candidate.php?candidate_id=9208"
+      },
+      {
+        "election": "LS2019",
+        "match_type": "ambiguous_homonym",
+        "candidate_name": "Rahul Gandhi K E S/O Valsamma",
+        "party": "IND",
+        "constituency": "WAYANAD",
+        "state": "KERALA",
+        "total_assets": 5515,
+        "liabilities": 0,
+        "criminal_cases": 0,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2019/candidate.php?candidate_id=9215"
+      },
+      {
+        "election": "LS2019",
+        "match_type": "seat_change",
+        "candidate_name": "Rahul Gandhi",
+        "party": "INC",
+        "constituency": "AMETHI",
+        "state": "UTTAR PRADESH",
+        "total_assets": 158877063,
+        "liabilities": 7201904,
+        "criminal_cases": 6,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2019/candidate.php?candidate_id=11034"
+      },
+      {
+        "election": "LS2014",
+        "match_type": "seat_change",
+        "candidate_name": "Rahul Gandhi",
+        "party": "INC",
+        "constituency": "AMETHI",
+        "state": "UTTAR PRADESH Loksabha 2014",
+        "total_assets": 94006549,
+        "liabilities": 1800000,
+        "criminal_cases": 0,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/ls2014/candidate.php?candidate_id=8022"
+      },
+      {
+        "election": "LS2009",
+        "match_type": "seat_change",
+        "candidate_name": "RAHUL GANDHI",
+        "party": "INC",
+        "constituency": "Amethi",
+        "state": "UTTAR PRADESH",
+        "total_assets": 23274706,
+        "liabilities": 2335000,
+        "criminal_cases": 0,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/ls2009/candidate.php?candidate_id=3839"
+      }
+    ]
+  },
+  {
+    "mp": "Anand Kumar",
+    "role": "Common Name Target",
+    "base_constituency": "Bahraich",
+    "affidavits": [
+      {
+        "election": "LS2024",
+        "match_type": "ambiguous_homonym",
+        "candidate_name": "Raaj Kumar Anand",
+        "party": "BSP",
+        "constituency": "NEW DELHI",
+        "state": "DELHI",
+        "total_assets": 0,
+        "liabilities": 0,
+        "criminal_cases": 2,
+        "education": "Post Graduate",
+        "profile_url": "https://myneta.info/LokSabha2024/candidate.php?candidate_id=8249"
+      },
+      {
+        "election": "LS2024",
+        "match_type": "exact",
+        "candidate_name": "Anand Kumar",
+        "party": "BJP",
+        "constituency": "BAHRAICH (SC)",
+        "state": "UTTAR PRADESH",
+        "total_assets": 92623979,
+        "liabilities": 14128198,
+        "criminal_cases": 0,
+        "education": "Doctorate",
+        "profile_url": "https://myneta.info/LokSabha2024/candidate.php?candidate_id=5217"
+      },
+      {
+        "election": "LS2019",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      },
+      {
+        "election": "LS2014",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      },
+      {
+        "election": "LS2009",
+        "match_type": "none",
+        "candidate_name": "None",
+        "party": "-",
+        "constituency": "-",
+        "state": "-",
+        "total_assets": null,
+        "liabilities": null,
+        "criminal_cases": null,
+        "education": "-",
+        "profile_url": null
+      }
+    ]
+  }
+]

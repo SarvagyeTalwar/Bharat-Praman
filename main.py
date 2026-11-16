@@ -37,6 +37,7 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE") or None
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
+LOCAL_CYPHER_MODEL_URL = (os.getenv("LOCAL_CYPHER_MODEL_URL") or os.getenv("QWEN_CYPHER_URL") or "").rstrip("/")
 
 GEMINI_PLAN_SCHEMA = {
     "type": "object",
@@ -91,6 +92,11 @@ driver = GraphDatabase.driver(
 async def lifespan(_app: FastAPI):
     # The app can start even if Neo4j is temporarily offline; each API route
     # reports a clear service error if a database request cannot be completed.
+    try:
+        from embeddings import warmup_embeddings
+        warmup_embeddings(background=True)
+    except Exception:
+        pass
     yield
     driver.close()
 
@@ -216,6 +222,53 @@ def cache_cypher_plan(question: str, plan: dict):
             _PLAN_CACHE.popitem(last=False)
 
 
+_ASK_CACHE_FILE = BASE_DIR / "data" / "cache" / "ask_response_cache.json"
+_ASK_RESPONSE_CACHE_LOCK = threading.Lock()
+_ASK_RESPONSE_CACHE: dict[str, dict] = {}
+
+
+def _ask_response_cache_key(question: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", question.casefold()).strip()
+
+
+def _load_ask_response_cache():
+    global _ASK_RESPONSE_CACHE
+    try:
+        if _ASK_CACHE_FILE.exists():
+            with open(_ASK_CACHE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    _ASK_RESPONSE_CACHE = data
+    except Exception:
+        _ASK_RESPONSE_CACHE = {}
+
+
+_load_ask_response_cache()
+
+
+def get_cached_ask_response(question: str):
+    key = _ask_response_cache_key(question)
+    with _ASK_RESPONSE_CACHE_LOCK:
+        item = _ASK_RESPONSE_CACHE.get(key)
+        if not item:
+            return None
+        return json.loads(json.dumps(item))
+
+
+def set_cached_ask_response(question: str, payload: dict):
+    key = _ask_response_cache_key(question)
+    if not key:
+        return
+    with _ASK_RESPONSE_CACHE_LOCK:
+        _ASK_RESPONSE_CACHE[key] = json.loads(json.dumps(payload))
+        try:
+            _ASK_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(_ASK_CACHE_FILE, "w", encoding="utf-8") as f:
+                json.dump(_ASK_RESPONSE_CACHE, f, ensure_ascii=False)
+        except Exception:
+            pass
+
+
 class SearchRequest(BaseModel):
     query: str = Field(min_length=1, max_length=200)
     filter: str = "all"
@@ -234,7 +287,8 @@ class AskRequest(BaseModel):
 def display_name(variable: str) -> str:
     """Return the best human-readable name for a Cypher node variable."""
     return (
-        f"CASE WHEN {variable}.name IS NOT NULL THEN {variable}.name "
+        f"CASE WHEN {variable}.name IS NOT NULL AND trim(toString({variable}.name)) <> '' THEN {variable}.name "
+        f"WHEN {variable}.myneta_name IS NOT NULL AND trim(toString({variable}.myneta_name)) <> '' THEN {variable}.myneta_name "
         f"WHEN 'CriminalCase' IN labels({variable}) AND "
         f"coalesce({variable}.case_no, {variable}.case_id, {variable}.fir_no) IS NOT NULL "
         f"THEN 'Case ' + toString(coalesce({variable}.case_no, {variable}.case_id, {variable}.fir_no)) "
@@ -370,44 +424,121 @@ def ipc_sections_list():
 
 class RagAskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=1000)
-    ministry: str = Field(default="education", max_length=60)
+    ministry: str = Field(default="all", max_length=200)
+    ministries: list[str] | None = None
+    years: list[str] | None = None
+    detail_level: str = Field(default="long", max_length=16)
+    reasoning_mode: str = Field(default="auto", max_length=16)
+
+
+@app.get("/api/rag/catalog")
+def rag_catalog():
+    """Return supported ministries, fiscal years, and ingested document/chunk counts."""
+    from reports_agent import get_reports_catalog
+    return get_reports_catalog()
+
+
+@app.post("/api/rag/search")
+def rag_search(req: RagAskRequest):
+    """Fast retrieval-only search returning primary report excerpts, page numbers, and direct links."""
+    from reports_agent import search_reports
+
+    detail_level = "short" if str(req.detail_level).strip().lower() == "short" else "long"
+    scope = req.ministries if req.ministries else req.ministry
+    label = (
+        ", ".join(req.ministries)
+        if req.ministries
+        else ("All Ministries" if str(req.ministry).strip().lower() in ("all", "both", "annual reports", "annual_reports") else str(req.ministry).title())
+    )
+    try:
+        res = search_reports(
+            req.question,
+            ministry=scope,
+            years=req.years,
+            detail_level=detail_level,
+        )
+        return {
+            "question": req.question,
+            "ministry": label,
+            "hits": res.get("hits", []),
+            "glossary_note": res.get("glossary_note", ""),
+            "graph_context": res.get("graph_context", ""),
+            "years": res.get("years", []),
+        }
+    except Exception as exc:
+        return {
+            "question": req.question,
+            "ministry": label,
+            "hits": [],
+            "glossary_note": "",
+            "graph_context": "",
+            "error": str(exc),
+        }
 
 
 @app.post("/api/rag/ask")
 def rag_ask(req: RagAskRequest):
-    """Answer a question from the ingested Ministry annual reports."""
-    ministry = req.ministry.strip().lower()
-    if ministry in ("education", "moe", "ministry of education"):
-        targets = [("Education", "agent")]
-    elif ministry in ("home", "home affairs", "mha", "internal affairs", "ministry of home affairs"):
-        targets = [("Home Affairs", "mha_agent")]
-    elif ministry in ("both", "all", "annual reports", "annual_reports"):
-        targets = [("Education", "agent"), ("Home Affairs", "mha_agent")]
-    else:
-        raise HTTPException(status_code=400, detail="Unknown ministry. Use education, home, or both.")
+    """Answer a question across ingested Ministry annual reports (short/long + chat/reasoner)."""
+    from reports_agent import answer_reports, should_use_reasoner, _source_portal_url
 
-    results = []
-    for label, module_name in targets:
-        try:
-            module = __import__(module_name)
-            ans, hits, gctx = module.answer(req.question)
-            results.append({
-                "ministry": label,
-                "answer": ans,
-                "graph_context": gctx,
-                "sources": [
-                    {"title": h.get("title"), "page": h.get("page"), "score": h.get("score")}
-                    for h in (hits or [])
-                ],
-            })
-        except Exception as exc:
-            results.append({
-                "ministry": label,
-                "answer": f"Could not answer from {label} right now: {exc}",
-                "graph_context": "",
-                "sources": [],
-            })
-    return {"question": req.question, "results": results}
+    detail_level = "short" if str(req.detail_level).strip().lower() == "short" else "long"
+    reasoning_mode = str(req.reasoning_mode or "auto").strip().lower()
+    scope = req.ministries if req.ministries else req.ministry
+
+    try:
+        ans, hits, gctx = answer_reports(
+            req.question,
+            ministry=scope,
+            years=req.years,
+            detail_level=detail_level,
+            reasoning_mode=reasoning_mode,
+        )
+        label = (
+            ", ".join(req.ministries)
+            if req.ministries
+            else ("All Ministries" if str(req.ministry).strip().lower() in ("all", "both", "annual reports", "annual_reports") else req.ministry.title())
+        )
+        used_r1 = should_use_reasoner(req.question, reasoning_mode)
+        results = [{
+            "ministry": label,
+            "detail_level": detail_level,
+            "reasoning_mode": "reasoner" if used_r1 else "chat",
+            "answer": ans,
+            "graph_context": gctx,
+            "sources": [
+                {
+                    "title": h.get("title"),
+                    "file": h.get("file"),
+                    "ministry": h.get("ministry"),
+                    "year": h.get("year"),
+                    "page": h.get("page"),
+                    "section": h.get("section"),
+                    "breadcrumb": h.get("breadcrumb"),
+                    "score": h.get("rrf_score") or h.get("score"),
+                    "source_url": _source_portal_url(
+                        h.get("ministry", ""),
+                        h.get("title", ""),
+                        h.get("file", ""),
+                    ),
+                }
+                for h in (hits or [])
+            ],
+        }]
+    except Exception as exc:
+        results = [{
+            "ministry": str(scope),
+            "detail_level": detail_level,
+            "reasoning_mode": reasoning_mode,
+            "answer": f"Could not answer from annual reports right now: {exc}",
+            "graph_context": "",
+            "sources": [],
+        }]
+    return {
+        "question": req.question,
+        "detail_level": detail_level,
+        "reasoning_mode": reasoning_mode,
+        "results": results,
+    }
 
 
 @app.get("/api/metadata")
@@ -578,13 +709,15 @@ def search_graph(request: SearchRequest):
 
 
 NODE_DETAIL_QUERY = f"""
-MATCH (n) WHERE elementId(n) = $id
+MATCH (n) WHERE elementId(n) = $id OR n.entity_id = $id OR toString(n.person_id) = $id
 RETURN elementId(n) AS id, labels(n) AS labels,
        {display_name('n')} AS label, properties(n) AS properties
+LIMIT 1
 """
 
 NODE_DETAIL_EDGES_QUERY = f"""
-MATCH (n) WHERE elementId(n) = $id
+MATCH (n) WHERE elementId(n) = $id OR n.entity_id = $id OR toString(n.person_id) = $id
+WITH n LIMIT 1
 MATCH (n)-[r]-(neighbor)
 WITH DISTINCT startNode(r) AS source, r, endNode(r) AS target
 RETURN elementId(source) AS source_id,
@@ -601,13 +734,15 @@ LIMIT 100
 """
 
 NODE_DETAIL_EDGE_COUNT_QUERY = """
-MATCH (n) WHERE elementId(n) = $id
+MATCH (n) WHERE elementId(n) = $id OR n.entity_id = $id OR toString(n.person_id) = $id
+WITH n LIMIT 1
 MATCH (n)-[r]-()
 RETURN count(r) AS total
 """
 
 CASE_FLOW_QUERY = """
-MATCH (root) WHERE elementId(root) = $id
+MATCH (root) WHERE elementId(root) = $id OR root.entity_id = $id OR toString(root.person_id) = $id
+WITH root LIMIT 1
 MATCH path = (root)-[*1..2]-(target)
 WHERE any(label IN labels(target) WHERE toLower(label) CONTAINS 'case')
 WITH path
@@ -632,17 +767,48 @@ def json_safe(value):
     return str(value)
 
 
+def query_local_qwen_cypher_plan(question: str) -> dict | None:
+    """Query fine-tuned Qwen 3B Cypher model served in Colab or locally via LOCAL_CYPHER_MODEL_URL."""
+    if not LOCAL_CYPHER_MODEL_URL:
+        return None
+    endpoint = f"{LOCAL_CYPHER_MODEL_URL}/generate_plan"
+    req_body = json.dumps({"question": question}).encode("utf-8")
+    req = urllib.request.Request(
+        endpoint,
+        data=req_body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if isinstance(data, dict) and data.get("cypher"):
+                data["_model_used"] = "qwen2.5-coder-3b-lora"
+                data["_source"] = "fine-tuned-qwen3b"
+                return data
+    except Exception as exc:
+        logger.info("Fine-tuned Qwen Cypher model (%s) bypassed: %s", endpoint, exc)
+    return None
+
+
 def gemini_cypher_plan(question: str) -> dict:
-    """Ask Gemini for a schema-bounded, parameterized read-only query plan."""
+    """Ask fine-tuned Qwen model first, then Gemini for read-only Cypher query plan."""
     cached_plan = get_cached_cypher_plan(question)
     if cached_plan is not None:
         cached_plan["_cache_hit"] = True
         cached_plan["_examples_used"] = 0
         return cached_plan
+
+    # 1. PRIORITY 1: Fine-tuned Qwen 3B Cypher Model answers FIRST
+    local_plan = query_local_qwen_cypher_plan(question)
+    if local_plan is not None:
+        return local_plan
+
+    # 2. PRIORITY 2: Gemini API Fallback
     if not GEMINI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="Text-to-Cypher is not configured. Set GEMINI_API_KEY in BACKEND/.env and restart FastAPI.",
+            detail="Text-to-Cypher is not configured. Set GEMINI_API_KEY or LOCAL_CYPHER_MODEL_URL in BACKEND/.env.",
         )
 
     selected_examples = select_cypher_examples(question, limit=3)
@@ -660,10 +826,12 @@ SECURITY AND EVIDENCE RULES
 - If a question asks for an average, count, total, minimum, maximum, or comparison statistic, use result_type `aggregate` and return scalar values from Neo4j. If it asks to explore entities/relationships, use result_type `graph`. If the schema cannot answer it, use result_type `unsupported` with an empty cypher string.
 
 EXACT NODE SCHEMA (label: properties)
+- Affidavit: affidavit_id, person_entity_id, election_id, election_year, name, party_name, total_assets, liabilities, movable_assets, immovable_assets, criminal_case_count, myneta_id, source_url, election_source, election_verified
 - AssemblyConstituency: name, entity_id
 - Constituency: name, entity_id
 - CriminalCase: case_id, case_no, fir_no, status, court, charges_framed, ipc_sections
-- MLA: name, entity_id, age, party_name, myneta_id, criminal_case_count, total_assets, liabilities, movable_assets, immovable_assets, education, election, election_year, council_section, source_document_date
+- Election: election_id, type, year, state
+- MLA: name, entity_id, age, party_name, myneta_id, criminal_case_count, total_assets, liabilities, movable_assets, immovable_assets, education, election, election_year, council_section, source_document_date, person_key
 - Ministry: name, portfolio_type, source_document_date
 - MP: name, entity_id, age, party_name, criminal_case_count, total_assets, liabilities, movable_assets, immovable_assets, education, election, election_year
 - Party: name, entity_id
@@ -674,6 +842,9 @@ MLA nodes in this graph also carry the Person label; use :Person:MLA when the qu
 
 EXACT RELATIONSHIP DIRECTIONS
 - (Person)-[:FACES]->(CriminalCase)
+- (Person)-[:FILED]->(Affidavit)-[:FOR_ELECTION]->(Election)
+- (Person)-[:CONTESTED]->(Election)
+- (Affidavit)-[:DISCLOSES]->(CriminalCase)
 - (Person)-[:HOLDS_PORTFOLIO]->(Ministry); this relationship may have role, source_document, source_date properties.
 - (Person)-[:MEMBER_OF]->(Party)
 - (Person)-[:REPRESENTS]->(AssemblyConstituency) or (Constituency)
@@ -685,7 +856,7 @@ QUERY GUIDANCE
 - Generate exactly one read-only query starting with MATCH or OPTIONAL MATCH. Never use CREATE, MERGE, SET, REMOVE, DELETE, CALL, LOAD CSV, or multiple statements. WITH is allowed for aggregation. UNION is allowed only for aggregate queries that combine two scalar result sets; never use UNION in a graph/path query.
 - Keep paths to at most 5 relationship hops. Use a specific path pattern with labels and relationship types when possible; avoid unconstrained graph scans.
 - Write path syntax as `MATCH p=(a:Label)-[:RELATION]->(b:Label)`. Put property filters in WHERE (for example `WHERE toLower(a.name) CONTAINS toLower($name)`); do not put a node property map immediately before a relationship.
-- For questions about party membership, traverse MEMBER_OF. For cases, traverse FACES. For portfolios, traverse HOLDS_PORTFOLIO. For constituencies and states, traverse REPRESENTS then IN_STATE. For legal sections, traverse CriminalCase-[:UNDER]->Section.
+- For questions about party membership, traverse MEMBER_OF. For cases, traverse FACES. For portfolios, traverse HOLDS_PORTFOLIO. For constituencies and states, traverse REPRESENTS then IN_STATE. For legal sections, traverse CriminalCase-[:UNDER]->Section. For election-by-election declarations (assets, liabilities, party, case count), traverse Person-[:FILED]->Affidavit-[:FOR_ELECTION]->Election; each Affidavit is the record filed for that election.
 - Do not add a path branch unless the question requires it. For party/state/case statistics, use one MATCH pattern, aggregate with count(DISTINCT ...), and put filters in WHERE. For individual comparisons, return graph paths instead of averages.
 - Match names against the properties for that label: people can use name, first_name/last_name, myneta_name, or aliases; parties use name; cases use case_no, case_id, or fir_no; sections use code; states and constituencies use name. Use case-insensitive comparisons and Cypher parameters. Do not interpolate user text into query strings.
 - For a question specifically about elected MLAs, constrain the person with both labels `:Person:MLA`. For MPs, constrain `:Person:MP`. For a broader politician/person question, use `:Person`. Use MEMBER_OF for graph party links; only use party_name when the question asks for that stored property itself.
@@ -811,16 +982,31 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
     # to Gemini. Strip string literals first so user values are not mistaken for
     # labels, relationship types, or property names.
     schema_text = re.sub(r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"", "''", cypher)
-    allowed_labels = {"AssemblyConstituency", "Constituency", "CriminalCase", "Ministry", "MLA", "MP", "Party", "Person", "Section", "State"}
-    allowed_relationships = {"FACES", "HOLDS_PORTFOLIO", "IN_STATE", "MEMBER_OF", "REPRESENTS", "UNDER"}
+    allowed_labels = {
+        "Affidavit", "AffidavitChange", "AssemblyConstituency", "Chunk", "Constituency", "CriminalCase",
+        "Document", "Election", "ElectionRecord", "ElectionResult", "HistoricalMP", "Ministry", "MLA", "MP",
+        "Party", "PartyChange", "Person", "Section", "State",
+    }
+    allowed_relationships = {
+        "CONTESTED", "DISCLOSES", "FACES", "FILED", "FILED_AFFIDAVIT", "FOR_ELECTION", "FROM",
+        "HAS_AFFIDAVIT_CHANGE", "HAS_CHUNK", "HAS_ELECTION_RECORD", "HAS_PARTY_CHANGE",
+        "HOLDS_PORTFOLIO", "IN_STATE", "ISSUED_BY", "MEMBER_OF", "REPRESENTS",
+        "SIMILAR_CASE_PROFILE", "UNDER", "WON_ELECTION",
+    }
     allowed_properties = {
-        "age", "aliases", "case_id", "case_no", "charges_framed", "code", "council_section", "court",
-        "criminal_case_count", "data", "education", "election", "election_year", "entity_id", "fir_no",
-        "first_name", "gender", "id", "immovable_assets", "ipc_sections", "last_name", "liabilities",
-        "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "nSons", "party_name",
-        "portfolio_type", "profession", "relationships", "role", "source_date", "source_document",
-        "source_document_date", "special_responsibilities", "status", "style", "terms", "total_assets",
-        "visualisation", "nodes",
+        "affidavit_id", "age", "aliases", "case_id", "case_no", "case_type", "charges_framed", "code", "council_section", "court",
+        "convicted_cases", "criminal_case_count", "criminal_cases_count_from", "criminal_cases_count_to", "criminal_cases_count_change",
+        "data", "doc_id", "education", "election", "election_id", "election_source", "election_verified",
+        "election_year", "entity_id", "file", "fir_no", "first_name", "from_constituency", "from_party", "from_year",
+        "gender", "id", "immovable_assets", "in_defections", "ipc_sections", "jaccard_score",
+        "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
+        "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons",
+        "out_defections", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession",
+        "rank", "rank_order", "relationships", "role", "serious_criminal_cases", "shared_count", "shared_sections",
+        "source_date", "source_document", "source_document_date", "source_url", "special_responsibilities", "state",
+        "status", "style", "switcher_community", "switcher_pagerank", "terms", "title", "to_constituency", "to_party", "to_year",
+        "total_assets", "total_assets_change", "total_assets_from", "total_assets_percent_change", "total_assets_to",
+        "type", "visualisation", "nodes", "year",
     }
     node_patterns = re.findall(r"\(([^()]*)\)", schema_text)
     labels = {
@@ -905,8 +1091,8 @@ def schema_unsupported_reason(question: str) -> str | None:
         return "This graph stores politicians, their affidavits and their portfolios, but it does not record who holds the office of Prime Minister, so it cannot answer that."
     if re.search(r"\bpresident\s+of\s+india\b|\bwho\s+is\s+the\s+president\b|\bchief\s+minister\b|\bgovernor\s+of\b", lowered):
         return "This graph does not record the President, Chief Minister or Governor offices, so it cannot answer that."
-    if re.search(r"\bcapital\s+of\b|\bweather\b|\btemperature\b|\bforecast\b|\bwill\s+win\b|\bprediction\b|\bpredict\b", lowered):
-        return "That is a general-knowledge or live-world question, not something this affidavit and document graph stores, so it cannot answer it."
+    if re.search(r"\bcapital\s+of\b|\bweather\b|\btemperature\b|\bforecast\b|\bwill\s+win\b|\bprediction\b|\bpredict\b|\bnext\s+(?:election|time|term)\b|\bfuture\b", lowered):
+        return "That is a general-knowledge, live-world or future question, not something this affidavit and document graph stores, so it cannot answer it."
     if re.search(r"\b(?:aliens?|extraterrestrials?)\b", lowered):
         return "That is outside the scope of this graph, which covers Indian politicians, affidavits, criminal cases and government documents."
     if re.search(r"\b(?:wife|wives|husband|spouse|married to|children's mother|children's father)\b", lowered):
@@ -915,10 +1101,33 @@ def schema_unsupported_reason(question: str) -> str | None:
         return "The graph has no reliable current-office indicator or verified as-of date, so it cannot confirm who currently holds office."
     if re.search(r"\b(?:income|self[- ]?income|salary|earnings)\b", lowered):
         return "The graph does not store declared income, so it cannot answer income-based questions."
-    if "serious" in lowered and re.search(r"punishable|5\+|five years|5 years|\bcriminal\b|\bcharge|\bcase|\bcrime|\boffen[cs]e", lowered):
+    if re.search(r"\bconvicted\b|\bconviction\b|\bacquitted\b|\bacquittal\b", lowered) and not (_mp_scoped_question(question) and "convict" in lowered):
+        return "The graph stores the case status recorded in the affidavit (for example pending or charges framed), not court convictions or acquittals, so it cannot answer that."
+    if re.search(r"\bmost\s+corrupt\b|\bcorrupt\b", lowered):
+        return "The graph records affidavits and declared cases; it cannot rank politicians as 'most corrupt'."
+    if re.search(r"\bwaqf\b|\bvote\s+margin\b|\bvictory\s+margin\b|\bwinning\s+margin\b|\bhow\s+did\s+mps?\s+vote\b|\bwhat\s+did\s+mps?\s+vote\b", lowered):
+        return "The graph records candidate affidavits, declared assets, liabilities, criminal cases, and ministries; it does not store parliamentary division roll-call votes or election vote margins."
+    if re.search(r"\bchildren\b.*\b(?:abroad|studying|school|college)\b|\bstudying\s+abroad\b", lowered):
+        return "Family members' education and residence details are not stored, so this cannot be answered."
+    if re.search(r"(?:assets?|wealth)\s+(?:increased|grew|rose)\s+the\s+most|highest\s+(?:asset\s+)?growth|most\s+(?:asset\s+)?growth", lowered) and not _mp_scoped_question(question):
+        return "Full historical coverage is not loaded for every politician, so a 'most increased over time' comparison would be unreliable and is not provided."
+    if "serious" in lowered and re.search(r"punishable|5\+|five years|5 years|\bcriminal\b|\bcharge|\bcase|\bcrime|\boffen[cs]e", lowered) and not _mp_scoped_question(question):
         return "The graph does not store a seriousness classification for criminal cases, so it cannot answer questions about 'serious' cases."
-    if re.search(r"\b(?:women|woman|female|gender|male|men)\b", lowered):
-        return "The graph does not store gender for MLAs, so it cannot answer questions about male or female politicians."
+    if re.search(r"\b(?:women|woman|female|gender|male|men)\b", lowered) and not _mp_scoped_question(question):
+        try:
+            with driver.session(database=NEO4J_DATABASE, default_access_mode=READ_ACCESS) as session:
+                row = session.run(
+                    "MATCH (p:Person) RETURN count(p) AS total, count(p.gender) AS with_gender"
+                ).single()
+            return (
+                f"Gender is recorded for {row['with_gender']} of {row['total']} Person nodes (mostly MPs); "
+                f"it is not populated for MLAs, so a count of female MLAs would be misleading and is not provided."
+            )
+        except Exception:
+            return (
+                "Gender is recorded for only a subset of Person nodes (mostly MPs), not for MLAs, "
+                "so a count of female MLAs would be misleading."
+            )
     if "immovable" in lowered and "more than 3" in lowered and "state" in lowered:
         return "The graph stores aggregate immovable assets per person, not per-state asset declarations, so it cannot count assets across more than three states."
     return None
@@ -979,9 +1188,29 @@ def execute_cypher_plan(plan: dict):
     return rows, cypher, parameters
 
 
+_MLA_ONLY_TEMPLATES = {
+    "richest_mla", "top_mlas_by_assets", "mlas_in_state", "mlas_in_state_filtered",
+    "mla_election_roster", "mla_timeline", "mla_case_change", "mla_party_switchers",
+    "constituency_winner", "party_seats_in_state", "party_section_in_state",
+    "state_most_cases", "state_avg_assets", "states_ranked_by_avg_assets",
+    "party_sections", "largest_party_section", "mla_multi_constraint",
+}
+
+
+def _mp_scoped_question(question: str) -> bool:
+    """True when the question is about MPs and does not mention MLAs/assembly."""
+    q = question.casefold()
+    return bool(re.search(r"\bmps?\b|parliament|member of parliament", q)) and not bool(
+        re.search(r"\bmlas?\b|assembly", q)
+    )
+
+
 def select_and_run_plan(question: str):
     """Try a deterministic template first, then fall back to the Gemini planner."""
     template = plan_from_template(question)
+    if template and _mp_scoped_question(question) and template.get("template_id") in _MLA_ONLY_TEMPLATES:
+        logger.info("Discarding MLA-only template %s for an MP-scoped question", template.get("template_id"))
+        template = None
     if template:
         template.setdefault("_cache_hit", False)
         template.setdefault("_examples_used", 0)
@@ -1037,9 +1266,15 @@ def ask_graph(request: AskRequest):
     if len(question) < 3:
         raise HTTPException(status_code=400, detail="Ask a question with at least three characters.")
 
+    cached_resp = get_cached_ask_response(question)
+    if cached_resp:
+        cached_resp["query"] = question
+        cached_resp["plan_cache_hit"] = True
+        return cached_resp
+
     unsupported_reason = schema_unsupported_reason(question)
     if unsupported_reason:
-        return {
+        resp = {
             "query": question,
             "filter": "text2cypher",
             "result_type": "unsupported",
@@ -1050,6 +1285,8 @@ def ask_graph(request: AskRequest):
             "cypher": "", "row_count": 0,
             "plan_cache_hit": False, "prompt_examples_used": 0,
         }
+        set_cached_ask_response(question, resp)
+        return resp
 
     try:
         plan, rows, cypher, parameters = select_and_run_plan(question)
@@ -1110,7 +1347,7 @@ def ask_graph(request: AskRequest):
 
     if result_type == "aggregate":
         records = [json_safe(dict(row)) for row in rows]
-        return {
+        resp = {
             "query": question, "filter": "text2cypher", "result_type": "aggregate",
             "records": records, "nodes": [], "edges": [], "focus_ids": [],
             "connection_count": 0, "connection_offset": 0,
@@ -1120,6 +1357,9 @@ def ask_graph(request: AskRequest):
             "prompt_examples_used": int(plan.get("_examples_used", 0)),
             "gemini_usage_metadata": usage_metadata,
         }
+        if records:
+            set_cached_ask_response(question, resp)
+        return resp
 
     graph_nodes = {}
     graph_edges = {}
@@ -1145,7 +1385,7 @@ def ask_graph(request: AskRequest):
                 "properties": json_safe(dict(relationship)),
             }
 
-    return {
+    resp = {
         "query": question,
         "filter": "text2cypher",
         "result_type": "graph",
@@ -1163,6 +1403,131 @@ def ask_graph(request: AskRequest):
         "prompt_examples_used": int(plan.get("_examples_used", 0)),
         "gemini_usage_metadata": usage_metadata,
     }
+    if graph_nodes:
+        set_cached_ask_response(question, resp)
+    return resp
+
+
+@app.get("/api/mps/top")
+def get_top_mps(
+    limit: int = Query(default=100, ge=1, le=200),
+    sort_by: str = Query(default="assets"),
+):
+    """Return top MPs ranked by declared assets, criminal cases, terms, or name."""
+    order_map = {
+        "assets": "CASE WHEN m.total_assets IS NULL THEN 1 ELSE 0 END, toFloat(m.total_assets) DESC, coalesce(m.criminal_case_count, 0) DESC, name ASC",
+        "cases": "CASE WHEN m.criminal_case_count IS NULL THEN 1 ELSE 0 END, toInteger(m.criminal_case_count) DESC, coalesce(toFloat(m.total_assets), 0) DESC, name ASC",
+        "terms": "CASE WHEN m.terms IS NULL THEN 1 ELSE 0 END, toInteger(m.terms) DESC, coalesce(toFloat(m.total_assets), 0) DESC, name ASC",
+        "name": "name ASC",
+    }
+    order_clause = order_map.get(sort_by.strip().lower(), order_map["assets"])
+    cypher = f"""
+    MATCH (m:MP)
+    WHERE m.name IS NOT NULL AND trim(toString(m.name)) <> ''
+    OPTIONAL MATCH (m)-[:MEMBER_OF]->(p:Party)
+    OPTIONAL MATCH (m)-[:REPRESENTS]->(c:Constituency)
+    OPTIONAL MATCH (c)-[:IN_STATE|PART_OF]->(s:State)
+    OPTIONAL MATCH (m)-[:HOLDS_PORTFOLIO]->(min:Ministry)
+    WITH m,
+         coalesce(m.name, m.myneta_name, trim(coalesce(m.first_name, '') + ' ' + coalesce(m.last_name, ''))) AS name,
+         coalesce(m.party_name, head(collect(DISTINCT p.name))) AS party,
+         head(collect(DISTINCT c.name)) AS constituency,
+         coalesce(m.state, head(collect(DISTINCT s.name))) AS state,
+         collect(DISTINCT min.name) AS ministries
+    ORDER BY {order_clause}
+    LIMIT $limit
+    RETURN elementId(m) AS id,
+           m.entity_id AS entity_id,
+           name,
+           party,
+           constituency,
+           state,
+           ministries,
+           m.total_assets AS total_assets,
+           m.liabilities AS liabilities,
+           m.criminal_case_count AS criminal_case_count,
+           m.terms AS terms,
+           m.age AS age,
+           m.gender AS gender,
+           m.education AS education,
+           m.profession AS profession
+    """
+    try:
+        records, _, _ = driver.execute_query(
+            cypher,
+            parameters_={"limit": limit},
+            database_=NEO4J_DATABASE,
+            routing_="r",
+        )
+        mps = []
+        for idx, rec in enumerate(records, start=1):
+            d = json_safe(rec.data())
+            d["rank"] = idx
+            mps.append(d)
+        return {"mps": mps, "count": len(mps), "sort_by": sort_by}
+    except (Neo4jError, DriverError):
+        logger.exception("Neo4j top MPs query failed")
+        raise HTTPException(
+            status_code=503,
+            detail="The graph database query failed. Check the Neo4j connection.",
+        )
+
+
+@app.get("/api/graph/algorithms")
+def get_graph_algorithms(limit: int = Query(default=20, ge=1, le=50)):
+    """Return Graph Analytics (GDS) results: MP IPC case-profile Jaccard similarity & Party-switcher PageRank / Community Detection."""
+    try:
+        sim_records, _, _ = driver.execute_query(
+            """
+            MATCH (m1:MP)-[r:SIMILAR_CASE_PROFILE]->(m2:MP)
+            WHERE m1.entity_id < m2.entity_id
+            RETURN m1.entity_id AS mp_1_id,
+                   m1.name AS mp_1,
+                   coalesce(m1.party_name, '—') AS party_1,
+                   m2.entity_id AS mp_2_id,
+                   m2.name AS mp_2,
+                   coalesce(m2.party_name, '—') AS party_2,
+                   r.jaccard_score AS jaccard_similarity,
+                   r.shared_count AS shared_section_count,
+                   r.shared_sections AS shared_ipc_sections
+            ORDER BY r.jaccard_score DESC, r.shared_count DESC
+            LIMIT $limit
+            """,
+            parameters_={"limit": limit},
+            database_=NEO4J_DATABASE,
+            routing_="r",
+        )
+        comm_records, _, _ = driver.execute_query(
+            """
+            MATCH (pa:Party)
+            WHERE pa.switcher_pagerank IS NOT NULL
+            RETURN pa.name AS party,
+                   pa.switcher_pagerank AS pagerank_score,
+                   pa.in_defections AS incoming_switches,
+                   pa.out_defections AS outgoing_switches,
+                   pa.net_defection_gain AS net_migration,
+                   pa.switcher_community AS community_cluster
+            ORDER BY pa.switcher_pagerank DESC
+            LIMIT $limit
+            """,
+            parameters_={"limit": limit},
+            database_=NEO4J_DATABASE,
+            routing_="r",
+        )
+        return {
+            "algorithms": [
+                "Node Similarity (Jaccard over IPC Section Case Profiles)",
+                "PageRank Centrality & Label Propagation Community Detection (Party-Switching Network)",
+            ],
+            "case_profile_similarity": [json_safe(r.data()) for r in sim_records],
+            "party_switcher_communities": [json_safe(r.data()) for r in comm_records],
+        }
+    except (Neo4jError, DriverError):
+        logger.exception("Neo4j graph algorithms query failed")
+        raise HTTPException(
+            status_code=503,
+            detail="The graph database query failed. Check the Neo4j connection.",
+        )
 
 
 @app.get("/api/nodes/{node_id}")

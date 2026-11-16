@@ -37,5 +37,7 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Large media / pdfs
+# Large media / archives
 *.pdf
+*.zip
+*.zip.*

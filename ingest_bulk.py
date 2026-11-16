@@ -1,26 +1,31 @@
-"""GraphRAG ingester for arbitrary PDFs into Instance02 (Ministry of Education board).
+"""Unified GraphRAG ingester for Ministry Annual Reports into Instance02.
+
+Supports all 8 major ministries across multiple fiscal years (e.g. 2021-22,
+2022-23, 2023-24, 2024-25). Parses with parser_lite, chunks with page- and
+heading-aware chunking_utils, embeds with Qwen/Qwen3-Embedding-0.6B (1024-dim),
+and links consecutive fiscal years via (:Document)-[:NEXT_YEAR]->(:Document).
 
 Usage:
-  python ingest_bulk.py "C:\path\to\folder" --ministry Education
-  python ingest_bulk.py "C:\path\to\file.pdf" --dry-run
-
-It will:
-- parse with parser_lite (title inference, markdown if possible)
-- classify doc type
-- map to existing :Ministry (prefers Education; fuzzy)
-- chunk (overlapping)
-- embed with TF-IDF (local) + vector index
-- create :Document/:Chunk nodes, link to :Ministry/:Person via board
-- deduplicate by file sha1
+  py -3.14 ingest_bulk.py "C:\\path\\to\\report.pdf" --ministry "Home Affairs" --year 2023-24
+  py -3.14 ingest_bulk.py "C:\\path\\to\\folder" --ministry "Education" --dry-run
 """
-import os, re, sys, json, hashlib, textwrap, math, argparse
+import argparse
+import hashlib
+import os
+import re
 from pathlib import Path
-from collections import Counter
 
-from dotenv import load_dotenv, find_dotenv
+try:
+    import truststore
+    truststore.inject_into_ssl()
+except Exception:
+    pass
+
+from dotenv import find_dotenv, load_dotenv
 from neo4j import GraphDatabase
-import fitz
 
+from chunking_utils import chunk_pages
+from embeddings import DIM, embed_texts
 from parser_lite import Parser
 
 HERE = Path(__file__).resolve().parent
@@ -32,12 +37,43 @@ NEO4J_USERNAME = os.getenv("NEO4J_USERNAME1") or os.getenv("NEO4J_USERNAME")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD1") or os.getenv("NEO4J_PASSWORD")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE1") or None
 
-MAX_CHARS = 1100
-OVERLAP = 1
-MAX_FEATURES = 2048
-BATCH = 50
+VECTOR_INDEX = "qwen_chunk_embeddings"
+FULLTEXT_INDEX = "chunk_fulltext"
+BATCH = 100
+CHUNKER_VERSION = 3
 
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USERNAME, NEO4J_PASSWORD), max_transaction_retry_time=300)
+MAJOR_MINISTRIES = {
+    "education": "Education",
+    "moe": "Education",
+    "home": "Home Affairs",
+    "home affairs": "Home Affairs",
+    "mha": "Home Affairs",
+    "finance": "Finance",
+    "mof": "Finance",
+    "health": "Health & Family Welfare",
+    "health & family welfare": "Health & Family Welfare",
+    "mohfw": "Health & Family Welfare",
+    "defence": "Defence",
+    "defense": "Defence",
+    "mod": "Defence",
+    "rural": "Rural Development",
+    "rural development": "Rural Development",
+    "mord": "Rural Development",
+    "road": "Road Transport & Highways",
+    "road transport": "Road Transport & Highways",
+    "road transport & highways": "Road Transport & Highways",
+    "morth": "Road Transport & Highways",
+    "agriculture": "Agriculture & Farmers Welfare",
+    "agriculture & farmers welfare": "Agriculture & Farmers Welfare",
+    "moafw": "Agriculture & Farmers Welfare",
+}
+
+driver = GraphDatabase.driver(
+    NEO4J_URI,
+    auth=(NEO4J_USERNAME, NEO4J_PASSWORD),
+    max_transaction_retry_time=300,
+    notifications_min_severity="OFF",
+)
 parser = Parser()
 
 
@@ -45,180 +81,233 @@ def sha1(p):
     return hashlib.sha1(Path(p).read_bytes()).hexdigest()[:12]
 
 
-def classify(title, name):
-    t = (title + ' ' + name).lower()
-    if 'annual report' in t:
-        return 'annual_report'
-    if 'press release' in t or t.startswith('pr-') or 'pib' in t:
-        return 'press_release'
-    if 'press note' in t:
-        return 'press_note'
-    if 'budget' in t:
-        return 'budget'
-    if 'notification' in t:
-        return 'notification'
-    if 'order' in t or 'circular' in t:
-        return 'order'
-    if 'parliament' in t or 'rajya sabha' in t or 'lok sabha' in t:
-        return 'parliament'
-    if 'scheme' in t:
-        return 'scheme'
-    return 'document'
+def infer_fy(title: str, filename: str, explicit_year: str | None = None) -> str:
+    if explicit_year and explicit_year.strip():
+        return explicit_year.strip()
+    combined = f"{title} {filename}"
+    m = re.search(r"\b(20\d{2})\s*[-–/]\s*(\d{2,4})\b", combined)
+    if m:
+        y1, y2 = m.group(1), m.group(2)
+        return f"{y1}-{y2[-2:]}"
+    m2 = re.search(r"\b(20\d{2})\b", combined)
+    if m2:
+        y1 = int(m2.group(1))
+        return f"{y1}-{str(y1 + 1)[-2:]}"
+    return "2023-24"
 
 
-def map_ministry(title, name, hint=None):
-    with driver.session(database=NEO4J_DATABASE) as s:
-        minis = s.run('MATCH (m:Ministry) RETURN m.name AS name, m.fullName AS fullName, m.aliases AS aliases').data()
+def canonical_ministry(title: str, filename: str, hint: str | None = None) -> str:
     if hint:
-        for m in minis:
-            if m['name'].lower() == hint.lower():
-                return m
-    t = (title + ' ' + name).lower()
-    # prefer education
-    for m in minis:
-        cand = [m['name'].lower()] + ([a.lower() for a in (m.get('aliases') or [])])
-        for c in cand:
-            if 'education' in c and 'education' in t:
-                return m
-            if c and c in t and len(c) > 4:
-                return m
-    # direct
-    for m in minis:
-        if m['name'].lower() in t:
-            return m
-    return None
+        norm = hint.strip().lower()
+        if norm in MAJOR_MINISTRIES:
+            return MAJOR_MINISTRIES[norm]
+        return hint.strip()
+    t = f"{title} {filename}".lower()
+    for key, canon in MAJOR_MINISTRIES.items():
+        if len(key) >= 4 and key in t:
+            return canon
+    return "Education"
 
 
-def tokenize(text):
-    return re.findall(r"[A-Za-z0-9\u0900-\u097f]+", text.lower())
+def classify(title, name):
+    t = (title + " " + name).lower()
+    if "annual report" in t:
+        return "annual_report"
+    if "press release" in t or t.startswith("pr-") or "pib" in t:
+        return "press_release"
+    if "budget" in t or "demand" in t:
+        return "budget"
+    if "notification" in t:
+        return "notification"
+    if "scheme" in t:
+        return "scheme"
+    return "annual_report"
 
 
-def build_vocab(texts):
-    df = Counter()
-    for t in texts:
-        for tok in set(tokenize(t)):
-            df[tok] += 1
-    N = len(texts)
-    terms = [tok for tok, c in df.items() if 2 <= c <= 0.9 * N]
-    terms.sort(key=lambda x: df[x], reverse=True)
-    terms = terms[:MAX_FEATURES]
-    vocab = {tok: i for i, tok in enumerate(terms)}
-    idf = [math.log((N + 1) / (df[terms[i]] + 1)) + 1.0 for i in range(len(terms))]
-    return vocab, idf
+def ensure_schema():
+    with driver.session(database=NEO4J_DATABASE) as s:
+        s.run("CREATE CONSTRAINT doc_id IF NOT EXISTS FOR (d:Document) REQUIRE d.id IS UNIQUE").consume()
+        s.run("CREATE CONSTRAINT chunk_id IF NOT EXISTS FOR (c:Chunk) REQUIRE c.id IS UNIQUE").consume()
+        s.run(
+            f"""CREATE VECTOR INDEX {VECTOR_INDEX} IF NOT EXISTS
+                FOR (c:Chunk) ON (c.embedding)
+                OPTIONS {{indexConfig: {{`vector.dimensions`: {DIM}, `vector.similarity_function`: 'cosine'}}}}"""
+        ).consume()
+        s.run(f"CREATE FULLTEXT INDEX {FULLTEXT_INDEX} IF NOT EXISTS FOR (c:Chunk) ON EACH [c.text]").consume()
 
 
-def vectorize(text, vocab, idf):
-    v = [0.0] * len(vocab)
-    tf = Counter(tokenize(text))
-    for tok, c in tf.items():
-        if tok in vocab:
-            v[vocab[tok]] = c * idf[vocab[tok]]
-    n = math.sqrt(sum(x * x for x in v)) or 1.0
-    return [x / n for x in v]
-
-
-def make_chunks(text):
-    # split by paragraphs/markdown headers
-    paras = re.split(r'\n\s*\n|\n(?=#{1,6}\s)', text)
-    out, buf, bp = [], [], 1
-    for p in paras:
-        p = re.sub(r'\s+', ' ', p).strip()
-        if not p:
-            continue
-        pieces = textwrap.wrap(p, MAX_CHARS) if len(p) > MAX_CHARS else [p]
-        for piece in pieces:
-            if buf and sum(map(len, buf)) + len(piece) > MAX_CHARS:
-                out.append((bp, " ".join(buf)))
-                buf, bp = buf[-OVERLAP:], bp
-            if not buf:
-                bp = bp
-            buf.append(piece)
-    if buf:
-        out.append((bp, " ".join(buf)))
-    return out
-
-
-def ingest_one(pdf_path, ministry_hint=None, dry_run=False):
+def ingest_one(pdf_path, ministry_hint=None, year_hint=None, dry_run=False, rechunk=False):
     res = parser.parse(pdf_path)
     doc_id = sha1(pdf_path)
-    dtype = classify(res['title'], res['file'])
-    m = map_ministry(res['title'], res['file'], ministry_hint)
+    dtype = classify(res["title"], res["file"])
+    ministry_name = canonical_ministry(res["title"], res["file"], ministry_hint)
+    fy = infer_fy(res["title"], res["file"], year_hint)
+
     print(f"\nFILE: {res['file']}")
     print(f"TITLE: {res['title']}")
-    print(f"TYPE: {dtype} | MINISTRY: {m['name'] if m else 'UNMAPPED'} | MODE: {res['mode']} | PAGES?: {res['pages']}")
+    print(f"MINISTRY: {ministry_name} | FY: {fy} | TYPE: {dtype} | MODE: {res['mode']} | PAGES: {res['pages']}")
 
-    chunks = make_chunks(res['text'])
+    chunks = chunk_pages(
+        res.get("page_texts") or [(1, res["text"])],
+        max_tokens=340,
+        overlap_tokens=50,
+        ministry=ministry_name,
+        year=fy,
+        doc_title=res["title"],
+    )
     print(f"CHUNKS: {len(chunks)}")
     if dry_run:
-        print(res['text'][:400])
+        for c in chunks[:3]:
+            print(f"  [{c['breadcrumb']}] ({c['token_count']} tokens)\n    {c['text'][:180]}")
         return
 
+    ensure_schema()
+
     with driver.session(database=NEO4J_DATABASE) as s:
-        n = s.run("MATCH (d:Document {id:$id}) RETURN count(d) AS c", id=doc_id).single()['c']
-        if n:
-            print('ALREADY INGESTED, SKIPPING')
+        existing = s.run(
+            """
+            MATCH (d:Document {id:$id})
+            OPTIONAL MATCH (d)-[:HAS_CHUNK]->(c:Chunk)
+            RETURN count(DISTINCT d) AS docs, count(c) AS chunks
+            """,
+            id=doc_id,
+        ).single()
+        if existing["docs"] and existing["chunks"] and not rechunk:
+            print(f"ALREADY INGESTED ({existing['chunks']} chunks), SKIPPING (use --rechunk to overwrite)")
             return
 
-    texts = [t for _, t in chunks]
-    vocab, idf = build_vocab(texts)  # local to this batch? we'll use global? easier: build combined? but keep simple
-    # use existing global vocab if exists? else build
-    # better: build from all docs we ingest in this run? but run is per call; just build from this doc's corpus is weak
-    # load global
-    try:
-        gv = json.loads(Path(r"C:\Users\aarya\OneDrive\Documents\Default Project\moe24-25_vocab_local.json").read_text(encoding='utf-8'))
-        vocab, idf = gv['vocab'], gv['idf']
-        print('USING GLOBAL VOCAB')
-    except Exception:
-        vocab, idf = build_vocab(texts)
-        print('BUILT VOCAB FOR THIS DOC')
+    texts = [c["text"] for c in chunks]
+    print(f"Embedding {len(texts)} chunks with Qwen3-Embedding-0.6B ({DIM}-dim)...")
+    vecs = embed_texts(texts, batch=16, progress=True)
 
     rows = []
-    for i, (pg, t) in enumerate(chunks):
-        rows.append({'id': f"{doc_id}_{i}", 'i': i, 'page': pg, 'text': t, 'vec': vectorize(t, vocab, idf)})
+    for i, (c, vec) in enumerate(zip(chunks, vecs)):
+        rows.append({
+            "id": f"{doc_id}_{i}",
+            "idx": i,
+            "page": c["page_start"],
+            "page_start": c["page_start"],
+            "page_end": c["page_end"],
+            "headings": c["headings"],
+            "section": c.get("section"),
+            "breadcrumb": c.get("breadcrumb"),
+            "token_count": c["token_count"],
+            "year": fy,
+            "ministry": ministry_name,
+            "text": c["text"],
+            "embedding": vec,
+        })
 
     with driver.session(database=NEO4J_DATABASE) as s:
-        s.run("""MERGE (d:Document {id:$id})
-                SET d.file=$file, d.title=$title, d.path=$path, d.doc_type=$dtype, d.ministry_hint=$mh""",
-              id=doc_id, file=res['file'], title=res['title'], path=res['path'], dtype=dtype, mh=m['name'] if m else None).consume()
-        if m:
-            s.run("""MATCH (d:Document {id:$id}), (m:Ministry {name:$mn})
-                    SET m.fullName = coalesce(m.fullName, m.name), m.aliases = coalesce(m.aliases, [])
-                    MERGE (d)-[:ABOUT_MINISTRY]->(m)
-                    MERGE (d)-[:PUBLISHED_BY]->(m)
-                    WITH d,m MATCH (p:Person)-[:HOLDS]->(m)
-                    MERGE (d)-[:CONCERNS_MINISTER]->(p)""", id=doc_id, mn=m['name']).consume()
+        s.run(
+            """
+            MERGE (d:Document {id:$id})
+            SET d.file=$file, d.title=$title, d.path=$path, d.doc_type=$dtype,
+                d.ministry=$ministry, d.year=$year, d.pages=$pages,
+                d.chunker_version=$chunker_version
+            MERGE (m:Ministry {name:$ministry})
+            ON CREATE SET m.fullName = 'Ministry of ' + $ministry
+            MERGE (d)-[:ABOUT_MINISTRY]->(m)
+            MERGE (d)-[:PUBLISHED_BY]->(m)
+            WITH d, m
+            OPTIONAL MATCH (p:Person)-[:HOLDS]->(m)
+            FOREACH (_ IN CASE WHEN p IS NOT NULL THEN [1] ELSE [] END |
+                MERGE (d)-[:CONCERNS_MINISTER]->(p)
+            )
+            """,
+            id=doc_id,
+            file=res["file"],
+            title=res["title"],
+            path=res["path"],
+            dtype=dtype,
+            ministry=ministry_name,
+            year=fy,
+            pages=res["pages"],
+            chunker_version=CHUNKER_VERSION,
+        ).consume()
+
         for i in range(0, len(rows), BATCH):
             b = rows[i:i + BATCH]
-            s.execute_write(lambda tx, b=b: tx.run("""
-                UNWUNWIND $rows AS r
-                MATCH (d:Document {id:$doc})
-                MERGE (c:Chunk {id:r.id})
-                SET c.text=r.text, c.page=r.page, c.idx=r.i
-                WITH c,r,d
-                CALL db.create.setNodeVectorProperty(c, 'embedding', r.vec)
-                MERGE (d)-[:HAS_CHUNK]->(c)
-            """, rows=b, doc=doc_id).consume())
-        s.run("""MATCH (d:Document {id:$doc})-[:HAS_CHUNK]->(a), (d)-[:HAS_CHUNK]->(b)
-                WHERE b.idx = a.idx + 1
-                MERGE (a)-[:NEXT]->(b)""", doc=doc_id).consume()
-    print(f'INGESTED: {len(rows)} chunks')
+            s.execute_write(
+                lambda tx, b=b: tx.run(
+                    """
+                    UNWIND $rows AS r
+                    MATCH (d:Document {id:$doc})
+                    MERGE (c:Chunk {id:r.id})
+                    SET c.text=r.text, c.page=r.page, c.page_start=r.page_start,
+                        c.page_end=r.page_end, c.headings=r.headings,
+                        c.section=r.section, c.breadcrumb=r.breadcrumb,
+                        c.token_count=r.token_count, c.year=r.year,
+                        c.ministry=r.ministry, c.chunk_version=$version, c.idx=r.i
+                    WITH c, r, d
+                    CALL db.create.setNodeVectorProperty(c, 'embedding', r.embedding)
+                    MERGE (d)-[:HAS_CHUNK]->(c)
+                    """,
+                    rows=b,
+                    doc=doc_id,
+                    version=CHUNKER_VERSION,
+                ).consume()
+            )
+
+        s.run(
+            """
+            MATCH (d:Document {id:$doc})-[:HAS_CHUNK]->(a:Chunk),
+                  (d)-[:HAS_CHUNK]->(b:Chunk)
+            WHERE b.idx = a.idx + 1
+            MERGE (a)-[:NEXT]->(b)
+            """,
+            doc=doc_id,
+        ).consume()
+
+        # Link consecutive fiscal years of the same ministry via [:NEXT_YEAR]
+        s.run(
+            """
+            MATCH (d1:Document {ministry:$ministry}), (d2:Document {ministry:$ministry})
+            WHERE d1.year < d2.year AND d1.id <> d2.id
+            MERGE (d1)-[:NEXT_YEAR]->(d2)
+            """,
+            ministry=ministry_name,
+        ).consume()
+
+        if rechunk:
+            s.run(
+                """
+                MATCH (d:Document {id:$doc})-[:HAS_CHUNK]->(c:Chunk)
+                WHERE coalesce(c.chunk_version, 0) <> $version OR c.idx >= $new_count
+                DETACH DELETE c
+                """,
+                doc=doc_id,
+                version=CHUNKER_VERSION,
+                new_count=len(rows),
+            ).consume()
+
+    print(f"INGESTED: {len(rows)} chunks for {ministry_name} ({fy})")
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('target')
-    ap.add_argument('--ministry', default='Education')
-    ap.add_argument('--dry-run', action='store_true')
+    ap = argparse.ArgumentParser(description="Ingest Ministry Annual Report PDFs into Neo4j Instance02.")
+    ap.add_argument("target", help="PDF file or folder path")
+    ap.add_argument("--ministry", default=None, help="Ministry name (e.g. 'Education', 'Home Affairs', 'Finance')")
+    ap.add_argument("--year", default=None, help="Fiscal year (e.g. '2023-24')")
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--rechunk", action="store_true", help="Replace existing chunks for each PDF")
     args = ap.parse_args()
+
     p = Path(args.target)
     if p.is_dir():
-        for f in sorted(p.glob('*.pdf')):
-            ingest_one(f, args.ministry, args.dry_run)
+        seen = set()
+        for f in sorted(p.glob("*.pdf")):
+            file_id = sha1(f)
+            if file_id in seen:
+                print(f"DUPLICATE CONTENT, SKIPPING: {f.name}")
+                continue
+            seen.add(file_id)
+            ingest_one(f, args.ministry, args.year, args.dry_run, args.rechunk)
     elif p.is_file():
-        ingest_one(p, args.ministry, args.dry_run)
+        ingest_one(p, args.ministry, args.year, args.dry_run, args.rechunk)
     else:
-        print('not found')
+        print(f"Target not found: {p}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
