@@ -3,383 +3,794 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BHARAT PRAMAN // BUDGET &amp; MINISTRY AUDIT DOSSIER</title>
+  <title>Bharat Praman — Budget &amp; Ministry Audit Dossier</title>
   <script>
     (function () {
       if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
     })();
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Retro 70s Two-Color Theme (Crisp White + Light Brownish-Yellow)
+       Primary Canvas: #FAF6EE (warm eggshell white) & #FFFFFF (pure crisp white surfaces)
+       Primary Accent: #B7791F (retro golden brownish-yellow / warm ochre)
+       Soft Tints:     #FBF4E6 / #F5E8D0 (warm cream & light brownish-yellow wash)
+       Text & Borders: #2A1D0F (deep warm espresso text for crystal-clear readability)
+    */
     :root {
       color-scheme: light;
-      --bg: #ffffff;
-      --fg: #000000;
-      --muted: #525252;
-      --surface-alt: #f4f4f4;
-      --border: #000000;
-      --accent: #ff0000;
-      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      --font-mono: Consolas, Monaco, "Courier New", monospace;
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --surface-soft: #FBF4E6;
+      --surface-tint: #F5E8D0;
+      --navy: #B7791F;
+      --fg: #2A1D0F;
+      --muted: #6B5238;
+      --border: #ECDBC0;
+      --border-strong: #D9BD8F;
+      --accent: #B7791F;
+      --accent-hover: #9E6414;
+      --accent-fg: #FFFFFF;
+      --accent-soft: #FDF6E8;
+      --danger: #B83A1D;
+      --danger-soft: #FBECE8;
+      --shadow-sm: 0 1px 3px rgba(60, 40, 15, 0.06);
+      --shadow-md: 0 8px 24px -4px rgba(60, 40, 15, 0.09), 0 2px 6px -1px rgba(60, 40, 15, 0.04);
+      --font-sans: "Plus Jakarta Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      --font-retro: "Fraunces", "Cooper Black", "Bookman Old Style", "Georgia", serif;
+      --font-mono: ui-monospace, SFMono-Regular, "Courier New", monospace;
+      --card-radius: 16px;
+      --btn-radius: 12px;
     }
+
     html.dark {
       color-scheme: dark;
-      --bg: #000000;
-      --fg: #ffffff;
-      --muted: #a3a3a3;
-      --surface-alt: #111111;
-      --border: #ffffff;
-      --accent: #ff0000;
+      --bg: #16120C;
+      --surface: #221A11;
+      --surface-soft: #2D2317;
+      --surface-tint: #3A2C1D;
+      --navy: #19130B;
+      --fg: #FAF5EB;
+      --muted: #BAA993;
+      --border: #3D2E1E;
+      --border-strong: #57412A;
+      --accent: #D8962E;
+      --accent-hover: #E5AA45;
+      --accent-fg: #16120C;
+      --accent-soft: rgba(216, 150, 46, 0.15);
+      --danger: #E06243;
+      --danger-soft: rgba(224, 98, 67, 0.15);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 10px 28px -4px rgba(0, 0, 0, 0.6);
     }
-    * { box-sizing: border-box; border-radius: 0 !important; box-shadow: none !important; transition: none !important; }
+
+    * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.5 var(--font-sans); }
-    a { color: var(--accent); text-decoration: underline; }
-    a:hover { background: var(--accent); color: #ffffff; text-decoration: none; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14.5px/1.6 var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; color: var(--accent-hover); }
     .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
     .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
-    .alert { color: var(--accent); font-weight: 700; }
+    .alert { color: var(--danger); font-weight: 700; }
 
+    /* Retro 70s Masthead Topbar */
     .topbar {
-      border-bottom: 2px solid var(--border);
-      background: var(--bg);
-      padding: 8px 16px;
+      background: var(--navy);
+      color: #ffffff;
+      border-bottom: 2.5px solid var(--accent-hover);
+      box-shadow: 0 2px 10px rgba(60, 40, 15, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .topbar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 20px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      font: 700 11px/1.2 var(--font-mono);
-      text-transform: uppercase;
+      gap: 12px;
     }
-    .topbar-left { display: flex; align-items: center; gap: 10px; }
-    .topbar-tag { background: var(--fg); color: var(--bg); padding: 3px 6px; }
-    .nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-    .nav a, .nav button {
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--accent);
-      padding: 4px 8px;
-      font: 700 11px/1.2 var(--font-mono);
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-retro);
+      font-weight: 800;
+      font-size: 20px;
+      color: #ffffff;
       text-decoration: none;
-      text-transform: uppercase;
-      cursor: pointer;
+      letter-spacing: -0.02em;
     }
-    .nav button { color: var(--fg); }
-    .nav a:hover, .nav button:hover { background: var(--fg); color: var(--bg); }
-    .nav a.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .brand:hover { text-decoration: none; color: #fff6e5; }
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      backdrop-filter: blur(4px);
+    }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav a, .nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #fff2db;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font: 600 13px/1.2 var(--font-sans);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav a:hover, .nav button:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .nav a.active {
+      background: #ffffff;
+      color: var(--navy);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+    html.dark .nav a.active {
+      background: var(--accent);
+      color: #16120C;
+    }
 
-    main { max-width: 1440px; margin: 0 auto; padding: 14px 16px 48px; }
+    /* Watermelon UI SwitchMode Component */
+    .nav button.switch-mode-btn,
+    .switch-mode-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      width: 58px;
+      height: 28px;
+      border-radius: 999px;
+      border: 2px solid #D8D6E0;
+      background: transparent;
+      padding: 0;
+      margin: 0 0 0 4px;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      overflow: visible;
+      transition: border-color 0.25s ease, transform 0.18s cubic-bezier(0.34, 1.35, 0.64, 1);
+      vertical-align: middle;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      line-height: normal;
+    }
+    .nav button.switch-mode-btn:hover,
+    .switch-mode-btn:hover {
+      background: transparent !important;
+      transform: scale(1.05);
+    }
+    .nav button.switch-mode-btn:active,
+    .switch-mode-btn:active {
+      transform: scale(0.96);
+    }
+    html.dark .nav button.switch-mode-btn,
+    html.dark .switch-mode-btn,
+    .switch-mode-btn.is-dark {
+      border-color: #4C4C50;
+    }
+
+    /* Track */
+    .switch-mode-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background-color: #FFFFFF;
+      transition: background-color 0.35s ease;
+      z-index: 1;
+    }
+    html.dark .switch-mode-track,
+    .switch-mode-btn.is-dark .switch-mode-track {
+      background-color: #0B0B0B;
+    }
+
+    /* Sliding Knob with Spring Physics (stiffness: 260, damping: 20) */
+    .switch-mode-knob {
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #D8D6E0;
+      background-color: #F3F2F7;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      z-index: 3;
+      pointer-events: none;
+      transition: transform 0.36s cubic-bezier(0.34, 1.35, 0.64, 1),
+                  background-color 0.3s ease,
+                  border-color 0.3s ease;
+      transform: translateX(0);
+      box-sizing: border-box;
+    }
+    html.dark .switch-mode-knob,
+    .switch-mode-btn.is-dark .switch-mode-knob {
+      transform: translateX(30px);
+      background-color: #2A2A2E;
+      border-color: #4C4C50;
+      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Sun & Moon Icon Slots */
+    .switch-mode-icon {
+      position: relative;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.34, 1.35, 0.64, 1),
+                  color 0.25s ease;
+      box-sizing: border-box;
+    }
+
+    /* Sun on Left */
+    .switch-mode-sun {
+      transform: rotate(0deg);
+      color: #686771;
+    }
+    .switch-mode-sun .sun-solid { display: block; }
+    .switch-mode-sun .sun-outline { display: none; }
+
+    html.dark .switch-mode-sun,
+    .switch-mode-btn.is-dark .switch-mode-sun {
+      transform: rotate(45deg);
+      color: #8A8A8F;
+    }
+    html.dark .switch-mode-sun .sun-solid,
+    .switch-mode-btn.is-dark .switch-mode-sun .sun-solid { display: none; }
+    html.dark .switch-mode-sun .sun-outline,
+    .switch-mode-btn.is-dark .switch-mode-sun .sun-outline { display: block; }
+
+    /* Moon on Right */
+    .switch-mode-moon {
+      transform: rotate(15deg);
+      color: #ABABB4;
+    }
+    .switch-mode-moon .moon-solid { display: none; }
+    .switch-mode-moon .moon-outline { display: block; }
+
+    html.dark .switch-mode-moon,
+    .switch-mode-btn.is-dark .switch-mode-moon {
+      transform: rotate(0deg);
+      color: #F4F4FB;
+    }
+    html.dark .switch-mode-moon .moon-solid,
+    .switch-mode-btn.is-dark .switch-mode-moon .moon-solid { display: block; }
+    html.dark .switch-mode-moon .moon-outline,
+    .switch-mode-btn.is-dark .switch-mode-moon .moon-outline { display: none; }
+
+    main { max-width: 1440px; margin: 0 auto; padding: 24px 20px 64px; }
+
     .page-title-row {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: baseline;
-      gap: 10px;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 8px;
-      margin-bottom: 12px;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 16px;
     }
-    h1 { margin: 0; font: 700 22px/1.15 var(--font-sans); text-transform: uppercase; letter-spacing: -0.01em; }
+    h1 {
+      margin: 0 0 6px;
+      font-family: var(--font-retro);
+      font-weight: 800;
+      font-size: clamp(26px, 3.5vw, 36px);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      color: var(--fg);
+    }
 
-    /* Audit Query Control Panel */
-    .panel { border: 2px solid var(--border); margin-bottom: 14px; background: var(--bg); }
+    /* Audit Query Control Panel matching 70s retro search-card */
+    .panel {
+      border: 1.5px solid var(--border-strong);
+      border-radius: 18px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .panel:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--surface-tint), var(--shadow-md);
+    }
     .panel-head {
-      background: var(--fg);
-      color: var(--bg);
-      padding: 6px 10px;
+      background: var(--surface-soft);
+      color: var(--fg);
+      border-bottom: 1.5px solid var(--border);
+      padding: 12px 18px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      font: 700 11px/1.2 var(--font-mono);
-      text-transform: uppercase;
+      font: 700 13px/1.2 var(--font-sans);
+      letter-spacing: 0.01em;
     }
     .ctrl-row {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 4px;
-      padding: 7px 10px;
+      gap: 8px;
+      padding: 11px 18px;
       border-bottom: 1px solid var(--border);
-      background: var(--bg);
+      background: var(--surface);
     }
     .ctrl-label {
-      font: 700 10.5px/1.2 var(--font-mono);
-      text-transform: uppercase;
+      font: 700 11.5px/1.2 var(--font-sans);
       color: var(--muted);
-      min-width: 105px;
-    }
-    .mode, .detail-btn {
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--fg);
-      padding: 4px 8px;
-      font: 700 10.5px/1.2 var(--font-mono);
+      min-width: 110px;
       text-transform: uppercase;
-      cursor: pointer;
+      letter-spacing: 0.04em;
     }
-    .mode:hover, .detail-btn:hover { background: var(--surface-alt); }
-    .mode.active, .detail-btn.active { background: var(--fg); color: var(--bg); }
 
-    .askbox { padding: 10px; }
+    /* 70s Retro Capsule Pills */
+    .mode, .detail-btn {
+      border: 1.5px solid var(--border-strong);
+      background: var(--surface-soft);
+      color: var(--fg);
+      padding: 6px 14px;
+      font: 600 12.5px/1.2 var(--font-sans);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .mode:hover, .detail-btn:hover {
+      background: var(--surface-tint);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .mode.active, .detail-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgba(183, 121, 31, 0.3);
+    }
+
+    .askbox { padding: 18px; background: var(--surface); }
     textarea {
       width: 100%;
-      min-height: 76px;
+      min-height: 92px;
       resize: vertical;
-      padding: 8px 10px;
-      border: 1px solid var(--border);
+      padding: 13px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
       background: var(--bg);
       color: var(--fg);
-      font: 13px/1.45 var(--font-mono);
+      font: 14.5px/1.5 var(--font-sans);
       outline: none;
+      transition: all 0.2s ease;
     }
-    textarea:focus { border-color: var(--accent); }
+    textarea:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px var(--surface-tint);
+    }
 
     .preset-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border);
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1.5px solid var(--border);
     }
     .preset-chip {
-      border: 1px solid var(--border);
-      background: var(--surface-alt);
-      color: var(--accent);
-      padding: 4px 8px;
-      font: 700 11px/1.2 var(--font-mono);
-      text-decoration: underline;
+      border: 1.5px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--fg);
+      padding: 6px 14px;
+      font: 600 12.5px/1.3 var(--font-sans);
+      border-radius: 9999px;
       cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
-    .preset-chip:hover { background: var(--accent); color: #ffffff; text-decoration: none; }
+    .preset-chip:hover {
+      background: var(--surface-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
 
     .action-footer {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      margin-top: 10px;
+      gap: 12px;
+      margin-top: 16px;
     }
     button.ask {
-      border: 1px solid var(--fg);
-      background: var(--fg);
-      color: var(--bg);
-      padding: 8px 16px;
-      font: 700 12px/1.2 var(--font-mono);
-      text-transform: uppercase;
+      border: 0;
+      background: var(--accent);
+      color: var(--accent-fg);
+      padding: 12px 26px;
+      font: 700 14px/1.2 var(--font-sans);
+      border-radius: 12px;
       cursor: pointer;
+      box-shadow: 0 2px 5px rgba(183, 121, 31, 0.28);
+      transition: background 0.15s ease, transform 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
-    button.ask:hover { background: var(--accent); border-color: var(--accent); color: #ffffff; }
-    button.ask:disabled { opacity: 0.5; cursor: wait; }
+    button.ask:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    button.ask:disabled { opacity: 0.6; cursor: wait; }
 
     .status-bar {
       border-top: 1px solid var(--border);
-      background: var(--surface-alt);
-      padding: 6px 10px;
+      background: var(--surface-soft);
+      padding: 9px 16px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       gap: 8px;
-      font: 11px/1.3 var(--font-mono);
+      font: 500 12px/1.3 var(--font-mono);
+      color: var(--muted);
     }
-    #status.error { color: var(--accent); font-weight: 700; }
+    #status.error { color: var(--danger); font-weight: 700; }
 
     /* Dossier Output */
-    #results { display: grid; gap: 16px; }
-    .result { border: 2px solid var(--border); background: var(--bg); }
+    #results { display: grid; gap: 20px; }
+    .result {
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
     .result-head {
-      background: var(--fg);
-      color: var(--bg);
-      padding: 6px 10px;
+      background: var(--surface-soft);
+      color: var(--fg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      font: 700 11px/1.2 var(--font-mono);
-      text-transform: uppercase;
+      font: 700 12px/1.2 var(--font-mono);
+      letter-spacing: 0.02em;
     }
 
-    /* Raw 4-Cell KPI Ledger Row */
-    .kpi-table { width: 100%; border-collapse: collapse; border-bottom: 1px solid var(--border); }
+    /* 4-Cell KPI Ledger Row */
+    .kpi-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
     .kpi-table td {
       width: 25%;
-      border: 1px solid var(--border);
-      border-top: 0;
-      padding: 8px 10px;
+      border-right: 1px solid var(--border);
+      padding: 12px 16px;
       vertical-align: top;
+      background: var(--surface-tint);
     }
-    .kpi-label { font: 700 10px/1.2 var(--font-mono); color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
-    .kpi-val { font: 700 15px/1.2 var(--font-mono); color: var(--fg); }
-    .kpi-val.alert { color: var(--accent); }
-    .kpi-sub { font: 11px/1.3 var(--font-sans); color: var(--muted); margin-top: 2px; }
+    .kpi-table td:last-child { border-right: 0; }
+    .kpi-label {
+      font: 700 10.5px/1.2 var(--font-mono);
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .kpi-val { font: 700 16px/1.2 var(--font-mono); color: var(--fg); }
+    .kpi-val.alert { color: var(--danger); }
+    .kpi-sub { font: 12px/1.3 var(--font-sans); color: var(--muted); margin-top: 3px; }
 
-    /* Barebones SVG Schematic */
-    .subgraph-box { border-bottom: 1px solid var(--border); padding: 10px; background: var(--bg); }
+    /* SVG Schematic */
+    .subgraph-box {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      background: var(--surface);
+    }
     .subgraph-head {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       gap: 8px;
-      font: 700 10.5px/1.2 var(--font-mono);
+      font: 700 11px/1.2 var(--font-mono);
       text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 6px;
+      color: var(--accent);
+      margin-bottom: 10px;
     }
-    .subgraph-svg { width: 100%; min-width: 640px; height: 136px; display: block; border: 1px solid var(--border); background: var(--bg); }
+    .subgraph-svg {
+      width: 100%;
+      min-width: 640px;
+      height: 136px;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: var(--btn-radius);
+      background: var(--surface);
+    }
 
     /* Structured Audit Sections & Tables */
-    .answer { padding: 12px; }
+    .answer { padding: 18px; background: var(--surface); }
     .audit-section {
       border: 1px solid var(--border);
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      background: var(--bg);
+      border-radius: var(--card-radius);
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      background: var(--surface);
     }
     .audit-section.limitations {
-      border: 2px solid var(--accent);
+      border-left: 4px solid var(--danger);
+      background: var(--danger-soft);
     }
     .audit-section h2 {
-      margin: 0 0 8px;
-      padding-bottom: 5px;
+      margin: 0 0 10px;
+      padding-bottom: 6px;
       border-bottom: 1px solid var(--border);
-      font: 700 12px/1.2 var(--font-mono);
+      font: 700 13px/1.2 var(--font-mono);
+      color: var(--accent);
       text-transform: uppercase;
     }
-    .audit-section.limitations h2 { color: var(--accent); border-bottom-color: var(--accent); }
-    .answer p { margin: 0 0 8px; }
-    .answer ul, .answer ol { margin: 4px 0 10px; padding-left: 18px; }
-    .answer li { margin-bottom: 4px; }
+    .audit-section.limitations h2 { color: var(--danger); border-bottom-color: rgba(220, 38, 38, 0.2); }
+    .answer p { margin: 0 0 10px; line-height: 1.6; }
+    .answer ul, .answer ol { margin: 6px 0 12px; padding-left: 20px; }
+    .answer li { margin-bottom: 5px; line-height: 1.5; }
     .cite-pill {
       display: inline-block;
-      border: 1px solid var(--accent);
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
       color: var(--accent);
-      padding: 0 4px;
+      padding: 1px 6px;
+      border-radius: 4px;
       margin: 0 2px;
-      font: 700 11px/1.35 var(--font-mono);
+      font: 700 11.5px/1.35 var(--font-mono);
     }
-    .num-hi { font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums; text-decoration: underline; }
+    .num-hi {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      background: var(--surface-soft);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
 
-    .table-wrap { width: 100%; overflow-x: auto; margin: 8px 0 10px; }
+    .table-wrap { width: 100%; overflow-x: auto; margin: 12px 0 16px; }
     table.audit-table, table.raw-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-      line-height: 1.35;
+      font-size: 13px;
+      line-height: 1.45;
+      border-radius: var(--btn-radius);
+      overflow: hidden;
     }
     table.audit-table th, table.audit-table td,
     table.raw-table th, table.raw-table td {
-      border: 1px solid var(--border);
-      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      padding: 9px 12px;
       text-align: left;
       vertical-align: top;
       overflow-wrap: anywhere;
     }
     table.audit-table thead th, table.raw-table thead th {
-      background: var(--fg);
-      color: var(--bg);
-      font: 700 10.5px/1.25 var(--font-mono);
+      background: var(--surface-soft);
+      color: var(--muted);
+      font: 600 11.5px/1.25 var(--font-sans);
       text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
-    table.audit-table tbody tr:nth-child(even) td,
-    table.raw-table tbody tr:nth-child(even) td { background: var(--surface-alt); }
-    table.audit-table td.num-cell { font: 700 12px/1.35 var(--font-mono); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    table.audit-table tbody tr:hover td,
+    table.raw-table tbody tr:hover td { background: var(--surface-soft); }
+    table.audit-table td.num-cell {
+      font: 700 13px/1.35 var(--font-mono);
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
 
-    /* Open R1 Trace & Governance Context (Zero Hidden Accordions) */
+    /* Open R1 Trace & Governance Context */
     .flat-block {
       border: 1px solid var(--border);
-      margin: 0 12px 12px;
-      background: var(--bg);
+      border-radius: var(--card-radius);
+      margin: 0 16px 16px;
+      background: var(--surface);
+      overflow: hidden;
     }
     .flat-block-head {
-      background: var(--surface-alt);
+      background: var(--surface-soft);
       border-bottom: 1px solid var(--border);
-      padding: 6px 10px;
+      padding: 8px 14px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      font: 700 10.5px/1.2 var(--font-mono);
+      font: 700 11.5px/1.2 var(--font-mono);
+      color: var(--accent);
       text-transform: uppercase;
     }
     .flat-block pre {
       margin: 0;
-      padding: 10px;
+      padding: 14px;
       white-space: pre-wrap;
-      font: 11.5px/1.5 var(--font-mono);
+      font: 12px/1.55 var(--font-mono);
       color: var(--fg);
-    }
-    .rti-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--border); background: var(--surface-alt); }
-    .btn {
-      border: 1px solid var(--border);
       background: var(--bg);
+    }
+    .rti-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-soft);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--surface);
       color: var(--fg);
-      padding: 5px 10px;
-      font: 700 11px/1.2 var(--font-mono);
-      text-transform: uppercase;
+      padding: 6px 14px;
+      font: 600 12px/1.2 var(--font-sans);
+      border-radius: 6px;
       text-decoration: none;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
-    .btn:hover { background: var(--fg); color: var(--bg); }
-    .btn-accent { border: 1px solid var(--accent); color: var(--accent); }
-    .btn-accent:hover { background: var(--accent); color: #ffffff; }
-    .empty { padding: 28px 12px; text-align: center; font: 12px/1.5 var(--font-mono); color: var(--muted); border: 1px solid var(--border); }
+    .btn:hover {
+      background: var(--surface-soft);
+      border-color: var(--border-strong);
+      color: var(--accent);
+    }
+    .btn-accent {
+      border: 1px solid var(--accent);
+      color: #ffffff;
+      background: var(--accent);
+      font-weight: 700;
+    }
+    .btn-accent:hover {
+      background: var(--accent-hover);
+      color: #ffffff;
+    }
+    .empty {
+      padding: 48px 16px;
+      text-align: center;
+      font: 13.5px/1.5 var(--font-sans);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      background: var(--surface);
+    }
 
     @media (max-width: 820px) {
       .kpi-table tr { display: grid; grid-template-columns: 1fr 1fr; }
-      .kpi-table td { width: auto; }
+      .kpi-table td { width: auto; border-bottom: 1px solid var(--border); }
     }
   </style>
   <script src="bp-config.js"></script>
 </head>
 <body>
+  <!-- Retro 70s Masthead Topbar -->
   <header class="topbar">
-    <div class="topbar-left">
-      <span class="topbar-tag">BHARAT PRAMAN // FISCAL AUDIT DOSSIER</span>
-      <span class="mono" style="color:var(--muted)">INSTANCE02 VECTOR + BM25 RRF</span>
+    <div class="topbar-inner">
+      <a href="graphdashboard2.html" class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/>
+            <path d="M8.7 10.7l6.6-3.4"/><path d="M8.7 13.3l6.6 3.4"/>
+          </svg>
+        </span>
+        <span>Bharat Praman</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="graphdashboard2.html">Search</a>
+        <a href="mps.html">Top 100 MPs</a>
+        <a href="graph.html">Graph Explorer</a>
+        <a href="ask.html" class="active">Budget Dossier</a>
+        <a href="rti/rti_page.html">RTI Desk</a>
+        <a href="graph.html#glossary" id="glossaryOpen">Glossary &amp; IPC</a>
+        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">⚡ GraphRAG Benchmark</a>
+        <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <span class="switch-mode-track" aria-hidden="true"></span>
+          <span class="switch-mode-knob" aria-hidden="true"></span>
+          <span class="switch-mode-icon switch-mode-sun" aria-hidden="true">
+            <svg class="sun-solid" width="13" height="13" viewBox="0 0 512 512" fill="currentColor">
+              <path d="M256 160c-53 0-96 43-96 96s43 96 96 96 96-43 96-96-43-96-96-96zm0 240c-79.5 0-144-64.5-144-144s64.5-144 144-144 144 64.5 144 144-64.5 144-144 144zm0-352c13.3 0 24-10.7 24-24V16c0-13.3-10.7-24-24-24s-24 10.7-24 24v8c0 13.3 10.7 24 24 24zm0 464c-13.3 0-24 10.7-24 24v8c0 13.3 10.7 24 24 24s24-10.7 24-24v-8c0-13.3-10.7-24-24-24zm208-208c0-13.3-10.7-24-24-24h-8c-13.3 0-24 10.7-24 24s10.7 24 24 24h8c13.3 0 24-10.7 24-24zm-376 0c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24s10.7 24 24 24h24c13.3 0 24-10.7 24-24zm322.8-114.8c9.4-9.4 9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0zm-289.6 289.6c-9.4 9.4-9.4 24.6 0 33.9l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0zm0-289.6l-5.7 5.7c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l5.7-5.7c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0zm289.6 289.6l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9z"/>
+            </svg>
+            <svg class="sun-outline" width="13" height="13" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="256" cy="256" r="96"/>
+              <line x1="256" y1="48" x2="256" y2="96"/>
+              <line x1="256" y1="416" x2="256" y2="464"/>
+              <line x1="464" y1="256" x2="416" y2="256"/>
+              <line x1="96" y1="256" x2="48" y2="256"/>
+              <line x1="403.08" y1="108.92" x2="369.14" y2="142.86"/>
+              <line x1="142.86" y1="369.14" x2="108.92" y2="403.08"/>
+              <line x1="403.08" y1="403.08" x2="369.14" y2="369.14"/>
+              <line x1="142.86" y1="142.86" x2="108.92" y2="108.92"/>
+            </svg>
+          </span>
+          <span class="switch-mode-icon switch-mode-moon" aria-hidden="true">
+            <svg class="moon-solid" width="13" height="13" viewBox="0 0 512 512" fill="currentColor">
+              <path d="M264 480A232 232 0 0 1 32 248c0-94 56.23-179.9 143.27-213.9 7.77-3 16.54-1 22.18 5.1s6.61 15 2.47 22.4A175.87 175.87 0 0 0 176 160c0 97 79 176 176 176 34.6 0 67.23-10.15 95.12-28.7 6.94-4.63 16.14-4.5 22.75 1.1s8.85 14.2 6.06 22.1C438.3 420.2 355.6 480 264 480z"/>
+            </svg>
+            <svg class="moon-outline" width="13" height="13" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M160 136c0-30.62 4.51-61.61 16-88C99.57 81.27 48 159.32 48 248c0 119.29 96.71 216 216 216 88.68 0 166.73-51.57 200-128-26.39 11.49-57.38 16-88 16-119.29 0-216-96.71-216-216z"/>
+            </svg>
+          </span>
+        </button>
+      </nav>
     </div>
-    <nav class="nav" aria-label="Primary">
-      <a href="graphdashboard2.html">01 QUERY CONSOLE</a>
-      <a href="graph.html">02 GRAPH EXPLORER</a>
-      <a class="active" href="ask.html">03 BUDGET DOSSIER</a>
-      <a href="rti/rti_page.html">04 RTI DESK</a>
-      <button id="themeToggle" type="button">DARK MODE</button>
-    </nav>
   </header>
 
   <main>
     <div class="page-title-row">
-      <h1>UNION MINISTRY BUDGET &amp; ANNUAL REPORT AUDIT DOSSIER</h1>
-      <span class="mono" style="font-size:11px; color:var(--muted)">CORPUS: 8 MINISTRIES // FY 2021-22 TO 2025-26 // BE VS RE VARIANCE</span>
+      <div>
+        <h1>Union Ministry Budget &amp; Annual Report Audit Dossier</h1>
+        <span class="mono" style="font-size:12px; color:var(--accent); font-weight:600;">CORPUS: 8 MINISTRIES // FY 2021-22 TO 2025-26 // BE VS RE VARIANCE</span>
+      </div>
     </div>
 
     <section class="panel" aria-label="Audit query parameters">
       <div class="panel-head">
-        <span>AUDIT QUERY PARAMETERS &amp; MODEL ROUTING</span>
-        <span class="mono">QWEN3-1024D + BM25 RRF + SECTION 6(1) RTI</span>
+        <span>01 // Audit Query Parameters &amp; Model Routing</span>
+        <span class="mono" style="font-size:11px; color:var(--accent);">Qwen3-1024d + BM25 RRF + Sec 6(1) RTI</span>
       </div>
 
+      <!-- Ministry Filter Pills -->
       <div class="ctrl-row" id="modes">
-        <span class="ctrl-label">MINISTRY:</span>
-        <button type="button" class="mode" data-mode="all">ALL MINISTRIES</button>
-        <button type="button" class="mode" data-mode="education">EDUCATION</button>
-        <button type="button" class="mode" data-mode="home">HOME AFFAIRS</button>
-        <button type="button" class="mode" data-mode="finance">FINANCE</button>
-        <button type="button" class="mode" data-mode="health">HEALTH</button>
-        <button type="button" class="mode" data-mode="defence">DEFENCE</button>
-        <button type="button" class="mode" data-mode="rural">RURAL DEV</button>
-        <button type="button" class="mode" data-mode="road">HIGHWAYS</button>
-        <button type="button" class="mode" data-mode="agriculture">AGRICULTURE</button>
+        <span class="ctrl-label">Ministry:</span>
+        <button type="button" class="mode" data-mode="all">🏛️ All Ministries</button>
+        <button type="button" class="mode" data-mode="education">🎓 Education</button>
+        <button type="button" class="mode" data-mode="home">🛡️ Home Affairs</button>
+        <button type="button" class="mode" data-mode="finance">💰 Finance</button>
+        <button type="button" class="mode" data-mode="health">🏥 Health</button>
+        <button type="button" class="mode" data-mode="defence">⚔️ Defence</button>
+        <button type="button" class="mode" data-mode="rural">🌾 Rural Dev</button>
+        <button type="button" class="mode" data-mode="road">🛣️ Highways</button>
+        <button type="button" class="mode" data-mode="agriculture">🚜 Agriculture</button>
       </div>
 
+      <!-- Fiscal Years Pills -->
       <div class="ctrl-row" id="yearModes">
-        <span class="ctrl-label">FISCAL YEARS:</span>
-        <button type="button" class="mode active" data-year="all">ALL YEARS</button>
+        <span class="ctrl-label">Fiscal Years:</span>
+        <button type="button" class="mode active" data-year="all">All Years</button>
         <button type="button" class="mode" data-year="2021-22">2021-22</button>
         <button type="button" class="mode" data-year="2022-23">2022-23</button>
         <button type="button" class="mode" data-year="2023-24">2023-24</button>
@@ -387,41 +798,50 @@
         <button type="button" class="mode" data-year="2025-26">2025-26</button>
       </div>
 
+      <!-- Engine & Depth Controls -->
       <div class="ctrl-row">
-        <span class="ctrl-label">ENGINE / DEPTH:</span>
-        <div id="reasonToggle" style="display:flex; gap:4px; margin-right:16px;">
-          <button type="button" class="detail-btn active" data-reason="auto">AUTO (V3 FAST)</button>
-          <button type="button" class="detail-btn" data-reason="chat">V3 PLAIN</button>
-          <button type="button" class="detail-btn" data-reason="reasoner">R1 REASONER</button>
+        <span class="ctrl-label">Engine / Depth:</span>
+        <div id="reasonToggle" style="display:flex; gap:6px; margin-right:16px;">
+          <button type="button" class="detail-btn active" data-reason="auto">⚡ Auto (V3 Fast)</button>
+          <button type="button" class="detail-btn" data-reason="chat">Plain V3</button>
+          <button type="button" class="detail-btn" data-reason="reasoner">🧠 R1 Reasoner</button>
         </div>
-        <div id="detailToggle" style="display:flex; gap:4px;">
-          <button type="button" class="detail-btn" data-detail="short">BRIEF</button>
-          <button type="button" class="detail-btn active" data-detail="long">FULL AUDIT DOSSIER</button>
+        <div id="detailToggle" style="display:flex; gap:6px;">
+          <button type="button" class="detail-btn" data-detail="short">Brief Summary</button>
+          <button type="button" class="detail-btn active" data-detail="long">Full Audit Dossier</button>
         </div>
       </div>
 
+      <!-- Audit Input Box & Presets -->
       <div class="askbox">
-        <textarea id="question" placeholder="ENTER AUDIT QUERY (E.G. COMPARE BE VS RE ALLOCATION AND ACTUAL RELEASES FOR PM-SHRI AND SAMAGRA SHIKSHA IN 2023-24)..."></textarea>
+        <textarea id="question" placeholder="Enter your fiscal question (e.g. Compare BE vs RE allocation and actual releases for PM-SHRI and Samagra Shiksha in 2023-24)..."></textarea>
+        
         <div class="preset-bar" id="presetBar">
-          <span class="ctrl-label" style="min-width:auto;">BENCHMARK AUDITS:</span>
-          <button type="button" class="preset-chip" data-q="What was the BE vs RE budget outlay and actual funds released for PM-SHRI, Samagra Shiksha, and school infrastructure in 2023-24?" data-min="education">[PM-SHRI &amp; SAMAGRA SHIKSHA BE VS RE GAP]</button>
-          <button type="button" class="preset-chip" data-q="How much was allocated to CRPF, BSF and police modernisation, and was it fully used?" data-min="home">[CRPF &amp; BSF MODERNISATION AUDIT]</button>
-          <button type="button" class="preset-chip" data-q="Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26" data-min="all">[MULTI-MINISTRY 5-YR BUDGET GROWTH]</button>
+          <span class="ctrl-label" style="min-width:auto;">⚡ Popular Benchmark Audits:</span>
+          <button type="button" class="preset-chip" data-q="What was the BE vs RE budget outlay and actual funds released for PM-SHRI, Samagra Shiksha, and school infrastructure in 2023-24?" data-min="education">🎓 PM-SHRI &amp; Samagra Shiksha BE vs RE Gap</button>
+          <button type="button" class="preset-chip" data-q="How much was allocated to CRPF, BSF and police modernisation, and was it fully used?" data-min="home">🛡️ CRPF &amp; BSF Police Modernisation Audit</button>
+          <button type="button" class="preset-chip" data-q="Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26" data-min="all">📊 Multi-Ministry 5-Yr Budget Growth</button>
         </div>
+
         <div class="action-footer">
-          <span class="mono" style="font-size:11px; color:var(--muted);">UNITS PRESERVED VERBATIM // CTRL+ENTER TO EXECUTE</span>
-          <button id="ask" class="ask" type="button">EXECUTE AUDIT DOSSIER ↵</button>
+          <span class="mono" style="font-size:12px; color:var(--muted);">💡 Press Ctrl+Enter to execute query</span>
+          <button id="ask" class="ask" type="button">Execute Audit Dossier ↵</button>
         </div>
       </div>
 
       <div class="status-bar">
-        <span id="status" role="status">READY. SELECT PARAMETERS OR ENTER AN AUDIT QUERY ABOVE.</span>
+        <span id="status" role="status">Ready. Select parameters or enter an audit query above.</span>
         <span id="perfTag" class="mono"></span>
       </div>
     </section>
 
+    <!-- Results Area -->
     <section id="results" aria-live="polite">
-      <div class="empty">NO AUDIT LOADED. CLICK A BENCHMARK AUDIT OR ENTER A QUERY ABOVE.</div>
+      <div class="empty">
+        <div style="font-size:26px; margin-bottom:8px;">📊</div>
+        <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No Audit Loaded Yet</div>
+        <div style="font-size:13px; color:var(--muted);">Click a popular benchmark audit chip above or enter your own audit question to inspect official allocations.</div>
+      </div>
     </section>
   </main>
 
@@ -431,14 +851,23 @@
 
     const themeBtn = document.getElementById('themeToggle');
     function syncThemeBtn() {
-      themeBtn.textContent = document.documentElement.classList.contains('dark') ? 'LIGHT MODE' : 'DARK MODE';
+      const isDark = document.documentElement.classList.contains('dark');
+      if (themeBtn) {
+        themeBtn.classList.toggle('is-dark', isDark);
+        themeBtn.setAttribute('aria-checked', isDark ? 'true' : 'false');
+        themeBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        themeBtn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+      }
     }
     syncThemeBtn();
-    themeBtn.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('bp_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-      syncThemeBtn();
-    });
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('bp_theme', isDark ? 'dark' : 'light');
+        syncThemeBtn();
+      });
+    }
 
     const params = new URLSearchParams(location.search);
     let ministry = (params.get('ministry') || 'all').toLowerCase();
@@ -460,15 +889,15 @@
     const presetBarEl = document.getElementById('presetBar');
 
     const labelFor = {
-      all: 'ALL MINISTRIES',
-      education: 'MINISTRY OF EDUCATION',
-      home: 'MINISTRY OF HOME AFFAIRS',
-      finance: 'MINISTRY OF FINANCE',
-      health: 'MINISTRY OF HEALTH & FAMILY WELFARE',
-      defence: 'MINISTRY OF DEFENCE',
-      rural: 'MINISTRY OF RURAL DEVELOPMENT',
-      road: 'MINISTRY OF ROAD TRANSPORT & HIGHWAYS',
-      agriculture: 'MINISTRY OF AGRICULTURE & FARMERS WELFARE',
+      all: 'All Ministries',
+      education: 'Ministry of Education',
+      home: 'Ministry of Home Affairs',
+      finance: 'Ministry of Finance',
+      health: 'Ministry of Health & Family Welfare',
+      defence: 'Ministry of Defence',
+      rural: 'Ministry of Rural Development',
+      road: 'Ministry of Road Transport & Highways',
+      agriculture: 'Ministry of Agriculture & Farmers Welfare',
     };
 
     function setMode(mode) {
@@ -505,13 +934,13 @@
     }
 
     function renderStructuredMarkdown(rawAnswer) {
-      if (!rawAnswer) return '<p>NO CONTENT RETURNED.</p>';
+      if (!rawAnswer) return '<p>No content returned.</p>';
       let text = String(rawAnswer);
 
       let r1Html = '';
       const detailsMatch = text.match(/<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/i);
       if (detailsMatch) {
-        r1Html = `<section class="audit-section"><h2 class="alert">AUDIT REASONING TRACE // ${escapeHtml(detailsMatch[1].trim())}</h2><pre class="mono" style="margin:0;white-space:pre-wrap;font-size:11.5px;">${escapeHtml(detailsMatch[2].trim())}</pre></section>`;
+        r1Html = `<section class="audit-section"><h2 class="alert">Audit Reasoning Trace // ${escapeHtml(detailsMatch[1].trim())}</h2><pre class="mono" style="margin:0;white-space:pre-wrap;font-size:12px;">${escapeHtml(detailsMatch[2].trim())}</pre></section>`;
         text = text.replace(detailsMatch[0], '').trim();
       }
 
@@ -590,7 +1019,7 @@
 
       const sectionsHtml = sections.map((sec) => {
         const cls = sec.isLimitations ? 'audit-section limitations' : 'audit-section';
-        const titleHtml = sec.title ? `<h2>${sec.isLimitations ? 'CRITICAL SCOPE FLAG // ' : ''}${escapeHtml(sec.title)}</h2>` : '';
+        const titleHtml = sec.title ? `<h2>${sec.isLimitations ? 'Scope Limitation // ' : ''}${escapeHtml(sec.title)}</h2>` : '';
         return `<section class="${cls}">${titleHtml}${sec.blocks.join('')}</section>`;
       }).join('');
 
@@ -601,67 +1030,69 @@
       const ans = String(r.answer || '');
       const sources = r.sources || [];
       const moneyMatches = [...ans.matchAll(/(?:Rs\.?|₹)\s*([\d,]+(?:\.\d+)?)\s*(Crore|Cr\.?|Lakh|Lac)?/gi)];
-      const primaryFig = moneyMatches.length ? moneyMatches[0][0] : `${sources.length} PASSAGES`;
+      const primaryFig = moneyMatches.length ? moneyMatches[0][0] : `${sources.length} Passages`;
       const hasBeRe = /\bBE\b[\s\S]{0,80}\bRE\b/i.test(ans) || /Revised Estimate/i.test(ans);
       const distinctYears = [...new Set(sources.map((s) => s.year).filter(Boolean))];
       const distinctPages = [...new Set(sources.map((s) => `p.${s.page}`).filter((x) => x !== 'p.undefined'))];
       return [
-        { label: 'PRIMARY AUDITED FIGURE', val: primaryFig, sub: `${moneyMatches.length} monetary tokens extracted`, cls: '' },
-        { label: 'BE VS RE VARIANCE SIGNAL', val: hasBeRe ? 'BE/RE COMPARISON PRESENT' : 'SOURCE GROUNDED', sub: 'Verbatim units enforced', cls: hasBeRe ? 'alert' : '' },
-        { label: 'NEO4J GRAPH EVIDENCE', val: `${sources.length} CHUNKS / ${distinctPages.length || 1} PAGES`, sub: `YEARS: ${distinctYears.join(', ') || 'ALL INGESTED'}`, cls: '' },
-        { label: 'SYNTHESIS ENGINE', val: (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DEEPSEEK R1 REASONER' : 'DEEPSEEK V3 + RRF', sub: 'Qwen3-1024d + BM25 Hybrid', cls: '' },
+        { label: 'Primary Audited Figure', val: primaryFig, sub: `${moneyMatches.length} monetary tokens extracted`, cls: '' },
+        { label: 'BE vs RE Variance Signal', val: hasBeRe ? 'BE/RE Comparison Present' : 'Source Grounded', sub: 'Verbatim official units', cls: hasBeRe ? 'alert' : '' },
+        { label: 'Neo4j Graph Evidence', val: `${sources.length} Chunks / ${distinctPages.length || 1} Pages`, sub: `Years: ${distinctYears.join(', ') || 'All Ingested'}`, cls: '' },
+        { label: 'Synthesis Engine', val: (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 + RRF', sub: 'Qwen3-1024d + BM25 Hybrid', cls: '' },
       ];
     }
 
-    /* Barebones Monochrome Geometric-Circle SVG Lineage Diagram */
+    /* Clean Lineage Diagram matching 70s Retro Two-Color Theme */
     function renderSubgraphSvg(r) {
       const dark = document.documentElement.classList.contains('dark');
-      const fg = dark ? '#ffffff' : '#000000';
-      const bg = dark ? '#000000' : '#ffffff';
-      const minLabel = (r.ministry || 'MINISTRY').replace(/^Ministry of\s+/i, '').toUpperCase().slice(0, 22);
+      const strokeColor = dark ? '#D8962E' : '#B7791F';
+      const textColor = dark ? '#FAF5EB' : '#2A1D0F';
+      const bgColor = dark ? '#221A11' : '#FFFFFF';
+      const circleFill = dark ? '#2D2317' : '#FBF4E6';
+      const minLabel = (r.ministry || 'MINISTRY').replace(/^Ministry of\s+/i, '').slice(0, 22);
       const sources = (r.sources || []).slice(0, 4);
-      const docs = [...new Set(sources.map((s) => `${(s.title || 'REPORT').slice(0, 20).toUpperCase()} (${s.year || 'FY'})`))].slice(0, 2);
-      if (!docs.length) docs.push('ANNUAL REPORT (FY)');
+      const docs = [...new Set(sources.map((s) => `${(s.title || 'REPORT').slice(0, 20)} (${s.year || 'FY'})`))].slice(0, 2);
+      if (!docs.length) docs.push('Annual Report (FY)');
 
       let edgesSvg = '';
       let nodesSvg = '';
 
-      // Node 1: Ministry Circle (cx=90, cy=68)
+      // Node 1: Ministry Circle
       nodesSvg += `
-        <circle cx="90" cy="68" r="20" fill="${bg}" stroke="#ff0000" stroke-width="2.5"/>
-        <text x="90" y="71" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="9" font-weight="700">:MINISTRY</text>
-        <text x="90" y="106" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="10" font-weight="700">${escapeHtml(minLabel)}</text>
+        <circle cx="90" cy="68" r="22" fill="${circleFill}" stroke="${strokeColor}" stroke-width="2"/>
+        <text x="90" y="72" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="9" font-weight="700">MINISTRY</text>
+        <text x="90" y="106" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="10" font-weight="700">${escapeHtml(minLabel)}</text>
       `;
 
-      // Node 2..3: Document Circles (cx=340)
+      // Node 2..3: Document Circles
       docs.forEach((dLabel, dIdx) => {
         const y = docs.length === 1 ? 68 : (dIdx === 0 ? 40 : 96);
-        edgesSvg += `<line x1="110" y1="68" x2="322" y2="${y}" stroke="${fg}" stroke-width="1.3"/>`;
-        edgesSvg += `<text x="216" y="${(68 + y) / 2 - 4}" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="8.5">:PUBLISHED</text>`;
+        edgesSvg += `<line x1="112" y1="68" x2="320" y2="${y}" stroke="${strokeColor}" stroke-width="1.2" stroke-dasharray="2 2"/>`;
+        edgesSvg += `<text x="216" y="${(68 + y) / 2 - 4}" text-anchor="middle" fill="${textColor}" font-family="ui-monospace,monospace" font-size="8.5">:PUBLISHED</text>`;
         nodesSvg += `
-          <circle cx="340" cy="${y}" r="16" fill="${bg}" stroke="${fg}" stroke-width="2"/>
-          <text x="340" y="${y + 3}" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="8" font-weight="700">DOC</text>
-          <text x="340" y="${y + 27}" text-anchor="middle" fill="${fg}" font-family="Consolas,monospace" font-size="9" font-weight="700">${escapeHtml(dLabel)}</text>
+          <circle cx="340" cy="${y}" r="16" fill="${bgColor}" stroke="${strokeColor}" stroke-width="1.8"/>
+          <text x="340" y="${y + 3}" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="8.5" font-weight="700">DOC</text>
+          <text x="340" y="${y + 26}" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600">${escapeHtml(dLabel)}</text>
         `;
       });
 
-      // Node 4..7: Chunk Circles (cx=540)
+      // Node 4..7: Chunk Circles
       sources.forEach((s, sIdx) => {
         const y = 22 + sIdx * 30;
         const docY = docs.length === 1 ? 68 : (sIdx % 2 === 0 ? 40 : 96);
-        edgesSvg += `<line x1="356" y1="${docY}" x2="528" y2="${y}" stroke="${fg}" stroke-width="1.1"/>`;
+        edgesSvg += `<line x1="358" y1="${docY}" x2="528" y2="${y}" stroke="${strokeColor}" stroke-width="1"/>`;
         const secShort = (s.section || s.title || 'CHUNK').replace(/^Scheme\/Section:\s*/i, '').slice(0, 28);
         nodesSvg += `
-          <circle cx="536" cy="${y}" r="7" fill="${sIdx === 0 ? '#ff0000' : fg}" stroke="${fg}" stroke-width="1"/>
-          <text x="550" y="${y + 3}" fill="${fg}" font-family="Consolas,monospace" font-size="9.5" font-weight="700">:Chunk p.${escapeHtml(s.page ?? '?')} | ${escapeHtml(secShort)}</text>
+          <circle cx="536" cy="${y}" r="7" fill="${strokeColor}" stroke="${bgColor}" stroke-width="1"/>
+          <text x="550" y="${y + 3}" fill="${textColor}" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Chunk p.${escapeHtml(s.page ?? '?')} | ${escapeHtml(secShort)}</text>
         `;
       });
 
       return `
         <div class="subgraph-box">
           <div class="subgraph-head">
-            <span>STRUCTURAL EVIDENCE LINEAGE (:MINISTRY -> :DOCUMENT -> :CHUNK)</span>
-            <span>INDEX: QWEN_CHUNK_EMBEDDINGS (1024D) + CHUNK_FULLTEXT</span>
+            <span>Evidence Graph Lineage (:Ministry → :Document → :Chunk)</span>
+            <span>Index: Qwen3 Embeddings (1024D) + FullText RRF</span>
           </div>
           <svg class="subgraph-svg" viewBox="0 0 820 136" xmlns="http://www.w3.org/2000/svg">
             ${edgesSvg}
@@ -711,7 +1142,7 @@
 
     function renderResults(results) {
       if (!results || !results.length) {
-        resultsEl.innerHTML = '<div class="empty">NO AUDIT DOSSIER RETURNED.</div>';
+        resultsEl.innerHTML = '<div class="empty">No audit dossier returned.</div>';
         return;
       }
       const qText = questionEl.value.trim();
@@ -737,7 +1168,7 @@
             <td class="num">${s.score != null ? Number(s.score).toFixed(4) : '—'}</td>
           </tr>`).join('');
 
-        const modelBadge = (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DEEPSEEK R1 REASONER' : 'DEEPSEEK V3 + GRAPH RRF';
+        const modelBadge = (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 + Graph RRF';
         const rtiDraft = buildRtiDraft(r, qText);
         const structuredHtml = renderStructuredMarkdown(r.answer);
         const subgraphHtml = renderSubgraphSvg(r);
@@ -745,8 +1176,8 @@
         return `
           <article class="result">
             <div class="result-head">
-              <span>${escapeHtml(r.ministry)} // ${escapeHtml((r.detail_level || detailLevel).toUpperCase())} DOSSIER // ${modelBadge}</span>
-              <span>${r.sources ? r.sources.length : 0} CHUNK CITATION(S)</span>
+              <span>${escapeHtml(r.ministry)} // ${(r.detail_level || detailLevel).toUpperCase()} DOSSIER // ${modelBadge}</span>
+              <span class="mono" style="color:var(--accent); font-weight:600;">${r.sources ? r.sources.length : 0} Chunk Citations</span>
             </div>
             <table class="kpi-table"><tr>${kpiCells}</tr></table>
             ${subgraphHtml}
@@ -754,34 +1185,34 @@
 
             <div class="flat-block">
               <div class="flat-block-head">
-                <span>VERIFIED PAGE CITATIONS LEDGER (${(r.sources || []).length} PASSAGES RETRIEVED FROM NEO4J)</span>
-                <span class="mono">RRF SCORED</span>
+                <span>Verified Page Citations Ledger (${(r.sources || []).length} Passages from Neo4j)</span>
+                <span class="mono" style="color:var(--accent);">RRF Scored</span>
               </div>
               <table class="raw-table">
-                <thead><tr><th style="width:45px">#</th><th>DOCUMENT TITLE</th><th>MINISTRY</th><th style="width:90px">FISCAL YR</th><th style="width:70px">PAGE</th><th>SECTION / BREADCRUMB</th><th style="width:85px">RRF SCORE</th></tr></thead>
-                <tbody>${sourceRows || '<tr><td colspan="7" class="mono">NO CITATIONS RETURNED.</td></tr>'}</tbody>
+                <thead><tr><th style="width:45px">#</th><th>Document Title</th><th>Ministry</th><th style="width:90px">Fiscal Yr</th><th style="width:70px">Page</th><th>Section / Breadcrumb</th><th style="width:85px">RRF Score</th></tr></thead>
+                <tbody>${sourceRows || '<tr><td colspan="7" class="mono">No citations returned.</td></tr>'}</tbody>
               </table>
             </div>
 
             ${r.graph_context ? `
               <div class="flat-block">
-                <div class="flat-block-head"><span>NEO4J GRAPH GOVERNANCE &amp; MINISTER TRAVERSAL TRACE</span><span>RAW CONTEXT</span></div>
+                <div class="flat-block-head"><span>Neo4j Graph Governance &amp; Minister Traversal Trace</span><span class="mono">Raw Context</span></div>
                 <pre>${escapeHtml(r.graph_context)}</pre>
               </div>` : ''}
 
             <div class="flat-block">
               <div class="flat-block-head">
-                <span>SECTION 6(1) RTI APPLICATION DRAFT (PRE-FILLED WITH REPORT PAGE CITATIONS)</span>
-                <span class="alert">STATUTORY CPIO FILING FORMAT</span>
+                <span>Section 6(1) RTI Application Draft (Pre-filled with Report Citations)</span>
+                <span class="mono" style="color:var(--accent);">Statutory CPIO Format</span>
               </div>
-              <div style="padding:10px;">
-                <textarea id="rti-text-${idx}" style="min-height:210px;">${escapeHtml(rtiDraft)}</textarea>
+              <div style="padding:14px;">
+                <textarea id="rti-text-${idx}" style="min-height:220px; font-family:var(--font-mono); font-size:12.5px;">${escapeHtml(rtiDraft)}</textarea>
               </div>
               <div class="rti-actions">
-                <button type="button" class="btn btn-accent" data-rti-copy="${idx}">COPY RTI TEXT</button>
-                <button type="button" class="btn" data-rti-download="${idx}">DOWNLOAD .TXT</button>
-                <button type="button" class="btn" data-rti-print="${idx}">PRINT / SAVE PDF</button>
-                <a class="btn" href="${rtiPortalUrl}">OPEN POLITICIAN RTI DESK ↗</a>
+                <button type="button" class="btn btn-accent" data-rti-copy="${idx}">Copy RTI Text</button>
+                <button type="button" class="btn" data-rti-download="${idx}">Download .TXT</button>
+                <button type="button" class="btn" data-rti-print="${idx}">Print / Save PDF</button>
+                <a class="btn" href="${rtiPortalUrl}">Open Politician RTI Desk ↗</a>
               </div>
             </div>
           </article>`;
@@ -791,7 +1222,7 @@
     async function ask() {
       const question = questionEl.value.trim();
       if (!question) {
-        statusEl.textContent = 'ENTER AN AUDIT QUESTION OR SELECT A BENCHMARK AUDIT.';
+        statusEl.textContent = 'Please enter an audit question or select a popular benchmark audit chip above.';
         statusEl.classList.add('error');
         questionEl.focus();
         return;
@@ -805,18 +1236,18 @@
           const payload = JSON.parse(cached);
           renderResults(payload.results || []);
           statusEl.classList.remove('error');
-          statusEl.textContent = `AUDIT LOADED (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
-          perfTag.textContent = `CLIENT CACHE HIT: ${(performance.now() - t0).toFixed(1)} ms`;
+          statusEl.textContent = `Audit Loaded (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
+          perfTag.textContent = `Client Cache Hit: ${(performance.now() - t0).toFixed(1)} ms`;
           return;
         } catch {}
       }
 
       statusEl.classList.remove('error');
-      statusEl.textContent = `AUDITING ${labelFor[ministry] || ministry} (${detailLevel.toUpperCase()}, ${reasoningMode.toUpperCase()})...`;
+      statusEl.textContent = `Auditing ${labelFor[ministry] || ministry} (${detailLevel.toUpperCase()}, ${reasoningMode.toUpperCase()})...`;
       perfTag.textContent = '';
       askButton.disabled = true;
-      askButton.textContent = 'EXECUTING...';
-      resultsEl.innerHTML = '<div class="empty">QUERYING NEO4J INSTANCE02 HYBRID INDEX + SYNTHESIZING AUDIT TABLES...</div>';
+      askButton.textContent = 'Executing...';
+      resultsEl.innerHTML = '<div class="empty">Querying Neo4j Instance02 Hybrid Index + Synthesizing Audit Tables...</div>';
       const t0 = performance.now();
       try {
         const response = await fetch(API, {
@@ -828,15 +1259,15 @@
         if (!response.ok) throw new Error(payload.detail || 'Audit failed.');
         try { sessionStorage.setItem(cacheKey, JSON.stringify(payload)); } catch {}
         renderResults(payload.results || []);
-        statusEl.textContent = `AUDIT COMPLETE (${payload.results?.[0]?.sources?.length || 0} CHUNK CITATIONS).`;
-        perfTag.textContent = `LATENCY: ${Math.round(performance.now() - t0)} ms`;
+        statusEl.textContent = `Audit Complete (${payload.results?.[0]?.sources?.length || 0} chunk citations).`;
+        perfTag.textContent = `Latency: ${Math.round(performance.now() - t0)} ms`;
       } catch (err) {
-        statusEl.textContent = `AUDIT FAILED: ${err.message}`;
+        statusEl.textContent = `Audit Failed: ${err.message}`;
         statusEl.classList.add('error');
-        resultsEl.innerHTML = '<div class="empty alert">API (:8000) OR NEO4J INSTANCE02 UNREACHABLE.</div>';
+        resultsEl.innerHTML = '<div class="empty alert">API (:8000) or Neo4j Instance02 Unreachable. Check that your local backend is running.</div>';
       } finally {
         askButton.disabled = false;
-        askButton.textContent = 'EXECUTE AUDIT DOSSIER ↵';
+        askButton.textContent = 'Execute Audit Dossier ↵';
       }
     }
 
@@ -846,8 +1277,8 @@
         const ta = document.getElementById(`rti-text-${copyBtn.dataset.rtiCopy}`);
         if (ta) {
           navigator.clipboard.writeText(ta.value);
-          copyBtn.textContent = 'COPIED TO CLIPBOARD';
-          setTimeout(() => { copyBtn.textContent = 'COPY RTI TEXT'; }, 1500);
+          copyBtn.textContent = 'Copied to Clipboard!';
+          setTimeout(() => { copyBtn.textContent = 'Copy RTI Text'; }, 1500);
         }
         return;
       }
@@ -924,3 +1355,4 @@
   </script>
 </body>
 </html>
+
