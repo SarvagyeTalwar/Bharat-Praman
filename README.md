@@ -1,24 +1,29 @@
 # Bharat Praman (भारत प्रमाण)
 
-A civic-tech platform that turns Indian political data and ministry documents into something a normal citizen can actually use — from *"who is my MLA?"* to a ready-to-file RTI request.
+**Live Demo:** https://bharat-praman-production.up.railway.app  
+**Full Viva & Architecture Guide:** [`BHARAT_PRAMAN_GUIDE.md`](BHARAT_PRAMAN_GUIDE.md)
 
-## What it does (three parts)
+A civic-tech platform that turns Indian political data and Union Ministry documents into something a normal citizen can actually use — from *"who is my MLA?"* and Union Budget BE-vs-RE audits to a ready-to-file RTI Act 2005 request.
 
-1. **Politician graph search** — search MLAs/MPs and ask multi-hop questions in plain English ("average age of BJP ministers in North India"). Questions are translated to read-only Cypher against a Neo4j graph, with schema guardrails so the AI can't invent facts.
-2. **Ministry GraphRAG** — ask questions about Ministry of Education / Home Affairs annual reports. Hybrid retrieval (semantic `e5` embeddings + full-text) over ingested PDF chunks, answered by an LLM with page citations.
-3. **RTI generation** — pick a politician and a topic, and get a ready-made, legally-formatted RTI request (draft), downloadable as a PDF.
+## What it does (four parts)
+
+1. **Politician graph search** — search 540 active Lok Sabha MPs and 5,691 MLAs across 38,755 nodes / 104,548 relationships in plain English. Deterministic templates + DeepSeek V3 (`deepseek-chat`) Text-to-Cypher translate queries into read-only Cypher with strict schema guardrails.
+2. **Ministry GraphRAG** — hybrid retrieval (`BAAI/bge-small-en-v1.5` 384-dim vectors in `bge_chunk_embeddings` + Lucene full-text RRF) across 49 Union Ministry & Budget PDFs (`44,453` chunks), synthesized by DeepSeek V3/R1 with page citations and linked directly to accountable Cabinet Ministers.
+3. **Graph Analytics (GDS) & Wealth Trajectories** — MP criminal-case Jaccard similarity, party-switcher PageRank/Community detection, and multi-election net-worth growth trajectories.
+4. **RTI generation** — pick a politician and a topic, and get a legally formatted Section 6(1) RTI Act 2005 draft with exact CPIO routing.
 
 ## Architecture
 
 ```
-Browser ──► Frontend (HTML/JS)  :5500
-                │
-                └──► Backend API (FastAPI)  :8000
-                        ├── Neo4j Instance01 (politician graph)
-                        ├── Neo4j Instance02 (ministry RAG)
-                        └── Gemini (text-to-Cypher + RAG answers)
+Production (Railway single-port Docker):
+  Browser ──► https://bharat-praman-production.up.railway.app (FastAPI :$PORT)
+                ├── Unified UI (/ -> graphdashboard2.html, node.html, mps.html, rti/)
+                ├── Rate Limiter (15 RPM AI/RAG, 90 RPM API) + Read-Only Cypher AST Guard
+                ├── Neo4j Instance01 (politician graph) + Instance02 (bge_chunk_embeddings GraphRAG)
+                └── DeepSeek V3/R1 primary (Gemini 3.5 Flash-Lite fallback)
 
-RTI page ──► RTI server (FastAPI)  :8001  ──► Neo4j Instance01
+Local multi-port (`python start_all.py`):
+  Frontend (:5500) ──► Backend API (:8000) & RTI service (:8001)
 ```
 
 - **Port 8000** — main backend (`main.py`): graph search, text-to-Cypher, RAG, glossary, IPC sections.
@@ -43,11 +48,11 @@ The LLM handles *novel* phrasing, but every query — template or LLM — passes
 
 ## Prerequisites
 
-- **Python 3.14** — required. The optional semantic e5 path uses `torch` + `sentence-transformers`, which have **no wheels for Python 3.15 yet**. MHA now defaults to the complete local TF-IDF index + full-text (`MHA_USE_E5=0`); set `MHA_USE_E5=1` only after a full e5 backfill.
+- **Python 3.12–3.14** — Docker/Railway runs Python 3.12 (`Dockerfile` installs CPU-only `torch` and pre-bakes `BAAI/bge-small-en-v1.5`); locally tested on Python 3.14 (`py -3.14 start_all.py`).
 - **Two Neo4j instances** (Aura free tier works):
-  - Instance01 — politician graph (MLAs, parties, cases, sections, ministries)
-  - Instance02 — ministry RAG (`Chunk`/`MHAChunk` nodes)
-- **A Gemini API key** (AI Studio free tier) for text-to-Cypher and RAG answer generation.
+  - Instance01 — politician graph (MLAs, MPs, parties, cases, sections, ministries)
+  - Instance02 — ministry RAG (`Document`, `Chunk` with `bge_chunk_embeddings` + `chunk_fulltext`)
+- **DeepSeek (`DEEPSEEK_API_KEY`)** primary + **Gemini (`GEMINI_API_KEY`)** fallback for text-to-Cypher and RAG answer synthesis.
 
 ## Quick start (portable)
 

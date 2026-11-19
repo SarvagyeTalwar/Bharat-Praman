@@ -1728,8 +1728,62 @@ def _mp_demographics_and_terms(q):
     party = _party(q)
     limit = _top_n(q, 50)
 
-    # 1. Age: youngest / oldest MP
-    if _any(ql, "youngest", "oldest", "age above", "older than", "younger than"):
+    # 1. Age: youngest / oldest / explicit older-than / younger-than MP
+    if _any(ql, "youngest", "oldest", "age above", "older than", "younger than", "age below", "above age", "below age", "over age", "under age"):
+        m_gt = re.search(r"\b(?:older\s+than|age\s+(?:above|over|>)|above\s+age|over\s+age)\s+(\d{1,3})\b", ql)
+        m_lt = re.search(r"\b(?:younger\s+than|age\s+(?:below|under|<)|below\s+age|under\s+age)\s+(\d{1,3})\b", ql)
+        if m_gt:
+            min_age = int(m_gt.group(1))
+            lim = _top_n(q, 50)
+            return {
+                "result_type": "aggregate",
+                "cypher": f"""
+                    MATCH (p:Person:MP)
+                    OPTIONAL MATCH (p)-[:REPRESENTS]->(c:Constituency)-[:IN_STATE]->(s:State)
+                    WITH p, c, s
+                    WHERE p.age IS NOT NULL AND p.age > $min_age
+                      AND ($state = '' OR toLower(coalesce(s.name, '')) = toLower($state))
+                      AND ($party = '' OR toLower(coalesce(p.party_name, '')) CONTAINS toLower($party))
+                    RETURN p.entity_id AS entity_id,
+                           p.name AS mp_name,
+                           p.age AS age,
+                           coalesce(p.party_name, '—') AS party,
+                           coalesce(c.name, '—') AS constituency,
+                           coalesce(s.name, '—') AS state,
+                           p.total_assets AS total_assets
+                    ORDER BY p.age DESC, mp_name ASC
+                    LIMIT {lim}
+                """,
+                "parameters": {"state": state, "party": party, "min_age": min_age},
+                "explanation": f"MPs older than {min_age} with recorded age.",
+                "template_id": "mp_by_age",
+            }
+        if m_lt:
+            max_age = int(m_lt.group(1))
+            lim = _top_n(q, 50)
+            return {
+                "result_type": "aggregate",
+                "cypher": f"""
+                    MATCH (p:Person:MP)
+                    OPTIONAL MATCH (p)-[:REPRESENTS]->(c:Constituency)-[:IN_STATE]->(s:State)
+                    WITH p, c, s
+                    WHERE p.age IS NOT NULL AND p.age > 0 AND p.age < $max_age
+                      AND ($state = '' OR toLower(coalesce(s.name, '')) = toLower($state))
+                      AND ($party = '' OR toLower(coalesce(p.party_name, '')) CONTAINS toLower($party))
+                    RETURN p.entity_id AS entity_id,
+                           p.name AS mp_name,
+                           p.age AS age,
+                           coalesce(p.party_name, '—') AS party,
+                           coalesce(c.name, '—') AS constituency,
+                           coalesce(s.name, '—') AS state,
+                           p.total_assets AS total_assets
+                    ORDER BY p.age ASC, mp_name ASC
+                    LIMIT {lim}
+                """,
+                "parameters": {"state": state, "party": party, "max_age": max_age},
+                "explanation": f"MPs younger than {max_age} with recorded age.",
+                "template_id": "mp_by_age",
+            }
         is_young = "young" in ql
         order_dir = "ASC" if is_young else "DESC"
         lim = _top_n(q, 10 if _any(ql, "top", "mps") else 5)
@@ -1807,9 +1861,9 @@ def _mp_demographics_and_terms(q):
             "template_id": "mp_by_terms",
         }
 
-    # 3. Gender: women / female / male MPs
-    if _any(ql, "women", "woman", "female", "male", "men"):
-        is_female = _any(ql, "women", "woman", "female")
+    # 3. Gender: women / female / male MPs (word-bounded so "parliament" never matches "men")
+    if re.search(r"\b(?:women|woman|female|male|men)\b", ql):
+        is_female = bool(re.search(r"\b(?:women|woman|female)\b", ql))
         g_vals = ["F", "FEMALE"] if is_female else ["M", "MALE"]
         if "how many" in ql or "count" in ql:
             return {

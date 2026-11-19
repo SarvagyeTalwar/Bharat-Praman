@@ -204,14 +204,28 @@ def detect_ministries_in_text(question: str) -> list[str]:
 
 
 def detect_years_in_text(question: str, explicit_years: list[str] | None = None) -> list[str]:
-    if explicit_years:
-        return [y.strip() for y in explicit_years if y and y.strip()]
+    q_text = question or ""
     found = []
-    for m in re.finditer(r"\b(20\d{2})\s*[-–/]\s*(\d{2,4})\b", question or ""):
+    for m in re.finditer(r"\b(20\d{2})\s*[-–/]\s*(\d{2,4})\b", q_text):
         fy = f"{m.group(1)}-{m.group(2)[-2:]}"
         if fy not in found:
             found.append(fy)
-    return found
+    if len(found) == 2 and re.search(r"\b(?:from|between)\b.*\b(?:to|and)\b", q_text, re.I):
+        start_y, end_y = int(found[0][:4]), int(found[1][:4])
+        if 0 < (end_y - start_y) <= 6:
+            found = [f"{y}-{str(y + 1)[-2:]}" for y in range(start_y, end_y + 1)]
+    if found:
+        return found
+    if explicit_years:
+        cleaned = [y.strip() for y in explicit_years if y and y.strip()]
+        if len(cleaned) >= 5 and not re.search(
+            r"\b(?:compare|growth|trend|across\s+years|year\s+by\s+year)\b",
+            q_text,
+            re.I,
+        ):
+            return []
+        return cleaned
+    return []
 
 
 def get_reports_catalog() -> dict:
@@ -397,6 +411,18 @@ def _rrf(
                 scores[cid] += 0.015
             elif re.search(r"\b(?:crore|lakh|outlay|allocated|released)\b", txt, re.I):
                 scores[cid] += 0.006
+
+            # Penalize Table-of-Contents / front-matter pages so data tables outrank TOC hits
+            has_toc_markers = bool(
+                re.search(r"\btable\s+of\s+contents\b", txt, re.I)
+                or (re.search(r"\bcontents\b", txt, re.I) and re.search(r"\.{4,}", txt))
+            )
+            page_num = hit.get("page")
+            low_page_no_digits = isinstance(page_num, int) and page_num <= 3 and (
+                not re.search(r"\d", txt) or bool(re.search(r"\bcontents\b", txt, re.I))
+            )
+            if has_toc_markers or low_page_no_digits:
+                scores[cid] -= 0.018
 
         hit["rrf_score"] = round(scores[cid], 5)
 
@@ -746,7 +772,7 @@ def search_reports(
     expanded_q, gmatches = expand_query(question, scope_label)
     glossary_note = "; ".join(f"{m['acronym']} = {m['expansion']}" for m in gmatches)
 
-    effective_k = 5 if str(detail_level or "long").strip().lower() == "short" else min(max(top_k, 6), 8)
+    effective_k = 10 if str(detail_level or "long").strip().lower() == "short" else min(max(top_k, 10), 14)
     hits = stratified_hybrid_search(
         expanded_q,
         ministries=target_ministries or None,
@@ -852,7 +878,7 @@ def answer_reports(
     expanded_q, gmatches = expand_query(question, scope_label)
     glossary_note = "; ".join(f"{m['acronym']} = {m['expansion']}" for m in gmatches)
 
-    effective_k = 5 if str(detail_level or "long").strip().lower() == "short" else min(max(top_k, 6), 8)
+    effective_k = 10 if str(detail_level or "long").strip().lower() == "short" else min(max(top_k, 10), 14)
     hits = stratified_hybrid_search(
         expanded_q,
         ministries=target_ministries or None,
@@ -863,7 +889,7 @@ def answer_reports(
     if not hits:
         return (
             "No matching annual-report passages were found in Instance02 for the selected ministry/year filter. "
-            "Verify that the reports are ingested into `qwen_chunk_embeddings`.",
+            f"Verify that the reports are ingested into `{VECTOR_INDEX}`.",
             [],
             "",
         )
