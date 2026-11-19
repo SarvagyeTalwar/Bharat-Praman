@@ -296,6 +296,11 @@ def get_cached_ask_response(question: str):
         item = _ASK_RESPONSE_CACHE.get(key)
         if not item:
             return None
+        if item.get("result_type") == "unsupported":
+            return None
+        tplan = plan_from_template(question)
+        if tplan and tplan.get("template_id") and item.get("template_id") != tplan.get("template_id"):
+            return None
         return json.loads(json.dumps(item))
 
 
@@ -1048,7 +1053,7 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
         "gender", "id", "immovable_assets", "in_defections", "ipc_sections", "jaccard_score",
         "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
         "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons",
-        "out_defections", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession",
+        "out_defections", "party", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession",
         "rank", "rank_order", "relationships", "role", "serious_criminal_cases", "shared_count", "shared_sections",
         "source_date", "source_document", "source_document_date", "source_url", "special_responsibilities", "state",
         "status", "style", "switcher_community", "switcher_pagerank", "terms", "title", "to_constituency", "to_party", "to_year",
@@ -1070,8 +1075,8 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
         raise HTTPException(status_code=400, detail="Generated queries must constrain matches to a known graph label.")
     if result_type == "graph":
         path_match = re.search(r"\bp\s*=\s*(.+?)(?=\bWHERE\b|\bRETURN\b)", schema_text, re.IGNORECASE | re.DOTALL)
-        if not path_match or not re.search(r"\[[^\]]+\]", path_match.group(1)):
-            raise HTTPException(status_code=400, detail="Graph queries must use a specific labeled relationship path.")
+        if not path_match:
+            raise HTTPException(status_code=400, detail="Graph queries must bind a path variable p = ...")
         if len(re.findall(r"\[[^\]]+\]", path_match.group(1))) > 5:
             raise HTTPException(status_code=400, detail="Graph paths are limited to five relationship hops.")
 

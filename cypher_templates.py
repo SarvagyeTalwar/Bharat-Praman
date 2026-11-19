@@ -61,7 +61,7 @@ EMPTY_OK_TEMPLATES = {
     "party_seats_in_state", "party_section_in_state", "state_most_cases",
     "mp_mla_counts_by_state", "state_avg_assets", "states_ranked_by_avg_assets",
     "party_sections", "largest_party_section",
-    "richest_mps", "multiple_sections",
+    "richest_mps", "multiple_sections", "politicians_by_year_filter",
 }
 
 TEMPLATE_COLUMNS = {
@@ -2678,6 +2678,126 @@ def plan_from_template(question: str) -> dict | None:
     if _unsupported_shape(q):
         return None
 
+    # Year range / inequality filters for MLAs or MPs ("inc mlas elected after 1996", "mlas after 1996", "bjp mps since 2014", "mlas before 2020")
+    year_cmp = re.search(
+        r"\b(?P<op>after|since|from|before|prior\s+to|until|till|above|over|below|under)\s+(?P<yr>(?:19|20)\d{2})\b",
+        ql,
+    )
+    if year_cmp and re.search(r"\b(mlas?|mps?|politicians?|leaders?|winners?|candidates?)\b", ql):
+        op_word = year_cmp.group("op")
+        yr_val = int(year_cmp.group("yr"))
+        if op_word in ("after", "above", "over"):
+            op_sym, op_desc = ">", f"after {yr_val}"
+        elif op_word in ("since", "from"):
+            op_sym, op_desc = ">=", f"since {yr_val}"
+        else:
+            op_sym, op_desc = "<", f"before {yr_val}"
+
+        is_mp_only = bool(re.search(r"\bmps?\b", ql)) and not bool(re.search(r"\bmlas?\b", ql))
+        party_val = _party(q)
+        state_val = _state(q)
+        is_count = _any(ql, "how many", "count", "number of")
+
+        params: dict = {"year": yr_val}
+        if party_val:
+            params["party"] = party_val
+        if state_val:
+            params["state"] = state_val
+
+        if is_mp_only:
+            where_clauses = [f"coalesce(er.year, p.election_year, 2024) {op_sym} $year"]
+            if party_val:
+                where_clauses.append("(pa.name = $party OR p.party_name = $party)")
+            if state_val:
+                where_clauses.append("(st.name = $state OR p.state = $state)")
+            where_sql = " AND ".join(where_clauses)
+            if is_count:
+                cypher = f"""
+                    MATCH (p:Person:MP)
+                    OPTIONAL MATCH (p)-[:MEMBER_OF]->(pa:Party)
+                    OPTIONAL MATCH (p)-[:REPRESENTS]->(c:Constituency)-[:IN_STATE]->(st:State)
+                    OPTIONAL MATCH (p)-[:HAS_ELECTION_RECORD]->(er:ElectionRecord)
+                    WITH p, pa, c, st, max(coalesce(er.year, p.election_year, 2024)) AS latest_year
+                    WHERE latest_year {op_sym} $year
+                    {('AND (pa.name = $party OR p.party_name = $party)' if party_val else '')}
+                    {('AND (st.name = $state OR p.state = $state)' if state_val else '')}
+                    RETURN count(DISTINCT p) AS matching_mps
+                    LIMIT 1
+                """
+            else:
+                cypher = f"""
+                    MATCH (p:Person:MP)
+                    OPTIONAL MATCH (p)-[:MEMBER_OF]->(pa:Party)
+                    OPTIONAL MATCH (p)-[:REPRESENTS]->(c:Constituency)-[:IN_STATE]->(st:State)
+                    OPTIONAL MATCH (p)-[:HAS_ELECTION_RECORD]->(er:ElectionRecord)
+                    WITH p, pa, c, st, max(coalesce(er.year, p.election_year, 2024)) AS latest_year
+                    WHERE latest_year {op_sym} $year
+                    {('AND (pa.name = $party OR p.party_name = $party)' if party_val else '')}
+                    {('AND (st.name = $state OR p.state = $state)' if state_val else '')}
+                    RETURN DISTINCT p.name AS mp_name,
+                           coalesce(pa.name, p.party_name, '—') AS party,
+                           coalesce(st.name, p.state, '—') AS state,
+                           coalesce(c.name, '—') AS constituency,
+                           latest_year AS election_year,
+                           coalesce(p.criminal_case_count, 0) AS cases,
+                           coalesce(p.total_assets, 0) AS total_assets,
+                           p.entity_id AS entity_id
+                    ORDER BY election_year DESC, total_assets DESC
+                    LIMIT 50
+                """
+            role_label = "MPs"
+        else:
+            where_clauses = [f"coalesce(p.election_year, e.year) {op_sym} $year"]
+            if party_val:
+                where_clauses.append("(pa.name = $party OR p.party_name = $party)")
+            if state_val:
+                where_clauses.append("(st.name = $state OR p.state = $state)")
+            where_sql = " AND ".join(where_clauses)
+            if is_count:
+                cypher = f"""
+                    MATCH (p:Person:MLA)
+                    OPTIONAL MATCH (p)-[:MEMBER_OF]->(pa:Party)
+                    OPTIONAL MATCH (p)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(st:State)
+                    OPTIONAL MATCH (p)-[:FILED]->(:Affidavit)-[:FOR_ELECTION]->(e:Election)
+                    WITH p, pa, ac, st, max(coalesce(p.election_year, e.year)) AS election_year
+                    WHERE election_year {op_sym} $year
+                    {('AND (pa.name = $party OR p.party_name = $party)' if party_val else '')}
+                    {('AND (st.name = $state OR p.state = $state)' if state_val else '')}
+                    RETURN count(DISTINCT p) AS matching_mlas
+                    LIMIT 1
+                """
+            else:
+                cypher = f"""
+                    MATCH (p:Person:MLA)
+                    OPTIONAL MATCH (p)-[:MEMBER_OF]->(pa:Party)
+                    OPTIONAL MATCH (p)-[:REPRESENTS]->(ac:AssemblyConstituency)-[:IN_STATE]->(st:State)
+                    OPTIONAL MATCH (p)-[:FILED]->(:Affidavit)-[:FOR_ELECTION]->(e:Election)
+                    WITH p, pa, ac, st, max(coalesce(p.election_year, e.year)) AS election_year
+                    WHERE election_year {op_sym} $year
+                    {('AND (pa.name = $party OR p.party_name = $party)' if party_val else '')}
+                    {('AND (st.name = $state OR p.state = $state)' if state_val else '')}
+                    RETURN DISTINCT p.name AS mla_name,
+                           coalesce(pa.name, p.party_name, '—') AS party,
+                           coalesce(st.name, p.state, '—') AS state,
+                           coalesce(ac.name, '—') AS constituency,
+                           election_year,
+                           coalesce(p.criminal_case_count, 0) AS cases,
+                           coalesce(p.total_assets, 0) AS total_assets,
+                           p.entity_id AS entity_id
+                    ORDER BY election_year DESC, total_assets DESC
+                    LIMIT 50
+                """
+            role_label = "MLAs"
+
+        scope_bits = [b for b in (party_val, role_label, f"in {state_val}" if state_val else "", f"elected {op_desc}") if b]
+        return {
+            "result_type": "aggregate",
+            "cypher": cypher,
+            "parameters": params,
+            "explanation": f"{'Count' if is_count else 'Top 50 matching records'} of {' '.join(scope_bits)} in the electoral graph.",
+            "template_id": "politicians_by_year_filter",
+        }
+
     # --- Phase 2: cross-election MLA templates (deterministic) ---
     # Party switchers (aggregate; no specific person named).
     if _any(ql, "switch", "switched", "changed part", "change part", "party switch") \
@@ -3044,7 +3164,5 @@ def plan_from_template(question: str) -> dict | None:
                           "number of its elected representatives")
     if _any(ql, *party_rank_phrases) and _any(ql, "charged", "cases", "ipc"):
         return _party_counts_by_section(q)
-
-    return None
 
     return None

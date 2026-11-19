@@ -1019,7 +1019,7 @@
     const acronymBar = document.getElementById('acronymBar');
 
     function isAnalyticalGraphQuestion(q) {
-      return /\b(which|who|how many|top\s+\d+|richest|wealthiest|most|highest|lowest|list all|show all|compare|count|percentage|average|under ipc|section\s+\d+|above|over|more than|negative net worth)\b/i.test(q || '');
+      return /\b(which|who|how many|top\s+\d+|richest|wealthiest|most|highest|lowest|list|show|find|all|compare|count|percentage|average|under ipc|section\s+\d+|above|over|more than|less than|below|under|after|before|since|between|from|in|with|without|elected|won|winner|winners|mla|mlas|mp|mps|minister|ministers|party|parties|state|states|negative net worth|(?:19|20)\d{2})\b/i.test(q || '');
     }
 
     function detectBestScope(q) {

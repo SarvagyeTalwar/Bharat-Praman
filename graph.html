@@ -1586,6 +1586,12 @@
         return;
       }
       sessionStorage.removeItem('bp_node_trail');
+      const isNaturalQuestion = searchQuery.trim().split(/\s+/).length >= 2 &&
+        /\b(which|who|how many|top\s+\d+|richest|wealthiest|most|highest|lowest|list|show|find|all|compare|count|percentage|average|under ipc|section\s+\d+|above|over|more than|less than|below|under|after|before|since|between|from|in|with|without|elected|won|winner|winners|mla|mlas|mp|mps|minister|ministers|negative net worth|(?:19|20)\d{2})\b/i.test(searchQuery);
+      if (modeInput.value !== 'ask' && isNaturalQuestion) {
+        modeInput.value = 'ask';
+        modeInput.dispatchEvent(new Event('change'));
+      }
       const isAsk = modeInput.value === 'ask';
       const cacheKey = `${CACHE_PREFIX}${isAsk ? 'ask' : filterInput.value}::${searchQuery.toLowerCase()}`;
       const cached = sessionStorage.getItem(cacheKey);
