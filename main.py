@@ -37,6 +37,8 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE") or None
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
+DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").split("DEEPSEEK_API_KEY=")[-1].strip()
+DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 LOCAL_CYPHER_MODEL_URL = (os.getenv("LOCAL_CYPHER_MODEL_URL") or os.getenv("QWEN_CYPHER_URL") or "").rstrip("/")
 
 GEMINI_PLAN_SCHEMA = {
@@ -851,16 +853,15 @@ def gemini_cypher_plan(question: str) -> dict:
         cached_plan["_examples_used"] = 0
         return cached_plan
 
-    # 1. PRIORITY 1: Fine-tuned Qwen 3B Cypher Model answers FIRST
+    # 1. PRIORITY 1: Fine-tuned Qwen 3B Cypher Model answers FIRST (if configured)
     local_plan = query_local_qwen_cypher_plan(question)
     if local_plan is not None:
         return local_plan
 
-    # 2. PRIORITY 2: Gemini API Fallback
-    if not GEMINI_API_KEY:
+    if not DEEPSEEK_API_KEY and not GEMINI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="Text-to-Cypher is not configured. Set GEMINI_API_KEY or LOCAL_CYPHER_MODEL_URL in BACKEND/.env.",
+            detail="Text-to-Cypher is not configured. Set DEEPSEEK_API_KEY or GEMINI_API_KEY in BACKEND/.env.",
         )
 
     selected_examples = select_cypher_examples(question, limit=3)
@@ -923,6 +924,57 @@ QUERY GUIDANCE
             for item in selected_examples
         )
         system_prompt += example_block
+
+    # 2. PRIORITY 2: DeepSeek API Primary Text-to-Cypher Planner
+    if DEEPSEEK_API_KEY:
+        try:
+            ds_req = urllib.request.Request(
+                "https://api.deepseek.com/chat/completions",
+                data=json.dumps({
+                    "model": DEEPSEEK_MODEL,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": question},
+                    ],
+                    "temperature": 0,
+                    "max_tokens": 1200,
+                    "response_format": {"type": "json_object"},
+                }).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(ds_req, timeout=25) as ds_resp:
+                ds_payload = json.loads(ds_resp.read().decode("utf-8"))
+            ds_text = ds_payload["choices"][0]["message"]["content"].strip()
+            if ds_text.startswith("```"):
+                ds_text = re.sub(r"^```(?:json)?\s*|\s*```$", "", ds_text, flags=re.I)
+            plan = json.loads(ds_text)
+            if (
+                isinstance(plan, dict)
+                and set(plan) == {"result_type", "cypher", "parameters", "explanation"}
+                and plan.get("result_type") in {"graph", "aggregate", "unsupported"}
+                and isinstance(plan.get("cypher"), str)
+                and isinstance(plan.get("explanation"), str)
+            ):
+                if plan["result_type"] == "unsupported":
+                    plan["cypher"] = ""
+                    plan["parameters"] = {}
+                else:
+                    plan["parameters"] = validate_cypher_parameters(plan["parameters"])
+                plan["_cache_hit"] = False
+                plan["_examples_used"] = len(selected_examples)
+                plan["_usage_metadata"] = ds_payload.get("usage", {})
+                plan["_model_used"] = DEEPSEEK_MODEL
+                cache_cypher_plan(question, plan)
+                return plan
+        except Exception as ds_exc:
+            logger.warning("DeepSeek Cypher planner failed, falling back to Gemini: %s", ds_exc)
+            if not GEMINI_API_KEY:
+                raise HTTPException(status_code=502, detail="DeepSeek could not generate a valid query plan.")
+
     request_body = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"role": "user", "parts": [{"text": question}]}],

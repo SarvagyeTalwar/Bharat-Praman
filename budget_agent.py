@@ -34,7 +34,7 @@ NEO4J_USERNAME = os.getenv("NEO4J_USERNAME2") or os.getenv("NEO4J_USERNAME1") or
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD2") or os.getenv("NEO4J_PASSWORD1") or os.getenv("NEO4J_PASSWORD")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE2") or os.getenv("NEO4J_DATABASE1") or None
 
-DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").strip()
+DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").split("DEEPSEEK_API_KEY=")[-1].strip()
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY1") or os.getenv("GEMINI_API_KEY") or "").strip()
 GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
