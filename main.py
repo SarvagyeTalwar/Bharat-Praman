@@ -360,6 +360,9 @@ RETURN count(DISTINCT r) AS total
 
 @app.get("/")
 def home():
+    dashboard = BASE_DIR / "graphdashboard2.html"
+    if dashboard.is_file():
+        return FileResponse(dashboard)
     return {"message": "Bharat Praman API is running", "docs": "/docs"}
 
 
@@ -1738,11 +1741,6 @@ except Exception as _rti_exc:
 
 
 _ALLOWED_UI_EXTS = {".html", ".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".webp"}
-
-
-@app.get("/")
-def _serve_root():
-    return FileResponse(BASE_DIR / "graphdashboard2.html")
 
 
 @app.get("/rti/{filename}")
