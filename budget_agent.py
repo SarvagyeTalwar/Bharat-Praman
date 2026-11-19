@@ -37,7 +37,7 @@ NEO4J_DATABASE = os.getenv("NEO4J_DATABASE2") or os.getenv("NEO4J_DATABASE1") or
 DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").strip()
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY1") or os.getenv("GEMINI_API_KEY") or "").strip()
-GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
 
 TABLE_VEC_INDEX = "budget_table_embeddings"
 TABLE_FT_INDEX = "budget_table_fulltext"
@@ -343,7 +343,7 @@ Rules:
             logger.warning("DeepSeek budget synthesis failed, trying Gemini: %s", exc)
 
     if not answer_text and GEMINI_API_KEY:
-        for model_name in dict.fromkeys([GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.5-flash-lite"]):
+        for model_name in dict.fromkeys([GEMINI_MODEL, "gemini-3.5-flash-lite", "gemini-3.8-flash"]):
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
                 req = urllib.request.Request(
