@@ -955,7 +955,7 @@
   <script>
     const isFile = location.protocol === 'file:';
     const host = location.hostname || '127.0.0.1';
-    const RTI_API = (location.port === '8001') ? '' : `http://${host}:8001`;
+    const RTI_API = (location.port === '5500' || isFile) ? `http://${host}:8001` : '';
     const UI_PREFIX = location.pathname.startsWith('/rti/')
       ? '../'
       : ((location.port === '8001' || isFile) ? `http://${host}:5500/` : '');

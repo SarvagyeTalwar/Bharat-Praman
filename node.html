@@ -788,9 +788,9 @@
 
   <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
   <script>
-    const API_BASE = ['http:', 'https:'].includes(location.protocol)
-      ? `${location.protocol}//${location.hostname || '127.0.0.1'}:8000`
-      : 'http://127.0.0.1:8000';
+    const API_BASE = (location.port === '5500' || location.protocol === 'file:')
+      ? `http://${location.hostname || '127.0.0.1'}:8000`
+      : '';
 
     const themeBtn = document.getElementById('themeToggle');
     function syncTheme() {
