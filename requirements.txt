@@ -8,3 +8,5 @@ truststore
 beautifulsoup4
 requests
 PyMuPDF
+torch
+sentence-transformers

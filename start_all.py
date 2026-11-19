@@ -23,7 +23,7 @@ WEB_PORT = int(os.getenv("WEB_PORT", "5500"))
 
 def check_deps():
     missing = []
-    for mod in ("fastapi", "uvicorn", "neo4j", "dotenv", "google.genai", "pydantic"):
+    for mod in ("fastapi", "uvicorn", "neo4j", "dotenv", "google.genai", "pydantic", "torch", "sentence_transformers"):
         try:
             __import__(mod)
         except Exception:
@@ -45,11 +45,11 @@ def lan_ip():
         return "127.0.0.1"
 
 
-def wait_for_api(timeout=30):
+def wait_for_api(timeout=60):
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(f"http://127.0.0.1:{API_PORT}/health", timeout=2) as r:
+            with urllib.request.urlopen(f"http://127.0.0.1:{API_PORT}/health", timeout=8) as r:
                 if r.status == 200:
                     return True
         except Exception:

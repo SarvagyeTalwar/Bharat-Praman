@@ -37,13 +37,15 @@ NEO4J_DATABASE = os.getenv("NEO4J_DATABASE2") or os.getenv("NEO4J_DATABASE1") or
 DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").strip()
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY1") or os.getenv("GEMINI_API_KEY") or "").strip()
-GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.8-flash")
+GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
 
 TABLE_VEC_INDEX = "budget_table_embeddings"
 TABLE_FT_INDEX = "budget_table_fulltext"
 
 _driver = None
 _bootstrapped = False
+_BUDGET_CACHE: dict = {}
+_MAX_BUDGET_CACHE = 128
 
 
 def get_driver():
@@ -253,6 +255,10 @@ def ask_budget(
     top_k: int = 8,
 ) -> dict:
     """Run analytical line-item query + table RAG + journalist synthesis."""
+    cache_key = ((question or "").strip().lower(), ministry, fy, sort_by, top_k)
+    if cache_key in _BUDGET_CACHE:
+        return _BUDGET_CACHE[cache_key]
+
     ql = (question or "").lower()
     if "cut" in ql or "drop" in ql or "reduc" in ql or "under" in ql or "unspent" in ql:
         effective_sort = "biggest_cuts"
@@ -337,7 +343,7 @@ Rules:
             logger.warning("DeepSeek budget synthesis failed, trying Gemini: %s", exc)
 
     if not answer_text and GEMINI_API_KEY:
-        for model_name in dict.fromkeys([GEMINI_MODEL, "gemini-3.8-flash", "gemini-2.5-flash"]):
+        for model_name in dict.fromkeys([GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.5-flash-lite"]):
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
                 req = urllib.request.Request(
@@ -363,7 +369,7 @@ Rules:
     if not answer_text:
         answer_text = f"# Structured Budget Line Items\n\n{structured_items_block}"
 
-    return {
+    res = {
         "question": question,
         "answer": answer_text,
         "line_items": line_items,
@@ -372,3 +378,7 @@ Rules:
             for t in tables[:8]
         ],
     }
+    if len(_BUDGET_CACHE) >= _MAX_BUDGET_CACHE:
+        _BUDGET_CACHE.pop(next(iter(_BUDGET_CACHE)))
+    _BUDGET_CACHE[cache_key] = res
+    return res

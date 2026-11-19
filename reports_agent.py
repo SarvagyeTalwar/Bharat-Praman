@@ -51,9 +51,9 @@ DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").strip()
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 DEEPSEEK_REASONER_MODEL = os.getenv("DEEPSEEK_REASONER_MODEL", "deepseek-reasoner")
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY1") or os.getenv("GEMINI_API_KEY") or "").strip()
-GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.8-flash")
+GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
 
-VECTOR_INDEX = "qwen_chunk_embeddings"
+VECTOR_INDEX = os.getenv("VECTOR_INDEX", "bge_chunk_embeddings")
 FULLTEXT_INDEX = "chunk_fulltext"
 
 # Canonical 8 major ministries for the 3-year Annual Reports collection
@@ -674,7 +674,7 @@ Strict Rules:
 
     # 2. Gemini REST API
     if GEMINI_API_KEY:
-        for model_name in dict.fromkeys([GEMINI_MODEL, "gemini-3.8-flash", "gemini-2.5-flash"]):
+        for model_name in dict.fromkeys([GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.5-flash-lite"]):
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
                 req = urllib.request.Request(

@@ -1703,3 +1703,63 @@ def get_case_flows(node_id: str, limit: int = Query(default=50, ge=1, le=100)):
             status_code=503,
             detail="The graph database query failed. Check the Neo4j connection.",
         )
+
+
+# ---------------------------------------------------------------------------
+# Unified Single-Port Mode (Railway / Cloud Run / Docker)
+# Serves RTI endpoints + whitelisted frontend UI assets on the same port.
+# ---------------------------------------------------------------------------
+from fastapi.responses import FileResponse, RedirectResponse
+
+try:
+    from rti import server as _rti_server
+
+    @app.get("/rti/topics")
+    def _unified_rti_topics():
+        return _rti_server.topics()
+
+    @app.get("/politicians/{entity_id}/rti-details")
+    def _unified_rti_details(entity_id: str):
+        return _rti_server.rti_details(entity_id)
+
+    @app.get("/politicians/{entity_id}/rti/{topic_id}")
+    def _unified_rti_for_topic(entity_id: str, topic_id: str, district: str | None = None):
+        return _rti_server.rti_for_topic(entity_id, topic_id, district=district)
+
+    @app.get("/politicians/{entity_id}/rti/{topic_id}/suggest")
+    def _unified_rti_suggest(entity_id: str, topic_id: str, q: str = "", district: str | None = None):
+        return _rti_server.suggest(entity_id, topic_id, q=q, district=district)
+
+    @app.get("/rti-page")
+    def _unified_rti_page():
+        return _rti_server.rti_page()
+except Exception as _rti_exc:
+    logger.warning("Unified RTI routes not mounted: %s", _rti_exc)
+
+
+_ALLOWED_UI_EXTS = {".html", ".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".webp"}
+
+
+@app.get("/")
+def _serve_root():
+    return FileResponse(BASE_DIR / "graphdashboard2.html")
+
+
+@app.get("/rti/{filename}")
+def _serve_rti_asset(filename: str):
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        raise HTTPException(status_code=404, detail="Not found")
+    target = (BASE_DIR / "rti" / filename).resolve()
+    if target.parent != (BASE_DIR / "rti").resolve() or target.suffix.lower() not in _ALLOWED_UI_EXTS or not target.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(target)
+
+
+@app.get("/{filename}")
+def _serve_root_ui_asset(filename: str):
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        raise HTTPException(status_code=404, detail="Not found")
+    target = (BASE_DIR / filename).resolve()
+    if target.parent != BASE_DIR.resolve() or target.suffix.lower() not in _ALLOWED_UI_EXTS or not target.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(target)
