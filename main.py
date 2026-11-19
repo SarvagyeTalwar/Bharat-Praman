@@ -117,6 +117,50 @@ app.add_middleware(
 )
 
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+_RL_LOCK = threading.Lock()
+_RL_BUCKETS: dict[tuple[str, str], list[float]] = {}
+_RL_HEAVY_PATHS = {"/api/rag/ask", "/api/rag/search", "/api/ask", "/api/budget/ask"}
+_RL_HEAVY_LIMIT = int(os.getenv("RL_HEAVY_RPM", "15"))
+_RL_API_LIMIT = int(os.getenv("RL_API_RPM", "90"))
+_RL_WINDOW_S = 60.0
+
+
+@app.middleware("http")
+async def _rate_limit_middleware(request: Request, call_next):
+    path = request.url.path
+    if not path.startswith("/api/"):
+        return await call_next(request)
+
+    xff = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+    ip = xff or (request.client.host if request.client else "unknown")
+    tier = "heavy" if path in _RL_HEAVY_PATHS else "api"
+    limit = _RL_HEAVY_LIMIT if tier == "heavy" else _RL_API_LIMIT
+    now = time.monotonic()
+    cutoff = now - _RL_WINDOW_S
+    key = (ip, tier)
+
+    with _RL_LOCK:
+        if len(_RL_BUCKETS) > 5000:
+            stale = [k for k, ts in _RL_BUCKETS.items() if not ts or ts[-1] < cutoff]
+            for k in stale:
+                del _RL_BUCKETS[k]
+        hits = [t for t in _RL_BUCKETS.get(key, ()) if t >= cutoff]
+        if len(hits) >= limit:
+            retry_after = max(1, int(_RL_WINDOW_S - (now - hits[0])))
+            return JSONResponse(
+                status_code=429,
+                content={"detail": f"Rate limit exceeded ({limit} requests/min). Please wait {retry_after}s."},
+                headers={"Retry-After": str(retry_after)},
+            )
+        hits.append(now)
+        _RL_BUCKETS[key] = hits
+
+    return await call_next(request)
+
+
 _PLAN_CACHE = OrderedDict()
 _PLAN_CACHE_LOCK = threading.Lock()
 _PLAN_CACHE_TTL_SECONDS = 900
