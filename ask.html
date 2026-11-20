@@ -726,7 +726,7 @@
         <a href="ask.html" class="active">Budget Dossier</a>
         <a href="rti/rti_page.html">RTI Desk</a>
         <a href="graph.html#glossary" id="glossaryOpen">Glossary &amp; IPC</a>
-        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">⚡ GraphRAG Benchmark</a>
+        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">Architecture Benchmark</a>
         <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
           <span class="switch-mode-track" aria-hidden="true"></span>
           <span class="switch-mode-knob" aria-hidden="true"></span>
@@ -838,8 +838,7 @@
     <!-- Results Area -->
     <section id="results" aria-live="polite">
       <div class="empty">
-        <div style="font-size:26px; margin-bottom:8px;">📊</div>
-        <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No Audit Loaded Yet</div>
+                <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No Audit Loaded Yet</div>
         <div style="font-size:13px; color:var(--muted);">Click a popular benchmark audit chip above or enter your own audit question to inspect official allocations.</div>
       </div>
     </section>
@@ -1092,7 +1091,7 @@
         <div class="subgraph-box">
           <div class="subgraph-head">
             <span>Evidence Graph Lineage (:Ministry → :Document → :Chunk)</span>
-            <span>Index: Qwen3 Embeddings (1024D) + FullText RRF</span>
+            <span>Index: BGE-Small Embeddings (384D) + FullText RRF</span>
           </div>
           <svg class="subgraph-svg" viewBox="0 0 820 136" xmlns="http://www.w3.org/2000/svg">
             ${edgesSvg}
@@ -1219,6 +1218,83 @@
       }).join('');
     }
 
+    async function streamAuditDossier(reqBody, tStart) {
+      const resp = await fetch(`${API}/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+        body: JSON.stringify(reqBody),
+      });
+      if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
+
+      const minLabel = labelFor[reqBody.ministry] || reqBody.ministry || 'All Ministries';
+      let meta = {};
+      let content = '';
+      let finalAnswer = null;
+      let firstTokenMs = null;
+      let lastPaint = 0;
+
+      const paint = (force = false) => {
+        const now = performance.now();
+        if (!force && now - lastPaint < 90) return;
+        lastPaint = now;
+        renderResults([{
+          ministry: minLabel,
+          detail_level: meta.detail_level || reqBody.detail_level,
+          reasoning_mode: meta.reasoning_mode || reqBody.reasoning_mode,
+          answer: content || 'Synthesizing cited audit briefing from retrieved passages...',
+          graph_context: meta.graph_context || '',
+          sources: meta.sources || [],
+        }]);
+        if (firstTokenMs !== null) {
+          perfTag.textContent = `Streaming · First token: ${firstTokenMs} ms`;
+        } else if (meta.sources) {
+          statusEl.textContent = `Retrieved ${meta.sources.length} passages from Neo4j · Streaming synthesis...`;
+        }
+      };
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buf.indexOf('\n\n')) !== -1) {
+          const frame = buf.slice(0, idx);
+          buf = buf.slice(idx + 2);
+          const line = frame.split('\n').find((l) => l.startsWith('data:'));
+          if (!line) continue;
+          let ev;
+          try { ev = JSON.parse(line.slice(5).trim()); } catch (_) { continue; }
+          if (ev.type === 'meta') {
+            meta = ev;
+            paint(true);
+          } else if (ev.type === 'reasoning' || ev.type === 'content') {
+            if (firstTokenMs === null) firstTokenMs = Math.round(performance.now() - tStart);
+            if (ev.type === 'content') content += ev.delta || '';
+            paint();
+          } else if (ev.type === 'done') {
+            finalAnswer = ev.answer || content;
+          } else if (ev.type === 'error') {
+            throw new Error(ev.detail || 'stream error');
+          }
+        }
+      }
+      if (finalAnswer === null && !content) throw new Error('empty stream');
+      return {
+        results: [{
+          ministry: minLabel,
+          detail_level: meta.detail_level || reqBody.detail_level,
+          reasoning_mode: meta.reasoning_mode || reqBody.reasoning_mode,
+          answer: finalAnswer !== null ? finalAnswer : content,
+          graph_context: meta.graph_context || '',
+          sources: meta.sources || [],
+          first_token_ms: firstTokenMs,
+        }]
+      };
+    }
+
     async function ask() {
       const question = questionEl.value.trim();
       if (!question) {
@@ -1249,18 +1325,25 @@
       askButton.textContent = 'Executing...';
       resultsEl.innerHTML = '<div class="empty">Querying Neo4j Instance02 Hybrid Index + Synthesizing Audit Tables...</div>';
       const t0 = performance.now();
+      const reqBody = { question, ministry, detail_level: detailLevel, reasoning_mode: reasoningMode, years: yearsArr };
       try {
-        const response = await fetch(API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, ministry, detail_level: detailLevel, reasoning_mode: reasoningMode, years: yearsArr }),
-        });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.detail || 'Audit failed.');
+        let payload;
+        try {
+          payload = await streamAuditDossier(reqBody, t0);
+        } catch (streamErr) {
+          const response = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reqBody),
+          });
+          payload = await response.json();
+          if (!response.ok) throw new Error(payload.detail || 'Audit failed.');
+        }
         try { sessionStorage.setItem(cacheKey, JSON.stringify(payload)); } catch {}
         renderResults(payload.results || []);
+        const ttft = payload.results?.[0]?.first_token_ms;
         statusEl.textContent = `Audit Complete (${payload.results?.[0]?.sources?.length || 0} chunk citations).`;
-        perfTag.textContent = `Latency: ${Math.round(performance.now() - t0)} ms`;
+        perfTag.textContent = ttft ? `First token: ${ttft} ms · Total: ${Math.round(performance.now() - t0)} ms` : `Latency: ${Math.round(performance.now() - t0)} ms`;
       } catch (err) {
         statusEl.textContent = `Audit Failed: ${err.message}`;
         statusEl.classList.add('error');

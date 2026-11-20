@@ -47,7 +47,13 @@ NEO4J_USERNAME = os.getenv("NEO4J_USERNAME1") or os.getenv("NEO4J_USERNAME")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD1") or os.getenv("NEO4J_PASSWORD")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE1") or None
 
-DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").split("DEEPSEEK_API_KEY=")[-1].strip()
+def _clean_sk(raw: str | None) -> str:
+    s = (raw or "").strip()
+    matches = re.findall(r"sk-[A-Za-z0-9]{20,}", s)
+    return matches[-1] if matches else s.split("DEEPSEEK_API_KEY=")[-1].strip().strip("\"' ")
+
+
+DEEPSEEK_API_KEY = _clean_sk(os.getenv("DEEPSEEK_API_KEY"))
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 DEEPSEEK_REASONER_MODEL = os.getenv("DEEPSEEK_REASONER_MODEL", "deepseek-reasoner")
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY1") or os.getenv("GEMINI_API_KEY") or "").strip()
@@ -1005,6 +1011,53 @@ def synthesize_report_stream(
                 logger.warning("DeepSeek stream %s failed: %s", ds_model, exc)
                 if emitted:
                     yield ("content", "\n\n_[Stream interrupted. Partial answer shown.]_")
+                    return
+
+    if GEMINI_API_KEY:
+        for model_name in dict.fromkeys([GEMINI_MODEL, "gemini-3.5-flash-lite", "gemini-3.8-flash"]):
+            emitted = False
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?alt=sse"
+                req = urllib.request.Request(
+                    url,
+                    data=json.dumps({
+                        "systemInstruction": {"parts": [{"text": system_prompt}]},
+                        "contents": [{"parts": [{"text": user_prompt}]}],
+                        "generationConfig": {"temperature": 0.15, "maxOutputTokens": max_tokens},
+                    }).encode("utf-8"),
+                    headers={
+                        "x-goog-api-key": GEMINI_API_KEY,
+                        "Content-Type": "application/json",
+                        "Accept": "text/event-stream",
+                    },
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=40) as resp:
+                    for raw in resp:
+                        line = raw.decode("utf-8", "ignore").strip()
+                        if not line.startswith("data:"):
+                            continue
+                        data = line[5:].strip()
+                        if not data or data == "[DONE]":
+                            continue
+                        try:
+                            obj = json.loads(data)
+                        except ValueError:
+                            continue
+                        cands = obj.get("candidates") or []
+                        if not cands:
+                            continue
+                        parts = (cands[0].get("content") or {}).get("parts") or []
+                        for p in parts:
+                            txt = p.get("text")
+                            if txt:
+                                emitted = True
+                                yield ("content", txt)
+                if emitted:
+                    return
+            except Exception as exc:
+                logger.warning("Gemini stream %s failed: %s", model_name, exc)
+                if emitted:
                     return
 
     yield (
