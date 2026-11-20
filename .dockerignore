@@ -21,3 +21,5 @@ data/finetune*
 data/myneta/
 .vscode
 .idea
+rti_scraper/*.json
+rti_scraper/pdfs/
