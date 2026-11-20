@@ -585,15 +585,15 @@ def fetch_graph_context(hits: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def synthesize_report(
+def _build_report_prompts(
     question: str,
     hits: list[dict],
     gctx: str,
     glossary_note: str = "",
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
-) -> str:
-    """Generate a short or long cited briefing via DeepSeek (V3 or R1 Reasoner) or Gemini REST API."""
+) -> tuple:
+    """Build (system_prompt, user_prompt, max_tokens, short_mode, use_r1) for report synthesis."""
     ctx_blocks = []
     for i, h in enumerate(hits, 1):
         p_start = h.get("page")
@@ -653,9 +653,25 @@ Strict Rules:
         f"CONTEXT PASSAGES:\n{context}\n\n"
         f"QUESTION: {question}\n\nREPORT:"
     )
+    return system_prompt, user_prompt, max_tokens, short_mode, use_r1
+
+
+def synthesize_report(
+    question: str,
+    hits: list[dict],
+    gctx: str,
+    glossary_note: str = "",
+    detail_level: str = "long",
+    reasoning_mode: str | bool = "auto",
+    skip_deepseek: bool = False,
+) -> str:
+    """Generate a short or long cited briefing via DeepSeek (V3 or R1 Reasoner) or Gemini REST API."""
+    system_prompt, user_prompt, max_tokens, short_mode, use_r1 = _build_report_prompts(
+        question, hits, gctx, glossary_note, detail_level, reasoning_mode
+    )
 
     # 1. Prefer DeepSeek (R1 reasoner or V3 chat) if DEEPSEEK_API_KEY is configured
-    if DEEPSEEK_API_KEY:
+    if DEEPSEEK_API_KEY and not skip_deepseek:
         models_to_try = (
             [DEEPSEEK_REASONER_MODEL, DEEPSEEK_MODEL]
             if use_r1
@@ -910,3 +926,176 @@ def answer_reports(
             _ANSWER_CACHE.pop(next(iter(_ANSWER_CACHE)))
         _ANSWER_CACHE[cache_key] = result
     return result
+
+
+# ---------------------------------------------------------------------------
+# SSE streaming (token-by-token) variants
+# ---------------------------------------------------------------------------
+def synthesize_report_stream(
+    question: str,
+    hits: list[dict],
+    gctx: str,
+    glossary_note: str = "",
+    detail_level: str = "long",
+    reasoning_mode: str | bool = "auto",
+):
+    """Yield (kind, text) tuples where kind is 'reasoning' or 'content'.
+
+    Streams DeepSeek tokens as they arrive. If streaming fails before any token is
+    emitted, falls back to the non-streaming Gemini / evidence path in one chunk.
+    """
+    system_prompt, user_prompt, max_tokens, short_mode, use_r1 = _build_report_prompts(
+        question, hits, gctx, glossary_note, detail_level, reasoning_mode
+    )
+
+    if DEEPSEEK_API_KEY:
+        models_to_try = [DEEPSEEK_REASONER_MODEL, DEEPSEEK_MODEL] if use_r1 else [DEEPSEEK_MODEL]
+        for ds_model in dict.fromkeys(models_to_try):
+            emitted = False
+            try:
+                body_dict = {
+                    "model": ds_model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    "max_tokens": max_tokens,
+                    "stream": True,
+                }
+                if "reasoner" not in ds_model:
+                    body_dict["temperature"] = 0.12
+                req = urllib.request.Request(
+                    "https://api.deepseek.com/chat/completions",
+                    data=json.dumps(body_dict).encode("utf-8"),
+                    headers={
+                        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                        "Content-Type": "application/json",
+                        "Accept": "text/event-stream",
+                    },
+                    method="POST",
+                )
+                timeout_s = 75 if "reasoner" in ds_model else 45
+                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+                    for raw in resp:
+                        line = raw.decode("utf-8", "ignore").strip()
+                        if not line.startswith("data:"):
+                            continue
+                        data = line[5:].strip()
+                        if data == "[DONE]":
+                            break
+                        try:
+                            obj = json.loads(data)
+                        except ValueError:
+                            continue
+                        choices = obj.get("choices") or []
+                        if not choices:
+                            continue
+                        delta = choices[0].get("delta") or {}
+                        r_txt = delta.get("reasoning_content")
+                        if r_txt and not short_mode:
+                            emitted = True
+                            yield ("reasoning", r_txt)
+                        c_txt = delta.get("content")
+                        if c_txt:
+                            emitted = True
+                            yield ("content", c_txt)
+                if emitted:
+                    return
+            except Exception as exc:
+                logger.warning("DeepSeek stream %s failed: %s", ds_model, exc)
+                if emitted:
+                    yield ("content", "\n\n_[Stream interrupted. Partial answer shown.]_")
+                    return
+
+    yield (
+        "content",
+        synthesize_report(
+            question, hits, gctx, glossary_note,
+            detail_level=detail_level, reasoning_mode=reasoning_mode, skip_deepseek=True,
+        ),
+    )
+
+
+def answer_reports_stream(
+    question: str,
+    ministry: str | list[str] | None = "all",
+    years: list[str] | None = None,
+    top_k: int = 8,
+    detail_level: str = "long",
+    reasoning_mode: str | bool = "auto",
+):
+    """Streaming twin of answer_reports(). Yields dict events:
+
+    {"type": "meta", "hits": [...], "graph_context": str, "cached": bool, "reasoning_mode": str}
+    {"type": "reasoning" | "content", "delta": str}
+    {"type": "done", "answer": str}   # final glossary-annotated answer (same as answer_reports)
+    """
+    target_ministries = resolve_ministries(ministry, question)
+    target_years = detect_years_in_text(question, years)
+    use_r1 = should_use_reasoner(question, reasoning_mode)
+    short_mode = str(detail_level or "long").strip().lower() == "short"
+    mode_label = "reasoner" if use_r1 else "chat"
+
+    cache_key = (
+        (question or "").strip().lower(),
+        tuple(target_ministries),
+        tuple(target_years),
+        str(detail_level or "long").strip().lower(),
+        use_r1,
+    )
+    with _CACHE_LOCK:
+        cached = _ANSWER_CACHE.get(cache_key)
+    if cached is not None:
+        yield {"type": "meta", "hits": cached[1], "graph_context": cached[2], "cached": True, "reasoning_mode": mode_label}
+        yield {"type": "done", "answer": cached[0]}
+        return
+
+    scope_label = target_ministries[0] if len(target_ministries) == 1 else "Education"
+    expanded_q, gmatches = expand_query(question, scope_label)
+    glossary_note = "; ".join(f"{m['acronym']} = {m['expansion']}" for m in gmatches)
+
+    effective_k = 10 if short_mode else min(max(top_k, 10), 14)
+    hits = stratified_hybrid_search(
+        expanded_q,
+        ministries=target_ministries or None,
+        years=target_years or None,
+        top_k=effective_k,
+        raw_question=question,
+    )
+    if not hits:
+        yield {"type": "meta", "hits": [], "graph_context": "", "cached": False, "reasoning_mode": mode_label}
+        yield {
+            "type": "done",
+            "answer": "No matching annual-report passages were found for the selected ministry/year filter.",
+        }
+        return
+
+    gctx = fetch_graph_context(hits)
+    yield {"type": "meta", "hits": hits, "graph_context": gctx, "cached": False, "reasoning_mode": mode_label}
+
+    reasoning_parts: list[str] = []
+    content_parts: list[str] = []
+    for kind, txt in synthesize_report_stream(
+        question, hits, gctx, glossary_note,
+        detail_level=detail_level, reasoning_mode=reasoning_mode,
+    ):
+        (reasoning_parts if kind == "reasoning" else content_parts).append(txt)
+        yield {"type": kind, "delta": txt}
+
+    content = "".join(content_parts)
+    reasoning = "".join(reasoning_parts).strip()
+    if reasoning and not short_mode:
+        raw_ans = (
+            f"<details><summary>DeepSeek R1 Audit Reasoning Trace</summary>\n\n"
+            f"{reasoning}\n\n</details>\n\n{content}"
+        )
+    else:
+        raw_ans = content
+
+    annotated_ans, _ = annotate_answer(raw_ans, scope_label)
+    if "_[Stream interrupted" not in content:
+        with _CACHE_LOCK:
+            if len(_ANSWER_CACHE) >= _MAX_CACHE_ENTRIES:
+                _ANSWER_CACHE.pop(next(iter(_ANSWER_CACHE)))
+            _ANSWER_CACHE[cache_key] = (annotated_ans, hits, gctx)
+    yield {"type": "done", "answer": annotated_ans}

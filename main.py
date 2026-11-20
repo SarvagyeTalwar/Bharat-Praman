@@ -127,7 +127,7 @@ from fastapi.responses import JSONResponse
 
 _RL_LOCK = threading.Lock()
 _RL_BUCKETS: dict[tuple[str, str], list[float]] = {}
-_RL_HEAVY_PATHS = {"/api/rag/ask", "/api/rag/search", "/api/ask", "/api/budget/ask"}
+_RL_HEAVY_PATHS = {"/api/rag/ask", "/api/rag/ask/stream", "/api/rag/search", "/api/ask", "/api/budget/ask"}
 _RL_HEAVY_LIMIT = int(os.getenv("RL_HEAVY_RPM", "15"))
 _RL_API_LIMIT = int(os.getenv("RL_API_RPM", "90"))
 _RL_WINDOW_S = 60.0
@@ -540,6 +540,64 @@ def rag_search(req: RagAskRequest):
             "graph_context": "",
             "error": str(exc),
         }
+
+
+@app.post("/api/rag/ask/stream")
+def rag_ask_stream(req: RagAskRequest):
+    """Server-Sent Events twin of /api/rag/ask: streams DeepSeek tokens as they arrive."""
+    from fastapi.responses import StreamingResponse
+    from reports_agent import answer_reports_stream, _source_portal_url
+
+    detail_level = "short" if str(req.detail_level).strip().lower() == "short" else "long"
+    reasoning_mode = str(req.reasoning_mode or "auto").strip().lower()
+    scope = req.ministries if req.ministries else req.ministry
+
+    def _sse(obj: dict) -> str:
+        return f"data: {json.dumps(obj, default=str, ensure_ascii=False)}\n\n"
+
+    def _gen():
+        try:
+            for ev in answer_reports_stream(
+                req.question,
+                ministry=scope,
+                years=req.years,
+                detail_level=detail_level,
+                reasoning_mode=reasoning_mode,
+            ):
+                if ev.get("type") == "meta":
+                    ev = {
+                        "type": "meta",
+                        "cached": bool(ev.get("cached")),
+                        "reasoning_mode": ev.get("reasoning_mode", "chat"),
+                        "detail_level": detail_level,
+                        "graph_context": ev.get("graph_context", ""),
+                        "sources": [
+                            {
+                                "title": h.get("title"),
+                                "file": h.get("file"),
+                                "ministry": h.get("ministry"),
+                                "year": h.get("year"),
+                                "page": h.get("page"),
+                                "section": h.get("section"),
+                                "breadcrumb": h.get("breadcrumb"),
+                                "score": h.get("rrf_score") or h.get("score"),
+                                "source_url": _source_portal_url(
+                                    h.get("ministry", ""), h.get("title", ""), h.get("file", "")
+                                ),
+                            }
+                            for h in (ev.get("hits") or [])
+                        ],
+                    }
+                yield _sse(ev)
+        except Exception:
+            logger.exception("RAG stream failed")
+            yield _sse({"type": "error", "detail": "Streaming synthesis failed."})
+
+    return StreamingResponse(
+        _gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no", "Connection": "keep-alive"},
+    )
 
 
 @app.post("/api/rag/ask")

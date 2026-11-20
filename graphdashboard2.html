@@ -1366,6 +1366,90 @@
       }).join('');
     }
 
+    // Streams /api/rag/ask/stream (SSE over fetch) and renders tokens live into the summary slot.
+    // Resolves with a payload shaped like /api/rag/ask so caching/rendering stays unchanged.
+    async function streamRagAnswer(reqBody, tStart) {
+      const slot = document.getElementById('deepSeekSummarySlot');
+      const resp = await fetch(`${API_BASE}/api/rag/ask/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+        body: JSON.stringify(reqBody)
+      });
+      if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
+
+      let meta = {};
+      let content = '';
+      let reasoningChars = 0;
+      let finalAnswer = null;
+      let firstTokenMs = null;
+      let lastPaint = 0;
+
+      const paint = (force = false) => {
+        const now = performance.now();
+        if (!slot || (!force && now - lastPaint < 80)) return;
+        lastPaint = now;
+        const ttft = firstTokenMs !== null ? `first token ${firstTokenMs} ms` : 'retrieving evidence...';
+        const thinking = reasoningChars && !content
+          ? `<p style="font-size:12.5px; color:var(--muted); margin:0;">Reasoning over retrieved passages (${reasoningChars.toLocaleString()} chars)...</p>`
+          : '';
+        slot.innerHTML = `
+          <div class="sub-block" style="margin-bottom:16px; border-left:3px solid var(--accent);">
+            <div class="sub-block-head">
+              <span>DeepSeek Synthesis (${escapeHtml((meta.reasoning_mode || 'chat').toUpperCase())}) · streaming</span>
+              <span class="mono" style="font-size:11px; color:var(--muted);">${ttft}</span>
+            </div>
+            <div style="padding:12px 14px;">${thinking}${content ? renderRagMarkdown(content) : ''}</div>
+          </div>`;
+      };
+      paint(true);
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buf.indexOf('\n\n')) !== -1) {
+          const frame = buf.slice(0, idx);
+          buf = buf.slice(idx + 2);
+          const line = frame.split('\n').find((l) => l.startsWith('data:'));
+          if (!line) continue;
+          let ev;
+          try { ev = JSON.parse(line.slice(5).trim()); } catch (_) { continue; }
+          if (ev.type === 'meta') {
+            meta = ev;
+          } else if (ev.type === 'reasoning') {
+            if (firstTokenMs === null) firstTokenMs = Math.round(performance.now() - tStart);
+            reasoningChars += (ev.delta || '').length;
+          } else if (ev.type === 'content') {
+            if (firstTokenMs === null) firstTokenMs = Math.round(performance.now() - tStart);
+            content += ev.delta || '';
+          } else if (ev.type === 'done') {
+            finalAnswer = ev.answer || content;
+          } else if (ev.type === 'error') {
+            throw new Error(ev.detail || 'stream error');
+          }
+          paint();
+        }
+      }
+      if (finalAnswer === null && !content) throw new Error('empty stream');
+      return {
+        question: reqBody.question,
+        results: [{
+          ministry: reqBody.ministry,
+          detail_level: meta.detail_level || reqBody.detail_level,
+          reasoning_mode: meta.reasoning_mode || 'chat',
+          answer: finalAnswer !== null ? finalAnswer : content,
+          graph_context: meta.graph_context || '',
+          sources: meta.sources || [],
+          cached: !!meta.cached,
+          first_token_ms: firstTokenMs
+        }]
+      };
+    }
+
     function renderDeepSeekIntoSlot(askData, elapsedMs = null) {
       const slot = document.getElementById('deepSeekSummarySlot');
       const btn = document.getElementById('generateDeepSeekBtn');
@@ -1465,20 +1549,27 @@
           statusLine.classList.remove('error');
           statusText.textContent = 'Synthesizing BE vs RE summary with DeepSeek...';
           const tDs = performance.now();
+          const reqBody = {
+            question: q,
+            ministry: effTarget,
+            years: ['2021-22', '2022-23', '2023-24', '2024-25', '2025-26', '2026-27'],
+            detail_level: cfg.detail_level,
+            reasoning_mode: cfg.reasoning_mode
+          };
           try {
-            const resp = await fetch(`${API_BASE}/api/rag/ask`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                question: q,
-                ministry: effTarget,
-                years: ['2021-22', '2022-23', '2023-24', '2024-25', '2025-26', '2026-27'],
-                detail_level: cfg.detail_level,
-                reasoning_mode: cfg.reasoning_mode
-              })
-            });
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const askPayload = await resp.json();
+            let askPayload;
+            try {
+              askPayload = await streamRagAnswer(reqBody, tDs);
+            } catch (streamErr) {
+              // Fallback: non-streaming endpoint
+              const resp = await fetch(`${API_BASE}/api/rag/ask`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reqBody)
+              });
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+              askPayload = await resp.json();
+            }
             const elapsed = Math.round(performance.now() - tDs);
             renderDeepSeekIntoSlot(askPayload, elapsed);
             try {
