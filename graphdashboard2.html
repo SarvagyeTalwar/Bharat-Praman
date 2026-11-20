@@ -606,7 +606,7 @@
         <a href="ask.html">Budget Dossier</a>
         <a href="rti/rti_page.html">RTI Desk</a>
         <button id="glossaryOpen" type="button">Glossary &amp; IPC</button>
-        <button id="benchmarkOpen" type="button" class="btn-ghost" style="cursor:pointer; font-weight:700; color:var(--accent); border-color:var(--accent);">⚡ GraphRAG Benchmark</button>
+        <button id="benchmarkOpen" type="button" class="btn-ghost" style="cursor:pointer; font-weight:700; color:var(--accent); border-color:var(--accent);">Architecture Benchmark</button>
         <button id="themeToggle" type="button">Dark Mode</button>
       </nav>
     </div>
@@ -617,7 +617,7 @@
       <div style="display:flex; justify-content:center; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
         <div class="hero-badge" id="syncBadge">Election Affidavits &amp; Union Ministry Budgets</div>
         <button id="benchmarkHeroBtn" type="button" class="hero-badge" style="background:rgba(37,99,235,0.1); color:var(--accent); border-color:rgba(37,99,235,0.3); cursor:pointer; font-weight:700;">
-          ⚡ Benchmark: GraphRAG vs. Vector RAG
+          Benchmark: GraphRAG vs. Vector RAG
         </button>
       </div>
       <h1>Verify Elected Leaders &amp; Public Spending</h1>
@@ -636,7 +636,7 @@
           autocomplete="off"
           placeholder="Ask about an MP, MLA, criminal record, or ministry budget (e.g. PM-SHRI 2023-24)..."
         />
-        <button id="runQueryBtn" class="btn-primary" type="button">Ask Bharat Praman</button>
+        <button id="runQueryBtn" class="btn-primary" type="button">Run Audit</button>
       </div>
 
       <div id="acronymBar" class="acronym-bar" hidden></div>
@@ -645,7 +645,7 @@
         <div class="segmented" id="styleRow" role="group" aria-label="Answer depth">
           <button type="button" class="seg-btn active" data-style="audit">Audit + Tables</button>
           <button type="button" class="seg-btn" data-style="plain">Quick Summary</button>
-          <button type="button" class="seg-btn" data-style="deep">Deep R1 Analysis</button>
+          <button type="button" class="seg-btn" data-style="deep">Exhaustive Audit</button>
         </div>
 
         <div class="scope-wrap">
@@ -779,9 +779,9 @@
   <!-- Benchmark Comparison Modal (GraphRAG vs Naive Vector RAG) -->
   <div id="benchmarkModal" class="modal-backdrop" hidden>
     <div class="modal-box" style="max-width:920px;" role="dialog" aria-modal="true" aria-label="GraphRAG vs Naive Vector Search Benchmark">
-      <div class="modal-head" style="background: linear-gradient(135deg, #1e3a8a, #0f172a);">
+      <div class="modal-head" style="background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.1);">
         <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:16px;">⚡</span>
+          
           <span>Architecture Benchmark: GraphRAG vs. Naive Vector RAG</span>
         </div>
         <button id="benchmarkClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">Close</button>
@@ -807,23 +807,23 @@
             <!-- Naive Vector RAG Column -->
             <div style="background:rgba(220, 38, 38, 0.04); border:1px solid rgba(220, 38, 38, 0.25); border-radius:10px; padding:16px;">
               <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                <span style="font-weight:700; color:var(--danger); font-size:13px;">❌ Naive Vector RAG (ChromaDB)</span>
+                <span style="font-weight:700; color:var(--danger); font-size:13px;">[Baseline] Naive Vector RAG (ChromaDB)</span>
                 <span class="tag-pill tag-danger">Disconnected Chunks</span>
               </div>
               <p style="font-size:12.5px; color:var(--fg); line-height:1.45; margin-bottom:12px;">
                 <strong>What it returns:</strong> A raw text paragraph from <em>def25-24.pdf</em>: <em>"Capital outlay for modernization of Defence Services was estimated at Rs 1.72 lakh crore..."</em>
               </p>
               <div style="font-size:12px; color:var(--muted); line-height:1.45;">
-                <div style="margin-bottom:4px;">❌ <strong>No Responsible Person:</strong> The document text does not state who heads the ministry.</div>
-                <div style="margin-bottom:4px;">❌ <strong>Hallucination Risk:</strong> LLM guesses or quotes outdated ministers.</div>
-                <div>❌ <strong>No Statutory Recourse:</strong> Cannot generate an RTI petition or verify parliamentary questions.</div>
+                <div style="margin-bottom:4px;">• <strong>No Responsible Person:</strong> The document text does not state who heads the ministry.</div>
+                <div style="margin-bottom:4px;">• <strong>Hallucination Risk:</strong> LLM guesses or quotes outdated ministers.</div>
+                <div>• <strong>No Statutory Recourse:</strong> Cannot generate an RTI petition or verify parliamentary questions.</div>
               </div>
             </div>
 
             <!-- Bharat Praman GraphRAG Column -->
             <div style="background:rgba(37, 99, 235, 0.04); border:1px solid rgba(37, 99, 235, 0.35); border-radius:10px; padding:16px;">
               <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                <span style="font-weight:700; color:var(--accent); font-size:13px;">✅ Bharat Praman GraphRAG (Neo4j)</span>
+                <span style="font-weight:700; color:var(--accent); font-size:13px;">[Knowledge Graph] Bharat Praman GraphRAG (Neo4j)</span>
                 <span class="tag-pill tag-accent">Grounded Graph Path</span>
               </div>
               <p style="font-size:12.5px; color:var(--fg); line-height:1.45; margin-bottom:12px;">
@@ -833,9 +833,9 @@
                 </code>
               </p>
               <div style="font-size:12px; color:var(--muted); line-height:1.45;">
-                <div style="margin-bottom:4px;">✅ <strong>Accountable Leader:</strong> Pinpoints Cabinet Minister <strong>Rajnath Singh</strong> (Lucknow, BJP).</div>
-                <div style="margin-bottom:4px;">✅ <strong>Civic Profile:</strong> Discloses ₹7.37 Cr declared assets, 0 criminal cases, and 2.52x asset trajectory.</div>
-                <div>✅ <strong>Statutory Action:</strong> 1-click generation of statutory Form-A RTI to Defence CPIO.</div>
+                <div style="margin-bottom:4px;">• <strong>Accountable Leader:</strong> Pinpoints Cabinet Minister <strong>Rajnath Singh</strong> (Lucknow, BJP).</div>
+                <div style="margin-bottom:4px;">• <strong>Civic Profile:</strong> Discloses ₹7.37 Cr declared assets, 0 criminal cases, and 2.52x asset trajectory.</div>
+                <div>• <strong>Statutory Action:</strong> 1-click generation of statutory Form-A RTI to Defence CPIO.</div>
               </div>
             </div>
           </div>
@@ -864,8 +864,8 @@
                 <tr>
                   <td style="font-weight:600;">Accountability Entity Linking</td>
                   <td><span class="growth-negative">38% Precision</span> (Dependent on LLM parametric memory)</td>
-                  <td><span class="growth-positive">100% Precision</span> (Grounded in ECI + Sansad Knowledge Graph)</td>
-                  <td><strong>Zero Hallucination</strong></td>
+                  <td><span class="growth-positive">ECI-Grounded Precision</span> (Grounded in ECI + Sansad Knowledge Graph)</td>
+                  <td><strong>Deterministic Graph Linking</strong></td>
                 </tr>
                 <tr>
                   <td style="font-weight:600;">Query Execution Latency</td>
@@ -926,7 +926,7 @@
     const ANSWER_STYLES = {
       audit: { reasoning_mode: 'auto', detail_level: 'long', label: 'Audit + Tables' },
       plain: { reasoning_mode: 'chat', detail_level: 'short', label: 'Quick Summary' },
-      deep:  { reasoning_mode: 'reasoner', detail_level: 'long', label: 'Deep R1 Analysis' }
+      deep:  { reasoning_mode: 'reasoner', detail_level: 'long', label: 'Exhaustive Audit' }
     };
 
     const TARGET_LABELS = {
@@ -983,11 +983,11 @@
       { cat: 'Schemes', target: 'defence', style: 'plain', format: 'Quick Summary',
         q: 'What is the Agnipath scheme and how many Agniveers were recruited?' },
 
-      { cat: 'Hold Accountable', target: 'all', style: 'deep', format: 'Deep R1 Audit',
+      { cat: 'Hold Accountable', target: 'all', style: 'deep', format: 'Exhaustive Audit',
         q: 'Which schemes got less money than promised (RE lower than BE) and by how much?' },
-      { cat: 'Hold Accountable', target: 'education', style: 'deep', format: 'Deep R1 Audit',
+      { cat: 'Hold Accountable', target: 'education', style: 'deep', format: 'Exhaustive Audit',
         q: 'How many teacher posts are vacant in Kendriya Vidyalayas and Navodaya schools?' },
-      { cat: 'Hold Accountable', target: 'all', style: 'deep', format: 'Deep R1 Audit',
+      { cat: 'Hold Accountable', target: 'all', style: 'deep', format: 'Exhaustive Audit',
         q: 'Audit Outcome Budget targets where physical achievement fell short of annual goals' },
 
       { cat: 'Budget Basics', target: 'all', style: 'plain', format: 'Explainer',
@@ -1071,7 +1071,7 @@
       suggestionsCount.textContent = `${rows.length} question${rows.length === 1 ? '' : 's'}`;
 
       if (!rows.length) {
-        suggestionsList.innerHTML = `<div style="padding:14px 16px; font-size:13px; color:var(--muted);">No preset match — press <strong>Ask Bharat Praman</strong> to query the live database directly.</div>`;
+        suggestionsList.innerHTML = `<div style="padding:14px 16px; font-size:13px; color:var(--muted);">No preset match — press <strong>Run Audit</strong> to query the live database directly.</div>`;
         return;
       }
 
@@ -1385,7 +1385,7 @@
         </div>
       `).join('');
       if (btn) {
-        btn.textContent = 'Summary Ready ✓';
+        btn.textContent = 'Summary Ready';
         btn.disabled = true;
       }
     }

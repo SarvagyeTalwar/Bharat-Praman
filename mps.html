@@ -865,7 +865,7 @@
         <a href="ask.html">Budget Dossier</a>
         <a href="rti/rti_page.html">RTI Desk</a>
         <a href="graph.html#glossary">Glossary &amp; IPC</a>
-        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">⚡ GraphRAG Benchmark</a>
+        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">Architecture Benchmark</a>
         <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
           <span class="switch-mode-track" aria-hidden="true"></span>
           <span class="switch-mode-knob" aria-hidden="true"></span>
@@ -939,7 +939,7 @@
       <!-- Watermelon UI InviteDisclosure: Sort Block -->
       <div class="invite-disclosure-wrap" id="sortDisclosureWrap">
         <button type="button" id="sortDisclosureTrigger" class="disclosure-trigger" aria-haspopup="dialog" aria-expanded="false" title="Click to change sort order">
-          <span class="disclosure-trigger-icon" id="sortTriggerIcon">💰</span>
+          <span class="disclosure-trigger-icon" id="sortTriggerIcon" style="font-size:11px; font-weight:700; border:1px solid var(--border); padding:2px 5px; border-radius:4px; color:var(--accent);">INR</span>
           <span class="disclosure-trigger-title" id="sortTriggerTitle">Sort: Highest Declared Assets</span>
           <span class="disclosure-trigger-badge" id="sortTriggerBadge">4</span>
           <svg class="disclosure-trigger-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true">
@@ -975,7 +975,7 @@
       <!-- Watermelon UI InviteDisclosure: All Parties Block -->
       <div class="invite-disclosure-wrap" id="partyDisclosureWrap">
         <button type="button" id="partyDisclosureTrigger" class="disclosure-trigger" aria-haspopup="dialog" aria-expanded="false" title="Click to filter by political party">
-          <span class="disclosure-trigger-icon" id="partyTriggerIcon">🗳️</span>
+          <span class="disclosure-trigger-icon" id="partyTriggerIcon" style="font-size:11px; font-weight:700; border:1px solid var(--border); padding:2px 5px; border-radius:4px; color:var(--muted);">ALL</span>
           <span class="disclosure-trigger-title" id="partyTriggerTitle">All Parties</span>
           <span class="disclosure-trigger-badge" id="partyTriggerBadge">0</span>
           <svg class="disclosure-trigger-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true">
@@ -1179,10 +1179,10 @@
     // Watermelon UI InviteDisclosure: Sort Controller
     // ===========================================================
     const SORT_OPTIONS = [
-      { id: 'assets', title: 'Sort: Highest Declared Assets', desc: 'Rank by net worth and declared wealth', icon: '💰', hasUpdate: true },
-      { id: 'cases', title: 'Sort: Most Criminal Cases', desc: 'Rank by serious IPC & criminal charges', icon: '⚖️', hasUpdate: false },
-      { id: 'terms', title: 'Sort: Most Lok Sabha Terms', desc: 'Rank by parliamentary seniority & tenure', icon: '🏛️', hasUpdate: false },
-      { id: 'name', title: 'Sort: Name (A–Z)', desc: 'Alphabetical directory by leader full name', icon: '🔤', hasUpdate: false },
+      { id: 'assets', title: 'Sort: Highest Declared Assets', desc: 'Rank by net worth and declared wealth', icon: 'INR', hasUpdate: true },
+      { id: 'cases', title: 'Sort: Most Criminal Cases', desc: 'Rank by serious IPC & criminal charges', icon: 'IPC', hasUpdate: false },
+      { id: 'terms', title: 'Sort: Most Lok Sabha Terms', desc: 'Rank by parliamentary seniority & tenure', icon: 'TERMS', hasUpdate: false },
+      { id: 'name', title: 'Sort: Name (A–Z)', desc: 'Alphabetical directory by leader full name', icon: 'A–Z', hasUpdate: false },
     ];
 
     const sortDisclosureTrigger = document.getElementById('sortDisclosureTrigger');
@@ -1327,7 +1327,7 @@
       const q = (filterQuery || '').trim().toLowerCase();
 
       let items = [
-        { id: '', title: 'All Parties', desc: 'Show MPs across all political affiliations', icon: '🌐', isAll: true }
+        { id: '', title: 'All Parties', desc: 'Show MPs across all political affiliations', icon: 'ALL', isAll: true }
       ];
 
       currentPartiesList.forEach((p) => {
@@ -1335,7 +1335,7 @@
           id: p,
           title: p,
           desc: `Filter MPs represented under ${p}`,
-          icon: '🏷️',
+          icon: 'PARTY',
           isAll: false
         });
       });
@@ -1381,7 +1381,7 @@
     }
 
     function updatePartyDisclosureTriggerUI(val) {
-      if (partyTriggerIcon) partyTriggerIcon.textContent = val ? '🏷️' : '🗳️';
+      if (partyTriggerIcon) partyTriggerIcon.textContent = val ? 'PARTY' : 'ALL';
       if (partyTriggerTitle) partyTriggerTitle.textContent = val ? `Party: ${val}` : 'All Parties';
       const count = currentPartiesList.length;
       if (partyTriggerBadge) partyTriggerBadge.textContent = count;
