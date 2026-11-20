@@ -1,6 +1,9 @@
 """Search API for the Bharat Praman Neo4j graph."""
 
 import os
+import uuid
+import datetime
+from typing import Optional
 import logging
 import json
 import re
@@ -329,6 +332,15 @@ class GraphExpandRequest(BaseModel):
     seed_ids: list[str] = Field(min_length=1, max_length=8)
     offset: int = Field(default=0, ge=0)
     limit: int = Field(default=100, ge=1, le=100)
+
+
+class DiscrepancySubmitRequest(BaseModel):
+    target_id: Optional[str] = None
+    target_name: str = Field(min_length=2, max_length=150)
+    category: str = Field(default="OTHER", max_length=50)
+    claimed_correction: str = Field(min_length=5, max_length=1500)
+    source_url: Optional[str] = Field(default="", max_length=500)
+    email: Optional[str] = Field(default="", max_length=150)
 
 
 class AskRequest(BaseModel):
@@ -1688,6 +1700,21 @@ def get_node_detail(node_id: str):
                 "properties": json_safe(edge["properties"]),
             })
 
+        flag_records, _, _ = driver.execute_query(
+            """
+            MATCH (f:DiscrepancyReport)-[:FLAGGED_FOR]->(n)
+            WHERE elementId(n) = $id OR n.entity_id = $id OR toString(n.person_id) = $id
+            RETURN f.id AS id, f.category AS category, f.claimed_correction AS claimed_correction,
+                   f.source_url AS source_url, f.status AS status, f.created_at AS created_at
+            ORDER BY f.created_at DESC
+            LIMIT 10
+            """,
+            parameters_={"id": node_id},
+            database_=NEO4J_DATABASE,
+            routing_="r",
+        )
+        flags = [r.data() for r in flag_records]
+
         total_edges = count_records[0]["total"] if count_records else 0
         return {
             "node": node,
@@ -1695,6 +1722,8 @@ def get_node_detail(node_id: str):
             "edges": edges,
             "total_edges": total_edges,
             "truncated": total_edges > len(edges),
+            "flags": flags,
+            "flag_count": len(flags),
         }
     except HTTPException:
         raise
@@ -1811,7 +1840,118 @@ def get_case_flows(node_id: str, limit: int = Query(default=50, ge=1, le=100)):
 
 
 # ---------------------------------------------------------------------------
-# Unified Single-Port Mode (Railway / Cloud Run / Docker)
+# ---------------------------------------------------------------------------
+# Self-Auditing Graph: Public Discrepancy Reporting Feed
+# Append-only: (:DiscrepancyReport)-[:FLAGGED_FOR]->(:Person) without mutating ECI data
+# ---------------------------------------------------------------------------
+@app.post("/api/flags")
+def submit_discrepancy(req: DiscrepancySubmitRequest):
+    """
+    Append-only citizen discrepancy report.
+    Creates a (:DiscrepancyReport) node and links (:DiscrepancyReport)-[:FLAGGED_FOR]->(:Person)
+    without mutating the underlying verified ECI node properties.
+    """
+    try:
+        flag_id = f"flag_{uuid.uuid4().hex[:12]}"
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+        q_write = """
+        OPTIONAL MATCH (p:Person)
+        WHERE ($target_id IS NOT NULL AND $target_id <> '' AND (
+            elementId(p) = $target_id OR p.entity_id = $target_id OR toString(p.person_id) = $target_id
+        )) OR (
+            $target_name IS NOT NULL AND $target_name <> '' AND toLower(p.name) = toLower($target_name)
+        )
+        WITH p LIMIT 1
+        CREATE (f:DiscrepancyReport {
+          id: $id,
+          target_id: coalesce($target_id, ''),
+          target_name: coalesce(p.name, $target_name),
+          category: $category,
+          claimed_correction: $claimed_correction,
+          source_url: coalesce($source_url, ''),
+          email: coalesce($email, ''),
+          status: 'PENDING_REVIEW',
+          created_at: $created_at
+        })
+        FOREACH (_ IN CASE WHEN p IS NOT NULL THEN [1] ELSE [] END |
+          CREATE (f)-[:FLAGGED_FOR]->(p)
+        )
+        RETURN f.id AS id, f.target_name AS target_name, (p IS NOT NULL) AS linked
+        """
+
+        records, _, _ = driver.execute_query(
+            q_write,
+            parameters_={
+                "id": flag_id,
+                "target_id": req.target_id or "",
+                "target_name": req.target_name.strip(),
+                "category": req.category.strip().upper(),
+                "claimed_correction": req.claimed_correction.strip(),
+                "source_url": (req.source_url or "").strip(),
+                "email": (req.email or "").strip(),
+                "created_at": now_iso,
+            },
+            database_=NEO4J_DATABASE,
+            routing_="w",
+        )
+
+        linked = records[0]["linked"] if records else False
+        resolved_name = records[0]["target_name"] if records else req.target_name
+
+        return {
+            "status": "ok",
+            "flag_id": flag_id,
+            "target_name": resolved_name,
+            "linked_to_graph": linked,
+            "message": "Discrepancy report recorded as a public audit annotation.",
+        }
+    except Exception as e:
+        logger.exception("Failed to write discrepancy report")
+        raise HTTPException(status_code=500, detail="Failed to record discrepancy report.")
+
+
+@app.get("/api/flags")
+def list_discrepancies(
+    target_id: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+):
+    """Return recent public discrepancy reports."""
+    try:
+        limit = min(max(1, limit), 200)
+        q_read = """
+        MATCH (f:DiscrepancyReport)
+        WHERE ($target_id IS NULL OR $target_id = '' OR f.target_id = $target_id)
+          AND ($status IS NULL OR $status = '' OR f.status = $status)
+        OPTIONAL MATCH (f)-[:FLAGGED_FOR]->(p:Person)
+        RETURN f.id AS id,
+               f.target_id AS target_id,
+               coalesce(p.name, f.target_name) AS target_name,
+               f.category AS category,
+               f.claimed_correction AS claimed_correction,
+               f.source_url AS source_url,
+               f.status AS status,
+               f.created_at AS created_at
+        ORDER BY f.created_at DESC
+        LIMIT $limit
+        """
+        records, _, _ = driver.execute_query(
+            q_read,
+            parameters_={"target_id": target_id or "", "status": status or "", "limit": limit},
+            database_=NEO4J_DATABASE,
+            routing_="r",
+        )
+        return {
+            "total": len(records),
+            "reports": [r.data() for r in records],
+        }
+    except Exception as e:
+        logger.exception("Failed to fetch discrepancy reports")
+        raise HTTPException(status_code=500, detail="Failed to fetch discrepancy reports.")
+
+
+# # Unified Single-Port Mode (Railway / Cloud Run / Docker)
 # Serves RTI endpoints + whitelisted frontend UI assets on the same port.
 # ---------------------------------------------------------------------------
 from fastapi.responses import FileResponse, RedirectResponse

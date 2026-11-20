@@ -1243,7 +1243,7 @@
                   <td>${escapeHtml(party)}</td>
                   <td class="num ${cases > 0 ? 'alert-text' : ''}">${cases > 0 ? cases : '0'}</td>
                   <td class="num">${escapeHtml(assets)}</td>
-                  <td style="white-space:nowrap;">${isRep ? `<a href="${escapeHtml(rtiHref)}">Draft RTI →</a>` : `<a href="node.html?id=${encodeURIComponent(n.id)}">Inspect →</a>`}</td>
+                  <td style="white-space:nowrap;">${isRep ? `<a href="${escapeHtml(rtiHref)}" style="margin-right:8px;">Draft RTI →</a><a href="node.html?id=${encodeURIComponent(n.id)}#flag" style="font-size:11.5px; color:var(--muted);" title="Submit an audit annotation or discrepancy report">Flag Discrepancy</a>` : `<a href="node.html?id=${encodeURIComponent(n.id)}">Inspect →</a>`}</td>
                 </tr>`;
               }).join('')}</tbody>
             </table>

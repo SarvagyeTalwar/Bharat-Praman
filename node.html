@@ -679,6 +679,7 @@
           </div>
         </div>
         <div class="hero-actions">
+          <button id="flagBtn" type="button" class="btn" style="cursor:pointer; border-color:var(--border-strong); background:var(--surface-soft);" title="Submit an audit annotation or point out an affidavit discrepancy">Report Discrepancy</button>
           <a href="mps.html" class="btn">← Top 100 MPs</a>
           <a id="graph-link" href="graph.html" class="btn">Explore Graph →</a>
           <a id="rti-link" href="rti/rti_page.html" class="btn btn-primary" hidden>Draft Section 6(1) RTI →</a>
@@ -1322,6 +1323,8 @@
       document.getElementById('connCountTag').textContent = `${data.total_edges} total edge(s)`;
       document.getElementById('expandButton').hidden = !data.truncated;
       renderConnectionsTable();
+      setupDiscrepancyHandlers(data);
+      renderAuditNotesBadge(data);
 
       const rawRows = Object.entries(props).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : String(v ?? '—'), 'mono']);
       document.getElementById('rawPropsWrap').replaceChildren(buildKeyValTable(rawRows));
@@ -1399,8 +1402,218 @@
       }
     }
 
+    // ===========================================================
+    // Self-Auditing Graph: Discrepancy Reporting & Audit Notes
+    // ===========================================================
+    let currentProfileData = null;
+
+    function setupDiscrepancyHandlers(data) {
+      currentProfileData = data;
+      const focus = data.node || {};
+      const displayName = resolveDisplayName(focus);
+      const entityId = focus.id || (focus.properties && focus.properties.entity_id) || '';
+
+      const flagBtn = document.getElementById('flagBtn');
+      const flagModal = document.getElementById('flagModal');
+      const flagModalClose = document.getElementById('flagModalClose');
+      const flagCancelBtn = document.getElementById('flagCancelBtn');
+      const flagForm = document.getElementById('flagForm');
+      const flagModalSubtitle = document.getElementById('flagModalSubtitle');
+      const flagTargetId = document.getElementById('flagTargetId');
+      const flagTargetName = document.getElementById('flagTargetName');
+      const flagStatusMsg = document.getElementById('flagStatusMsg');
+      const flagSubmitBtn = document.getElementById('flagSubmitBtn');
+
+      function openFlagModal() {
+        flagModalSubtitle.textContent = `Leader: ${displayName}`;
+        flagTargetId.value = entityId;
+        flagTargetName.value = displayName;
+        flagStatusMsg.style.display = 'none';
+        flagModal.hidden = false;
+        document.getElementById('flagCorrection').focus();
+      }
+
+      function closeFlagModal() {
+        flagModal.hidden = true;
+      }
+
+      if (flagBtn) flagBtn.onclick = openFlagModal;
+      if (flagModalClose) flagModalClose.onclick = closeFlagModal;
+      if (flagCancelBtn) flagCancelBtn.onclick = closeFlagModal;
+
+      if (flagForm) {
+        flagForm.onsubmit = async (e) => {
+          e.preventDefault();
+          flagSubmitBtn.disabled = true;
+          flagSubmitBtn.textContent = 'Submitting...';
+          flagStatusMsg.style.display = 'none';
+
+          const payload = {
+            target_id: flagTargetId.value || '',
+            target_name: flagTargetName.value || displayName,
+            category: document.getElementById('flagCategory').value,
+            claimed_correction: document.getElementById('flagCorrection').value.trim(),
+            source_url: document.getElementById('flagSourceUrl').value.trim(),
+            email: document.getElementById('flagEmail').value.trim()
+          };
+
+          try {
+            const resp = await fetch(`${API_BASE}/api/flags`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const resData = await resp.json();
+            if (!resp.ok) throw new Error(resData.detail || 'Submission failed');
+
+            flagStatusMsg.style.display = 'block';
+            flagStatusMsg.style.background = 'rgba(34, 197, 94, 0.12)';
+            flagStatusMsg.style.color = '#15803d';
+            flagStatusMsg.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+            flagStatusMsg.innerHTML = `<strong>Recorded:</strong> Audit note created (ID: <code>${escapeHtml(resData.flag_id)}</code>) and linked in Neo4j.`;
+            document.getElementById('flagCorrection').value = '';
+            setTimeout(() => {
+              closeFlagModal();
+              flagSubmitBtn.disabled = false;
+              flagSubmitBtn.textContent = 'Submit Audit Note';
+              // Reload node details to refresh flags
+              if (window.init) init();
+            }, 1800);
+          } catch (err) {
+            flagStatusMsg.style.display = 'block';
+            flagStatusMsg.style.background = 'rgba(239, 68, 68, 0.12)';
+            flagStatusMsg.style.color = '#b91c1c';
+            flagStatusMsg.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+            flagStatusMsg.textContent = `Error: ${err.message}`;
+            flagSubmitBtn.disabled = false;
+            flagSubmitBtn.textContent = 'Submit Audit Note';
+          }
+        };
+      }
+
+      // Check URL hash #flag for direct deep-link
+      if (window.location.hash === '#flag') {
+        openFlagModal();
+      }
+    }
+
+    function renderAuditNotesBadge(data) {
+      const flags = data.flags || [];
+      const count = Number(data.flag_count || flags.length || 0);
+      if (count > 0) {
+        const heroBadges = document.getElementById('heroBadges');
+        const auditPill = document.createElement('span');
+        auditPill.className = 'pill';
+        auditPill.id = 'auditFeedBadge';
+        auditPill.style.cssText = 'background:rgba(234, 179, 8, 0.12); color:#b45309; border:1px solid rgba(234, 179, 8, 0.35); font-weight:600; cursor:pointer;';
+        auditPill.title = 'Click to view public community audit notes for this profile';
+        auditPill.textContent = `${count} Audit Note(s)`;
+        auditPill.onclick = () => showAuditFeedModal(data);
+        heroBadges.appendChild(auditPill);
+      }
+    }
+
+    function showAuditFeedModal(data) {
+      const flags = data.flags || [];
+      const modal = document.getElementById('auditFeedModal');
+      const list = document.getElementById('auditFeedList');
+      const closeBtn = document.getElementById('auditFeedClose');
+      const subtitle = document.getElementById('auditFeedSubtitle');
+
+      subtitle.textContent = `Audit reports attached to ${resolveDisplayName(data.node)}`;
+
+      if (!flags.length) {
+        list.innerHTML = '<div style="color:var(--muted); font-size:13px;">No community audit notes for this profile.</div>';
+      } else {
+        list.innerHTML = flags.map((f) => `
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <span class="tag-pill" style="font-size:11px; font-weight:700;">${escapeHtml(f.category || 'DISCREPANCY')}</span>
+              <span class="mono" style="font-size:11.5px; color:var(--muted);">${escapeHtml(String(f.created_at || '').slice(0, 10))} · ${escapeHtml(f.status || 'PENDING_REVIEW')}</span>
+            </div>
+            <p style="font-size:13px; color:var(--fg); line-height:1.45; margin:0 0 6px 0;">${escapeHtml(f.claimed_correction || '')}</p>
+            ${f.source_url ? `<div style="font-size:12px;"><a href="${escapeHtml(f.source_url)}" target="_blank" rel="noopener">Evidence Source ↗</a></div>` : ''}
+          </div>
+        `).join('');
+      }
+
+      modal.hidden = false;
+      closeBtn.onclick = () => { modal.hidden = true; };
+    }
+
     document.getElementById('connFilter').addEventListener('input', renderConnectionsTable);
     init();
   </script>
+
+  <!-- Discrepancy Reporting Modal (Self-Auditing Graph) -->
+  <div id="flagModal" class="modal-backdrop" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-label="Report Discrepancy" style="max-width:540px;">
+      <div class="modal-head" style="background:#0f172a; border-bottom:1px solid rgba(255,255,255,0.1);">
+        <div>
+          <span style="font-weight:700;">Public Audit: Report Discrepancy</span>
+          <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:2px;" id="flagModalSubtitle">Annotate record for leader</div>
+        </div>
+        <button id="flagModalClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">Close</button>
+      </div>
+      <form id="flagForm" style="padding:18px 20px;">
+        <div style="background:var(--surface-soft); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12px; color:var(--muted); line-height:1.45;">
+          <strong>Institutional Ground-Truth Notice:</strong> Citizen reports do not overwrite ECI affidavit records. Reports are written as append-only audit annotations (<code>:DiscrepancyReport</code>) linked to this politician in Neo4j.
+        </div>
+        
+        <input type="hidden" id="flagTargetId" />
+        <input type="hidden" id="flagTargetName" />
+
+        <div style="margin-bottom:12px;">
+          <label for="flagCategory" style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--fg);">Discrepancy Category</label>
+          <select id="flagCategory" style="width:100%; box-sizing:border-box; padding:8px 10px; border-radius:6px; border:1px solid var(--border-strong); background:var(--surface); color:var(--fg); font-size:13px;">
+            <option value="ASSETS">Declared Assets / Liabilities</option>
+            <option value="CRIMINAL_CASES">Criminal Charges / IPC Sections</option>
+            <option value="EDUCATION">Educational Qualifications</option>
+            <option value="TERMS">Parliamentary / Assembly Terms</option>
+            <option value="OTHER">Other Record Discrepancy</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label for="flagCorrection" style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--fg);">Claimed Inaccuracy / Correction *</label>
+          <textarea id="flagCorrection" rows="4" required placeholder="Describe the discrepancy with dates, affidavit years, or specific figures..." style="width:100%; box-sizing:border-box; padding:8px 10px; border-radius:6px; border:1px solid var(--border-strong); background:var(--surface); color:var(--fg); font-size:13px; font-family:inherit; resize:vertical;"></textarea>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label for="flagSourceUrl" style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--fg);">Official Source / Evidence URL (Optional)</label>
+          <input type="url" id="flagSourceUrl" placeholder="https://affidavit.eci.gov.in or court record link" style="width:100%; box-sizing:border-box; padding:8px 10px; border-radius:6px; border:1px solid var(--border-strong); background:var(--surface); color:var(--fg); font-size:13px;" />
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label for="flagEmail" style="display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--fg);">Contact Email (Optional, for auditor follow-up)</label>
+          <input type="email" id="flagEmail" placeholder="researcher@institution.org" style="width:100%; box-sizing:border-box; padding:8px 10px; border-radius:6px; border:1px solid var(--border-strong); background:var(--surface); color:var(--fg); font-size:13px;" />
+        </div>
+
+        <div id="flagStatusMsg" style="margin-bottom:12px; font-size:12.5px; padding:8px 12px; border-radius:6px; display:none;"></div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button type="button" id="flagCancelBtn" class="btn">Cancel</button>
+          <button type="submit" id="flagSubmitBtn" class="btn btn-primary">Submit Audit Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Audit Notes Feed Modal -->
+  <div id="auditFeedModal" class="modal-backdrop" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-label="Community Audit Notes" style="max-width:640px;">
+      <div class="modal-head" style="background:#0f172a; border-bottom:1px solid rgba(255,255,255,0.1);">
+        <div>
+          <span style="font-weight:700;">Community Audit Annotations</span>
+          <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:2px;" id="auditFeedSubtitle">Attached (:DiscrepancyReport) nodes in Neo4j</div>
+        </div>
+        <button id="auditFeedClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">Close</button>
+      </div>
+      <div id="auditFeedList" style="padding:18px 20px; max-height:450px; overflow-y:auto;">
+        <div style="color:var(--muted); font-size:13px;">No community audit notes for this profile.</div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
