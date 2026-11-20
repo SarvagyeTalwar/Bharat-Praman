@@ -1,0 +1,3 @@
+# Scrapy dependencies for RTIgram scraper
+scrapy>=2.11.0
+certifi>=2024.2.2
