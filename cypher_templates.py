@@ -53,7 +53,7 @@ EMPTY_OK_TEMPLATES = {
     "party_most_zero_cases", "party_total_metric", "constituency_most_cases",
     "party_most_by_section", "count_mlas_by_section", "count_mlas_zero_cases",
     "ministers_with_cases", "minister_portfolios", "minister_of",
-    "mp_party_most_cases", "mp_state_most_cases", "mp_count_with_cases",
+    "mp_party_most_cases", "mp_state_most_cases", "mp_count_with_cases", "mp_party_switchers",
     "mp_assets_above", "mp_highest_liabilities",
     "party_most_mlas", "state_most_mlas",
     "mla_timeline", "mla_case_change", "mla_party_switchers",
@@ -115,6 +115,7 @@ TEMPLATE_COLUMNS = {
     "mp_party_most_cases": {"party_name", "mp_count"},
     "mp_state_most_cases": {"state_name", "mp_count"},
     "mp_count_with_cases": {"mp_count"},
+    "mp_party_switchers": {"entity_id", "politician_name", "from_party", "from_year", "to_party", "to_year", "from_assets", "to_assets", "wealth_growth", "pct_growth"},
     "mp_assets_above": {"mp_count"},
     "mp_highest_liabilities": {"mp_name", "constituency", "party", "liabilities", "total_assets"},
     "mla_timeline": {"name", "year", "election", "party", "total_assets", "liabilities", "cases"},
@@ -1469,21 +1470,24 @@ def _mp_party_switchers(q):
     return {
         "result_type": "aggregate",
         "cypher": """
-            MATCH (p:Person:MP)-[:HAS_PARTY_CHANGE]->(pc:PartyChange)
-            WHERE ($party = '' OR toLower(coalesce(pc.from_party, '')) CONTAINS toLower($party)
-                   OR toLower(coalesce(pc.to_party, '')) CONTAINS toLower($party))
+            MATCH (p:Person)-[d:DEFECTED_TO]->(target:Party)
+            WHERE ($party = '' OR toLower(coalesce(d.from_party, '')) CONTAINS toLower($party)
+                   OR toLower(coalesce(d.to_party, '')) CONTAINS toLower($party))
             RETURN p.entity_id AS entity_id,
-                   p.name AS mp_name,
-                   pc.from_party AS from_party,
-                   pc.to_party AS to_party,
-                   pc.from_year AS from_year,
-                   pc.to_year AS to_year,
-                   coalesce(pc.to_constituency, pc.from_constituency) AS constituency
-            ORDER BY pc.to_year DESC, mp_name ASC
+                   p.name AS politician_name,
+                   d.from_party AS from_party,
+                   d.from_year AS from_year,
+                   d.to_party AS to_party,
+                   d.to_year AS to_year,
+                   d.from_assets AS from_assets,
+                   d.to_assets AS to_assets,
+                   d.asset_jump AS wealth_growth,
+                   d.asset_pct_jump AS pct_growth
+            ORDER BY coalesce(d.asset_jump, 0) DESC, d.to_year DESC
             LIMIT 50
         """,
         "parameters": {"party": party},
-        "explanation": "MPs with recorded party switches across Lok Sabha elections.",
+        "explanation": "Politicians (Aaya Ram Gaya Ram) with recorded party defections and associated wealth jumps across elections.",
         "template_id": "mp_party_switchers",
     }
 
@@ -2852,13 +2856,12 @@ def plan_from_template(question: str) -> dict | None:
             "template_id": "politicians_by_year_filter",
         }
 
-    # --- Phase 2: cross-election MLA templates (deterministic) ---
-    # Party switchers (aggregate; no specific person named).
-    if _any(ql, "switch", "switched", "changed part", "change part", "party switch") \
-            and _any(ql, "party", "parties") and "how many" not in ql and not _person_name(q):
-        if re.search(r"\bmps?\b|\bmembers? of parliament\b", ql) and "mla" not in ql:
-            return _mp_party_switchers(q)
-        return _mla_party_switchers(q)
+    # --- Phase 2: cross-election politician & defector templates (Aaya Ram Gaya Ram) ---
+    # Party switchers / defectors (aggregate; no specific person named).
+    if (_any(ql, "switch", "switched", "changed part", "change part", "party switch", "defector", "defectors", "defected", "aaya ram", "gaya ram", "aaya ram gaya ram") \
+            or (_any(ql, "party", "parties") and _any(ql, "change", "changed", "switch", "switched", "shift", "shifted", "migrate", "migrated"))) \
+            and "how many" not in ql and not _person_name(q):
+        return _mp_party_switchers(q)
 
     # Asset / liability change for a named politician.
     if _any(ql, "asset change", "assets change", "assets over time", "assets across",

@@ -1231,24 +1231,24 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
         "Party", "PartyChange", "Person", "PublicAuthority", "RTIRecord", "Section", "State",
     }
     allowed_relationships = {
-        "CONTESTED", "DISCLOSES", "FACES", "FILED", "FILED_ABOUT", "FILED_AFFIDAVIT", "FILED_TO", "FLAGGED_FOR", "FOR_ELECTION", "FROM",
+        "CONTESTED", "DEFECTED_TO", "DISCLOSES", "FACES", "FILED", "FILED_ABOUT", "FILED_AFFIDAVIT", "FILED_TO", "FLAGGED_FOR", "FOR_ELECTION", "FROM",
         "HAS_AFFIDAVIT_CHANGE", "HAS_CHUNK", "HAS_ELECTION_RECORD", "HAS_PARTY_CHANGE",
         "HOLDS_PORTFOLIO", "IN_STATE", "ISSUED_BY", "MEMBER_OF", "REPRESENTS",
         "SIMILAR_CASE_PROFILE", "UNDER", "WON_ELECTION",
     }
     allowed_properties = {
-        "affidavit_id", "age", "aliases", "case_id", "case_no", "case_type", "category", "charges_framed", "claim", "claimed_correction",
+        "affidavit_id", "age", "aliases", "asset_jump", "asset_pct_jump", "case_id", "case_no", "case_type", "category", "charges_framed", "claim", "claimed_correction",
         "claimed_value", "code", "council_section", "court", "created_at", "convicted_cases", "criminal_case_count", "criminal_cases_count_from",
         "criminal_cases_count_to", "criminal_cases_count_change", "data", "department", "doc_id", "document_url", "education", "election",
         "election_id", "election_source", "election_verified", "election_year", "entity_id", "evidence_url", "field_contested", "file", "filing_date", "fir_no",
-        "first_name", "from_constituency", "from_party", "from_year", "gender", "id", "immovable_assets", "in_defections", "ipc_sections",
+        "first_name", "from_assets", "from_constituency", "from_party", "from_year", "gender", "id", "immovable_assets", "in_defections", "ipc_sections",
         "jaccard_score", "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
         "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons", "out_defections",
         "party", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession", "public_authority", "questions", "rank",
         "rank_order", "rationale", "received_date", "registration_no", "relationships", "reply_summary", "response_date", "role",
         "serious_criminal_cases", "shared_count", "shared_sections", "source_date", "source_document", "source_document_date",
         "source_url", "special_responsibilities", "state", "status", "style", "summary", "switcher_community", "switcher_pagerank",
-        "terms", "title", "to_constituency", "to_party", "to_year", "total_assets", "total_assets_change", "total_assets_from",
+        "terms", "title", "to_assets", "to_constituency", "to_party", "to_year", "total_assets", "total_assets_change", "total_assets_from",
         "total_assets_percent_change", "total_assets_to", "type", "visualisation", "nodes", "year",
     }
     node_patterns = re.findall(r"\(([^()]*)\)", schema_text)
