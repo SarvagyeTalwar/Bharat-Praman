@@ -43,3 +43,4 @@ Thumbs.db
 *.zip.*
 rti_scraper/*.json
 rti_scraper/pdfs/
+scratch/

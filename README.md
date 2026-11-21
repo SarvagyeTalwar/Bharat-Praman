@@ -10,7 +10,8 @@
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 **Live Production Deployment:** [https://bharat-praman-production.up.railway.app](https://bharat-praman-production.up.railway.app)  
-**Comprehensive Architecture & Viva Guide:** [`BHARAT_PRAMAN_GUIDE.md`](BHARAT_PRAMAN_GUIDE.md)
+**Comprehensive Architecture & Viva Guide:** [`BHARAT_PRAMAN_GUIDE.md`](BHARAT_PRAMAN_GUIDE.md)  
+**Security & Scalability Dossier (Judging Criteria):** [`DOCS/SECURITY_AND_SCALABILITY.md`](DOCS/SECURITY_AND_SCALABILITY.md)
 
 ---
 

@@ -19,11 +19,13 @@ from functools import lru_cache
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
 from neo4j import GraphDatabase, READ_ACCESS, unit_of_work
 from neo4j.exceptions import DriverError, Neo4jError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from glossary import search as glossary_search, lookup as glossary_lookup
 from cypher_templates import plan_from_template, TEMPLATE_COLUMNS, EMPTY_OK_TEMPLATES, _state as template_state
@@ -90,6 +92,10 @@ if missing_settings:
 driver = GraphDatabase.driver(
     NEO4J_URI,
     auth=(NEO4J_USERNAME, NEO4J_PASSWORD),
+    max_connection_pool_size=int(os.getenv("NEO4J_MAX_POOL_SIZE", "100")),
+    max_connection_lifetime=3600,
+    connection_acquisition_timeout=30.0,
+    keep_alive=True,
 )
 
 
@@ -109,11 +115,16 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Bharat Praman API", lifespan=lifespan)
 logger = logging.getLogger("uvicorn.error")
 
+# High-concurrency scalability: compress responses > 1KB (reduces graph payload by 70-80%)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         os.getenv("FRONTEND_ORIGIN", "http://localhost:5500"),
+        "http://localhost:5500",
         "http://127.0.0.1:5500",
+        "https://bharat-praman-production.up.railway.app",
     ],
     allow_origin_regex=os.getenv("FRONTEND_ORIGIN_REGEX", r"https?://[^/]+:(?:5500|8080)"),
     allow_credentials=False,
@@ -122,14 +133,26 @@ app.add_middleware(
 )
 
 
-from fastapi import Request
-from fastapi.responses import JSONResponse
+@app.middleware("http")
+async def _security_headers_middleware(request: Request, call_next):
+    """Enforce defense-in-depth security headers on all responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
 
 _RL_LOCK = threading.Lock()
 _RL_BUCKETS: dict[tuple[str, str], list[float]] = {}
 _RL_HEAVY_PATHS = {"/api/rag/ask", "/api/rag/ask/stream", "/api/rag/search", "/api/ask", "/api/budget/ask"}
 _RL_HEAVY_LIMIT = int(os.getenv("RL_HEAVY_RPM", "15"))
 _RL_API_LIMIT = int(os.getenv("RL_API_RPM", "90"))
+_RL_FLAG_LIMIT = int(os.getenv("RL_FLAG_RPM", "5"))
 _RL_WINDOW_S = 60.0
 
 
@@ -141,8 +164,17 @@ async def _rate_limit_middleware(request: Request, call_next):
 
     xff = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
     ip = xff or (request.client.host if request.client else "unknown")
-    tier = "heavy" if path in _RL_HEAVY_PATHS else "api"
-    limit = _RL_HEAVY_LIMIT if tier == "heavy" else _RL_API_LIMIT
+
+    if path == "/api/flags" and request.method == "POST":
+        tier = "flag"
+        limit = _RL_FLAG_LIMIT
+    elif path in _RL_HEAVY_PATHS:
+        tier = "heavy"
+        limit = _RL_HEAVY_LIMIT
+    else:
+        tier = "api"
+        limit = _RL_API_LIMIT
+
     now = time.monotonic()
     cutoff = now - _RL_WINDOW_S
     key = (ip, tier)
@@ -157,7 +189,7 @@ async def _rate_limit_middleware(request: Request, call_next):
             retry_after = max(1, int(_RL_WINDOW_S - (now - hits[0])))
             return JSONResponse(
                 status_code=429,
-                content={"detail": f"Rate limit exceeded ({limit} requests/min). Please wait {retry_after}s."},
+                content={"detail": f"Rate limit exceeded ({limit} requests/min for {tier}). Please wait {retry_after}s."},
                 headers={"Retry-After": str(retry_after)},
             )
         hits.append(now)
@@ -335,12 +367,35 @@ class GraphExpandRequest(BaseModel):
 
 
 class DiscrepancySubmitRequest(BaseModel):
-    target_id: Optional[str] = None
+    target_id: Optional[str] = Field(default=None, max_length=128)
     target_name: str = Field(min_length=2, max_length=150)
     category: str = Field(default="OTHER", max_length=50)
     claimed_correction: str = Field(min_length=5, max_length=1500)
     source_url: Optional[str] = Field(default="", max_length=500)
     email: Optional[str] = Field(default="", max_length=150)
+
+    @field_validator("claimed_correction", "target_name", mode="after")
+    @classmethod
+    def sanitize_text(cls, v: str) -> str:
+        # Strip script or html tags to prevent XSS in public audit feed
+        return re.sub(r"<[^>]*?>", "", v or "").strip()
+
+    @field_validator("source_url", mode="after")
+    @classmethod
+    def validate_url(cls, v: Optional[str]) -> Optional[str]:
+        if not v or not v.strip():
+            return ""
+        v = v.strip()
+        if not re.match(r"^https?://[^\s/$.?#].[^\s]*$", v, re.IGNORECASE):
+            raise ValueError("source_url must be a valid HTTP or HTTPS URL.")
+        return v
+
+    @field_validator("category", mode="after")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        allowed = {"ASSETS", "CRIMINAL_CASES", "EDUCATION", "PARTY_AFFILIATION", "OTHER"}
+        cat = (v or "OTHER").strip().upper()
+        return cat if cat in allowed else "OTHER"
 
 
 class AskRequest(BaseModel):
@@ -457,9 +512,18 @@ def glossary_get(acronym: str, ministry: str | None = Query(default=None, max_le
     return {"acronym": acronym, **item}
 
 
+_IPC_SECTIONS_CACHE = {"expires_at": 0.0, "value": None}
+_IPC_SECTIONS_LOCK = threading.Lock()
+
+
 @app.get("/api/ipc-sections")
 def ipc_sections_list():
-    """Return major IPC sections with one-line explanations and live MLA charged counts."""
+    """Return major IPC sections with one-line explanations and live MLA charged counts (cached 10m)."""
+    now = time.monotonic()
+    with _IPC_SECTIONS_LOCK:
+        if _IPC_SECTIONS_CACHE["value"] and _IPC_SECTIONS_CACHE["expires_at"] > now:
+            return _IPC_SECTIONS_CACHE["value"]
+
     query = (
         "MATCH (p:MLA)-[:FACES]->(:CriminalCase)-[:UNDER]->(s:Section) "
         "RETURN s.code AS code, count(DISTINCT p) AS mla_count"
@@ -485,7 +549,11 @@ def ipc_sections_list():
         if counts.get(code, 0) > 0
     ]
     items.sort(key=lambda item: (-item["mla_count"], item["code"]))
-    return {"items": items, "count": len(items)}
+    res = {"items": items, "count": len(items)}
+    with _IPC_SECTIONS_LOCK:
+        _IPC_SECTIONS_CACHE["value"] = res
+        _IPC_SECTIONS_CACHE["expires_at"] = time.monotonic() + 600
+    return res
 
 
 class RagAskRequest(BaseModel):
@@ -1159,29 +1227,29 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
     schema_text = re.sub(r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"", "''", cypher)
     allowed_labels = {
         "Affidavit", "AffidavitChange", "AssemblyConstituency", "Chunk", "Constituency", "CriminalCase",
-        "Document", "Election", "ElectionRecord", "ElectionResult", "HistoricalMP", "Ministry", "MLA", "MP",
-        "Party", "PartyChange", "Person", "Section", "State",
+        "DiscrepancyReport", "Document", "Election", "ElectionRecord", "ElectionResult", "HistoricalMP", "Ministry", "MLA", "MP",
+        "Party", "PartyChange", "Person", "PublicAuthority", "RTIRecord", "Section", "State",
     }
     allowed_relationships = {
-        "CONTESTED", "DISCLOSES", "FACES", "FILED", "FILED_AFFIDAVIT", "FOR_ELECTION", "FROM",
+        "CONTESTED", "DISCLOSES", "FACES", "FILED", "FILED_ABOUT", "FILED_AFFIDAVIT", "FILED_TO", "FLAGGED_FOR", "FOR_ELECTION", "FROM",
         "HAS_AFFIDAVIT_CHANGE", "HAS_CHUNK", "HAS_ELECTION_RECORD", "HAS_PARTY_CHANGE",
         "HOLDS_PORTFOLIO", "IN_STATE", "ISSUED_BY", "MEMBER_OF", "REPRESENTS",
         "SIMILAR_CASE_PROFILE", "UNDER", "WON_ELECTION",
     }
     allowed_properties = {
-        "affidavit_id", "age", "aliases", "case_id", "case_no", "case_type", "charges_framed", "code", "council_section", "court",
-        "convicted_cases", "criminal_case_count", "criminal_cases_count_from", "criminal_cases_count_to", "criminal_cases_count_change",
-        "data", "doc_id", "education", "election", "election_id", "election_source", "election_verified",
-        "election_year", "entity_id", "file", "fir_no", "first_name", "from_constituency", "from_party", "from_year",
-        "gender", "id", "immovable_assets", "in_defections", "ipc_sections", "jaccard_score",
-        "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
-        "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons",
-        "out_defections", "party", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession",
-        "rank", "rank_order", "relationships", "role", "serious_criminal_cases", "shared_count", "shared_sections",
-        "source_date", "source_document", "source_document_date", "source_url", "special_responsibilities", "state",
-        "status", "style", "switcher_community", "switcher_pagerank", "terms", "title", "to_constituency", "to_party", "to_year",
-        "total_assets", "total_assets_change", "total_assets_from", "total_assets_percent_change", "total_assets_to",
-        "type", "visualisation", "nodes", "year",
+        "affidavit_id", "age", "aliases", "case_id", "case_no", "case_type", "category", "charges_framed", "claim", "claimed_correction",
+        "claimed_value", "code", "council_section", "court", "created_at", "convicted_cases", "criminal_case_count", "criminal_cases_count_from",
+        "criminal_cases_count_to", "criminal_cases_count_change", "data", "department", "doc_id", "document_url", "education", "election",
+        "election_id", "election_source", "election_verified", "election_year", "entity_id", "evidence_url", "field_contested", "file", "filing_date", "fir_no",
+        "first_name", "from_constituency", "from_party", "from_year", "gender", "id", "immovable_assets", "in_defections", "ipc_sections",
+        "jaccard_score", "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
+        "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons", "out_defections",
+        "party", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession", "public_authority", "questions", "rank",
+        "rank_order", "rationale", "received_date", "registration_no", "relationships", "reply_summary", "response_date", "role",
+        "serious_criminal_cases", "shared_count", "shared_sections", "source_date", "source_document", "source_document_date",
+        "source_url", "special_responsibilities", "state", "status", "style", "summary", "switcher_community", "switcher_pagerank",
+        "terms", "title", "to_constituency", "to_party", "to_year", "total_assets", "total_assets_change", "total_assets_from",
+        "total_assets_percent_change", "total_assets_to", "type", "visualisation", "nodes", "year",
     }
     node_patterns = re.findall(r"\(([^()]*)\)", schema_text)
     labels = {
@@ -1193,6 +1261,12 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
     properties = set(re.findall(r"\.\s*([A-Za-z_][A-Za-z0-9_]*)", schema_text))
     if labels - allowed_labels or relationships - allowed_relationships or properties - allowed_properties:
         raise HTTPException(status_code=400, detail="The generated query uses a label, relationship, or property outside the Neo4j schema.")
+
+    # Disallow disconnected Cartesian product node matches (e.g. MATCH (a:Person), (b:Person))
+    for match_clause in re.finditer(r"\bMATCH\s+([^W]+?)(?=\bWHERE\b|\bRETURN\b|\bWITH\b|\bMATCH\b|$)", cypher, re.IGNORECASE):
+        segment = match_clause.group(1).strip()
+        if "," in segment and "-" not in segment and "->" not in segment and "<-" not in segment:
+            raise HTTPException(status_code=400, detail="Cartesian product node matches without relationships are disallowed for system stability.")
 
     if not labels:
         raise HTTPException(status_code=400, detail="Generated queries must constrain matches to a known graph label.")
@@ -1705,9 +1779,41 @@ def get_graph_algorithms(limit: int = Query(default=20, ge=1, le=50)):
         )
 
 
+_NODE_DETAIL_CACHE = OrderedDict()
+_NODE_DETAIL_CACHE_LOCK = threading.Lock()
+_NODE_DETAIL_CACHE_TTL = 300  # 5 minutes
+_NODE_DETAIL_MAX_ITEMS = 500
+
+
+def get_cached_node_detail(node_id: str):
+    now = time.monotonic()
+    with _NODE_DETAIL_CACHE_LOCK:
+        item = _NODE_DETAIL_CACHE.get(node_id)
+        if not item:
+            return None
+        expires_at, data = item
+        if expires_at <= now:
+            del _NODE_DETAIL_CACHE[node_id]
+            return None
+        _NODE_DETAIL_CACHE.move_to_end(node_id)
+        return json.loads(json.dumps(data))
+
+
+def cache_node_detail(node_id: str, data: dict):
+    with _NODE_DETAIL_CACHE_LOCK:
+        _NODE_DETAIL_CACHE[node_id] = (time.monotonic() + _NODE_DETAIL_CACHE_TTL, json.loads(json.dumps(data)))
+        _NODE_DETAIL_CACHE.move_to_end(node_id)
+        while len(_NODE_DETAIL_CACHE) > _NODE_DETAIL_MAX_ITEMS:
+            _NODE_DETAIL_CACHE.popitem(last=False)
+
+
 @app.get("/api/nodes/{node_id}")
 def get_node_detail(node_id: str):
-    """Return a node, up to 100 direct connections, and their properties."""
+    """Return a node, up to 100 direct connections, and their properties (cached 5m)."""
+    cached = get_cached_node_detail(node_id)
+    if cached is not None:
+        return cached
+
     try:
         records, _, _ = driver.execute_query(
             NODE_DETAIL_QUERY,
@@ -1774,7 +1880,7 @@ def get_node_detail(node_id: str):
         flags = [r.data() for r in flag_records]
 
         total_edges = count_records[0]["total"] if count_records else 0
-        return {
+        res = {
             "node": node,
             "nodes": list(nodes.values()),
             "edges": edges,
@@ -1783,6 +1889,8 @@ def get_node_detail(node_id: str):
             "flags": flags,
             "flag_count": len(flags),
         }
+        cache_node_detail(node_id, res)
+        return res
     except HTTPException:
         raise
     except (Neo4jError, DriverError):
@@ -1956,6 +2064,10 @@ def submit_discrepancy(req: DiscrepancySubmitRequest):
 
         linked = records[0]["linked"] if records else False
         resolved_name = records[0]["target_name"] if records else req.target_name
+
+        if req.target_id:
+            with _NODE_DETAIL_CACHE_LOCK:
+                _NODE_DETAIL_CACHE.pop(req.target_id, None)
 
         return {
             "status": "ok",

@@ -124,6 +124,10 @@ def get_driver():
         _driver = GraphDatabase.driver(
             NEO4J_URI,
             auth=(NEO4J_USERNAME, NEO4J_PASSWORD),
+            max_connection_pool_size=int(os.getenv("NEO4J_MAX_POOL_SIZE", "100")),
+            max_connection_lifetime=3600,
+            connection_acquisition_timeout=30.0,
+            keep_alive=True,
             max_transaction_retry_time=60,
             notifications_min_severity="OFF",
         )
@@ -234,8 +238,19 @@ def detect_years_in_text(question: str, explicit_years: list[str] | None = None)
     return []
 
 
+_CATALOG_CACHE = {"expires_at": 0.0, "value": None}
+_CATALOG_CACHE_LOCK = threading.Lock()
+_CATALOG_TTL = 600.0  # 10 minutes
+
+
 def get_reports_catalog() -> dict:
-    """Return ingested ministries, fiscal years, and document counts from Instance02."""
+    """Return ingested ministries, fiscal years, and document counts from Instance02 (cached for 10 min)."""
+    import time
+    now = time.monotonic()
+    with _CATALOG_CACHE_LOCK:
+        if _CATALOG_CACHE["value"] and _CATALOG_CACHE["expires_at"] > now:
+            return _CATALOG_CACHE["value"]
+
     drv = get_driver()
     ingested = []
     if drv is not None:
@@ -280,12 +295,16 @@ def get_reports_catalog() -> dict:
             "years": sorted({d["year"] for d in docs}),
         })
 
-    return {
+    res = {
         "ministries": ministries_out,
         "supported_years": SUPPORTED_YEARS,
         "ingested_years": sorted(years_present),
         "documents": ingested,
     }
+    with _CATALOG_CACHE_LOCK:
+        _CATALOG_CACHE["value"] = res
+        _CATALOG_CACHE["expires_at"] = time.monotonic() + _CATALOG_TTL
+    return res
 
 
 def _vector_search_slice(query_vec: list[float], k: int, ministry: str | None = None, year: str | None = None) -> list[dict]:
