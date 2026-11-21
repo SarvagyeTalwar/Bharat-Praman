@@ -1169,8 +1169,9 @@
       if (!payload || !q) return '';
       const normQ = q.trim().toLowerCase().replace(/\s+/g, ' ');
       const isWhoIsQuery = /^\s*(who\s+is|tell\s+me\s+about|profile\s+of)\b/i.test(q);
+      const isGraphLike = payload.result_type === 'keyword_direct' || payload.result_type === 'keyword_fallback' || payload.result_type === 'graph';
 
-      if (payload.result_type === 'keyword_direct' || payload.result_type === 'keyword_fallback') {
+      if (isGraphLike && (!isAnalyticalGraphQuestion(q) || isWhoIsQuery)) {
         const nodes = payload.nodes || [];
         const focusSet = new Set(payload.focus_ids || []);
         const pool = focusSet.size ? nodes.filter((n) => focusSet.has(n.id)) : nodes;
@@ -1205,7 +1206,7 @@
 
       if (isWhoIsQuery && Array.isArray(payload.records) && payload.records.length) {
         const tmpl = String(payload.template_id || '');
-        if (tmpl === 'politician_profile' || tmpl === 'minister_of' || payload.records.length === 1) {
+        if (tmpl === 'politician_profile' || tmpl === 'minister_of' || tmpl === 'mp_ministries' || payload.records.length === 1) {
           const row = payload.records.find((r) => /cabinet\s+minister/i.test(String(r.portfolio_rank || ''))) || payload.records[0];
           const eid = row && (row.entity_id || row.person_id || row.id);
           if (eid) {
