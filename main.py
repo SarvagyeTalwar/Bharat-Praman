@@ -170,6 +170,8 @@ async def _security_headers_middleware(request: Request, call_next):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
     response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+    if (response.headers.get("content-type") or "").startswith("text/html"):
+        response.headers.setdefault("Cache-Control", "no-cache, must-revalidate")
     if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
@@ -2307,6 +2309,11 @@ def _serve_rti_asset(filename: str):
     if target.parent != (BASE_DIR / "rti").resolve() or target.suffix.lower() not in _ALLOWED_UI_EXTS or not target.is_file():
         raise HTTPException(status_code=404, detail="Not found")
     return FileResponse(target)
+
+
+@app.get("/mps.html")
+def _redirect_removed_mps():
+    return RedirectResponse(url="/", status_code=307)
 
 
 @app.get("/{filename}")

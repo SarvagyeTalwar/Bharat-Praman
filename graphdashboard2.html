@@ -896,7 +896,7 @@
 
   <script>
     const API_BASE = (window.BP_CONFIG && window.BP_CONFIG.apiBase) || '';
-    const QUERY_CACHE_PREFIX = 'bp_home_query_cache_v1::';
+    const QUERY_CACHE_PREFIX = 'bp_home_query_cache_v2::';
     const TELEMETRY_CACHE_KEY = 'bp_home_telemetry_v1';
 
     const themeToggle = document.getElementById('themeToggle');
@@ -1026,6 +1026,8 @@
     function detectBestScope(q) {
       const t = (q || '').toLowerCase();
       if (!t) return 'all';
+      if (/\bwho\s+is\b/.test(t) && !/\b(budget|scheme|allocation|spending|outlay)\b/.test(t)) return 'graph';
+      if (/\b(minister|ministers|portfolio|cabinet)\b/.test(t) && !/\b(budget|outlay|allocation|spending|expenditure|be|re|crore|scheme|yojana)\b/.test(t)) return 'graph';
       if (window.BP_FUZZY) {
         const auth = BP_FUZZY.resolveKnownAuthority(q);
         if (auth) {
@@ -1161,6 +1163,58 @@
       if (hiddenType) params.set('type', hiddenType);
       if (queryText) params.set('from', queryText);
       return `node.html?${params.toString()}`;
+    }
+
+    function pickDirectProfileHref(payload, q) {
+      if (!payload || !q) return '';
+      const normQ = q.trim().toLowerCase().replace(/\s+/g, ' ');
+      const isWhoIsQuery = /^\s*(who\s+is|tell\s+me\s+about|profile\s+of)\b/i.test(q);
+
+      if (payload.result_type === 'keyword_direct' || payload.result_type === 'keyword_fallback') {
+        const nodes = payload.nodes || [];
+        const focusSet = new Set(payload.focus_ids || []);
+        const pool = focusSet.size ? nodes.filter((n) => focusSet.has(n.id)) : nodes;
+        const people = pool.filter((n) => {
+          const ls = n.labels || [];
+          return ls.some((l) => l === 'Person' || l === 'MP' || l === 'MLA' || l === 'HistoricalMP');
+        });
+        if (!people.length) return '';
+
+        const exactMatches = people.filter((n) => {
+          const lbl = String(n.display_name || n.properties?.name || n.label || '').trim().toLowerCase().replace(/\s+/g, ' ');
+          return lbl === normQ;
+        });
+        const ranked = (exactMatches.length ? exactMatches : people).slice().sort((a, b) => {
+          const score = (node) => {
+            const ls = node.labels || [];
+            if (ls.includes('MP') && !ls.includes('HistoricalMP')) return 4;
+            if (ls.includes('MLA')) return 3;
+            if (ls.includes('Person') && !ls.includes('HistoricalMP')) return 2;
+            return 1;
+          };
+          return score(b) - score(a);
+        });
+
+        const uniqueNames = new Set(
+          ranked.map((n) => String(n.display_name || n.properties?.name || n.label || '').trim().toLowerCase())
+        );
+        if (exactMatches.length || uniqueNames.size === 1 || ranked.length === 1) {
+          return buildDashboardNodeHref(ranked[0], q);
+        }
+      }
+
+      if (isWhoIsQuery && Array.isArray(payload.records) && payload.records.length) {
+        const tmpl = String(payload.template_id || '');
+        if (tmpl === 'politician_profile' || tmpl === 'minister_of' || payload.records.length === 1) {
+          const row = payload.records.find((r) => /cabinet\s+minister/i.test(String(r.portfolio_rank || ''))) || payload.records[0];
+          const eid = row && (row.entity_id || row.person_id || row.id);
+          if (eid) {
+            const params = new URLSearchParams({ id: String(eid), from: q });
+            return `node.html?${params.toString()}`;
+          }
+        }
+      }
+      return '';
     }
 
     function renderBarebonesSvg(nodes, edges, queryText) {
@@ -1667,8 +1721,15 @@
           const t0 = performance.now();
           answerPanel.hidden = false;
           cacheBadge.hidden = false;
-          if (cached.kind === 'graph') renderGraphResult(cached.data, q);
-          else if (cached.kind === 'rag_search') renderRagSearchResult(cached.data, q, effTarget, styleKey, cacheKey);
+          if (cached.kind === 'graph') {
+            const directHref = pickDirectProfileHref(cached.data, q);
+            if (directHref) {
+              statusText.textContent = `Opening profile for "${q}"...`;
+              window.location.href = directHref;
+              return;
+            }
+            renderGraphResult(cached.data, q);
+          } else if (cached.kind === 'rag_search') renderRagSearchResult(cached.data, q, effTarget, styleKey, cacheKey);
           else if (cached.kind === 'rag_with_search') {
             renderRagSearchResult(cached.searchData, q, effTarget, styleKey, cacheKey);
             renderDeepSeekIntoSlot(cached.askData);
@@ -1723,9 +1784,15 @@
             }
           }
 
+          try { sessionStorage.setItem(cacheKey, JSON.stringify({ kind: 'graph', data: payload })); } catch (_) {}
+          const directHref = pickDirectProfileHref(payload, q);
+          if (directHref) {
+            statusText.textContent = `Opening profile for "${q}"...`;
+            window.location.href = directHref;
+            return;
+          }
           answerPanel.hidden = false;
           renderGraphResult(payload, q);
-          try { sessionStorage.setItem(cacheKey, JSON.stringify({ kind: 'graph', data: payload })); } catch (_) {}
           statusText.textContent = 'Graph query complete.';
           perfTag.textContent = `${Math.round(performance.now() - t0)} ms`;
         } else {
