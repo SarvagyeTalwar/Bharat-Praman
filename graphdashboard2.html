@@ -1120,7 +1120,22 @@
       });
     })();
 
-    function renderBarebonesSvg(nodes, edges) {
+    const DASHBOARD_HIDDEN_TYPES = new Set([
+      'party', 'affidavit', 'affidavitchange', 'constituency', 'assemblyconstituency',
+      'election', 'electionrecord', 'electionresult', 'rtirecord', 'criminalcase',
+    ]);
+
+    function buildDashboardNodeHref(n, queryText) {
+      const hiddenType = (n.labels || []).find((l) =>
+        DASHBOARD_HIDDEN_TYPES.has(String(l).trim().toLowerCase().replace(/[\s_-]+/g, ''))
+      ) || '';
+      const params = new URLSearchParams({ id: n.id });
+      if (hiddenType) params.set('type', hiddenType);
+      if (queryText) params.set('from', queryText);
+      return `node.html?${params.toString()}`;
+    }
+
+    function renderBarebonesSvg(nodes, edges, queryText) {
       if (!nodes || !nodes.length) return '';
       const cappedNodes = nodes.slice(0, 16);
       const idSet = new Set(cappedNodes.map((n) => n.id));
@@ -1157,15 +1172,20 @@
         const fill = isCrim ? '#dc2626' : (n.is_focus ? '#1d4ed8' : fillNormal);
         const r = n.is_focus ? 8 : 6;
         const title = String(n.display_name || n.properties?.name || n.label || n.id).slice(0, 22);
-        return `<g>
-          <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.8" />
-          <text x="${p.x.toFixed(1)}" y="${(p.y + r + 12).toFixed(1)}" fill="${isCrim ? '#dc2626' : labelColor}" font-family="system-ui,sans-serif" font-size="10.5" font-weight="${n.is_focus ? '700' : '500'}" text-anchor="middle">${escapeHtml(title)}</text>
-        </g>`;
+        const nodeHref = buildDashboardNodeHref(n, queryText);
+        return `<a href="${escapeHtml(nodeHref)}" style="cursor:pointer;">
+          <g>
+            <title>Click to open ${escapeHtml(title)} profile</title>
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r + 12}" fill="transparent" />
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.8" />
+            <text x="${p.x.toFixed(1)}" y="${(p.y + r + 12).toFixed(1)}" fill="${isCrim ? '#dc2626' : labelColor}" font-family="system-ui,sans-serif" font-size="10.5" font-weight="${n.is_focus ? '700' : '500'}" text-anchor="middle">${escapeHtml(title)}</text>
+          </g>
+        </a>`;
       }).join('');
 
       return `<div class="sub-block">
         <div class="sub-block-head">
-          <span>Connection Preview (${cappedNodes.length} nodes)</span>
+          <span>Connection Preview (${cappedNodes.length} nodes · Click any node to open profile)</span>
           <a href="${escapeHtml(buildDedicatedUrl(searchInput.value.trim(), 'graph', selectedStyle))}">Open Interactive Graph ↗</a>
         </div>
         <svg class="svg-preview" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${edgeSvg}${nodeSvg}</svg>
@@ -1180,10 +1200,15 @@
 
       const parts = [];
       if (data.explanation) {
-        parts.push(`<p style="margin:0 0 14px; font-weight:600;">${escapeHtml(data.explanation)}</p>`);
+        parts.push(`<p style="margin:0 0 12px; font-weight:600;">${escapeHtml(data.explanation)}</p>`);
       }
       if (data.nodes && data.nodes.length) {
-        parts.push(renderBarebonesSvg(data.nodes, data.edges || []));
+        const focusNode = data.nodes.find((n) => n.is_focus) || data.nodes[0];
+        if (focusNode) {
+          const focusName = String(focusNode.display_name || focusNode.properties?.name || focusNode.label || 'Entity').slice(0, 40);
+          parts.push(`<div style="margin-bottom:12px;"><a href="${escapeHtml(buildDashboardNodeHref(focusNode, q))}" class="btn-primary" style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; border-radius:8px; text-decoration:none;">Open ${escapeHtml(focusName)} Profile &amp; Graph →</a></div>`);
+        }
+        parts.push(renderBarebonesSvg(data.nodes, data.edges || [], q));
       }
       if (Array.isArray(data.records) && data.records.length) {
         const allCols = Object.keys(data.records[0]);
@@ -1236,8 +1261,7 @@
                 const party = p.party_name || p.state || p.district || p.court || p.status || '—';
                 const assets = p.total_assets != null ? formatInrCompact(p.total_assets) : '—';
                 const isRep = /person|mp|mla/i.test((n.labels || []).join(' ')) || Boolean(p.entity_id);
-                const hiddenType = (n.labels || []).find((l) => ['party', 'affidavit', 'affidavitchange', 'constituency', 'assemblyconstituency', 'election', 'electionrecord', 'electionresult', 'rtirecord', 'criminalcase'].includes(String(l).trim().toLowerCase().replace(/[\s_-]+/g, ''))) || '';
-                const nodeHref = `node.html?id=${encodeURIComponent(n.id)}${hiddenType ? `&type=${encodeURIComponent(hiddenType)}` : ''}`;
+                const nodeHref = buildDashboardNodeHref(n, q);
                 const rtiHref = `rti/rti_page.html?id=${encodeURIComponent(p.entity_id || n.id)}&name=${encodeURIComponent(displayName)}`;
                 return `<tr>
                   <td><a href="${escapeHtml(nodeHref)}" style="font-weight:600;">${escapeHtml(displayName)}</a></td>
