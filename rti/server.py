@@ -125,6 +125,8 @@ def get_rti_records_index():
 
 @app.get("/rti/documents/{rti_id}/pdf")
 @app.get("/documents/{rti_id}/pdf")
+@app.get("/pdfs/{rti_id}.pdf")
+@app.get("/pdfs/{rti_id}")
 def get_rti_pdf_endpoint(rti_id: str):
     """Serve the PDF for an RTI: streams local file if downloaded, or redirects to cloud storage."""
     pdf_dir = ROOT / "rti_scraper" / "pdfs"
