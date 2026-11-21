@@ -1411,18 +1411,19 @@
       if (autoResolved) {
         const canonical = autoResolved.matched;
         activeTarget = canonical;
-        const isMinistry = canonical.toLowerCase().includes('ministry');
+        const isMinistry = autoResolved.kind === 'MINISTRY' || canonical.toLowerCase().includes('ministry');
         house = isMinistry ? 'UNION_MINISTRY' : 'LOK_SABHA';
-        constituency = isMinistry ? 'Central Secretariat, New Delhi' : 'Jurisdiction / Parliamentary House';
+        constituency = autoResolved.constituency || (isMinistry ? 'Central Secretariat, New Delhi' : 'Parliamentary Constituency');
         entityId = canonical.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
         if (fuzzyHint) {
+          const detail = autoResolved.title ? ` · ${autoResolved.title}` : '';
           if (val.toLowerCase() !== canonical.toLowerCase()) {
             fuzzyHint.hidden = false;
-            fuzzyHint.innerHTML = `Auto-recognized authority: <span style="text-decoration:underline; cursor:pointer;" onclick="applyAuthorityCorrection('${canonical}')"><strong>${canonical}</strong></span> (CPIO details mapped)`;
+            fuzzyHint.innerHTML = `Auto-recognized: <span style="text-decoration:underline; cursor:pointer;" onclick="applyAuthorityCorrection('${canonical}')"><strong>${canonical}</strong>${detail}</span> (CPIO mapped)`;
           } else {
             fuzzyHint.hidden = false;
-            fuzzyHint.innerHTML = `Identified: <strong>${canonical}</strong> (Statutory CPIO &amp; address mapped)`;
+            fuzzyHint.innerHTML = `Identified: <strong>${canonical}</strong>${detail} (CPIO &amp; address mapped)`;
           }
         }
       } else {
