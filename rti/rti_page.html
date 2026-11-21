@@ -308,7 +308,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 14px;
-      background: var(--surface); border-left: 3px solid var(--accent);
+      background: linear-gradient(to right, var(--surface-tint), var(--surface));
     }
     h1 {
       margin: 0;
@@ -731,9 +731,8 @@
         <a id="navGraph" href="../graph.html">Graph Explorer</a>
         <a id="navAsk" href="../ask.html">Budget Dossier</a>
         <a href="#" class="active">RTI Desk</a>
-        <a id="navRtiArchive" href="../rti_archive.html">RTI Archive</a>
         <a id="navGlossary" href="../graph.html#glossary">Glossary &amp; IPC</a>
-        <a id="navBenchmark" href="../graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">Architecture Benchmark</a>
+        <a id="navBenchmark" href="../graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">⚡ GraphRAG Benchmark</a>
         <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
           <span class="switch-mode-track" aria-hidden="true"></span>
           <span class="switch-mode-knob" aria-hidden="true"></span>
@@ -776,7 +775,6 @@
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
           <a id="entityBackLink" href="../node.html" class="btn" hidden>← Back to Entity</a>
-          <a href="../rti_archive.html" class="btn" style="background:rgba(183,121,31,0.12); color:var(--accent); border-color:var(--accent); font-weight:700;">📂 RTI Archive &amp; PDFs (50 Curated) →</a>
           <button id="downloadPdfBtn" type="button" class="btn btn-accent">Download Form A (PDF)</button>
           <button id="downloadTxtBtn" type="button" class="btn">Download .TXT</button>
           <button id="copyDraftBtn" type="button" class="btn btn-solid">Copy Draft Text</button>
@@ -826,11 +824,11 @@
     <!-- Global Discovery & Intent Omnibox Deck -->
     <section class="discovery-deck">
       <div class="discovery-title">
-        <span>Search &amp; Discover Statutory Questions</span>
+        <span>🔍 Search &amp; Discover Questions for Form A</span>
         <span id="bankCountTag" class="mono" style="font-size:11.5px; color:var(--accent);">0 Available</span>
       </div>
       <div class="search-bar-wrap">
-        
+        <span style="font-size:16px;">🔎</span>
         <input 
           id="suggestSearchInput" 
           type="text" 
@@ -849,10 +847,10 @@
 
       <!-- Quick Starter Packs -->
       <div class="quick-packs-row">
-        <span class="quick-pack-label">Statutory Templates:</span>
-        <button type="button" class="pack-btn" data-pack="MPLADS">Local Works Audit Pack</button>
-        <button type="button" class="pack-btn" data-pack="ATTENDANCE">Attendance &amp; Speeches Pack</button>
-        <button type="button" class="pack-btn" data-pack="ALLOWANCES">Allowances &amp; Entitlements</button>
+        <span class="quick-pack-label">⚡ 1-Click Starter Packs:</span>
+        <button type="button" class="pack-btn" data-pack="MPLADS">🏗️ Local Works Audit Pack</button>
+        <button type="button" class="pack-btn" data-pack="ATTENDANCE">🏛️ Attendance &amp; Speeches Pack</button>
+        <button type="button" class="pack-btn" data-pack="ALLOWANCES">✈️ Salary &amp; Perks Breakdown</button>
       </div>
     </section>
 
@@ -900,7 +898,7 @@
             </div>
             <div id="complianceVerdict" class="ok-box">Ready: Enter specific records, sanction orders, dates, or fund ledgers.</div>
             <div style="margin-top:8px; font:12px/1.4 var(--font-sans); color:var(--muted);">
-              <strong>Statutory Guidance:</strong> Officers only provide existing material records. Avoid "Why" or personal opinion questions, and avoid private family/banking records (exempt under Sec 8(1)(j)).
+              💡 <strong>Pro Tip:</strong> Officers only provide existing material records. Avoid "Why" or personal opinion questions, and avoid private family/banking records (exempt under Sec 8(1)(j)).
             </div>
           </div>
         </section>
@@ -957,7 +955,7 @@
   <script>
     const isFile = location.protocol === 'file:';
     const host = location.hostname || '127.0.0.1';
-    const RTI_API = (location.port === '5500' || isFile) ? `http://${host}:8001` : '';
+    const RTI_API = (location.port === '8001') ? '' : `http://${host}:8001`;
     const UI_PREFIX = location.pathname.startsWith('/rti/')
       ? '../'
       : ((location.port === '8001' || isFile) ? `http://${host}:5500/` : '');
@@ -1038,28 +1036,28 @@
     const MOCK_TOPICS = [
       {
         topic_id: 'ALL',
-        label: 'All Questions',
+        label: '✨ All Questions',
         description: 'Browse all available pre-validated questions across development funds, attendance, and travel expenses.',
         already_on_profile: false,
         needs_district: false
       },
       {
         topic_id: 'MPLADS_PROJECTS',
-        label: 'Local Works & Funds (MPLADS)',
+        label: '🏗️ Local Works & Funds (MPLADS)',
         description: 'Works recommended, funds sanctioned and released, executing agencies, and completion status.',
         already_on_profile: false,
         needs_district: true
       },
       {
         topic_id: 'ATTENDANCE',
-        label: 'Attendance & Debates',
+        label: '🏛️ Attendance & Debates',
         description: 'Sittings attended, questions asked, debates participated in, and committee meetings.',
         already_on_profile: false,
         needs_district: false
       },
       {
         topic_id: 'ALLOWANCES',
-        label: 'Salary, Travel & Allowances',
+        label: '✈️ Salary, Travel & Allowances',
         description: 'Category-wise totals of salary, air/rail travel claims, constituency office allowance, and entitlements paid.',
         already_on_profile: false,
         needs_district: false
@@ -1412,7 +1410,7 @@ Date: ${todayIso}`;
       if (!filtered.length) {
         container.innerHTML = `
           <div style="padding:32px 16px; text-align:center; color:var(--muted);">
-            <div style="font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px;">[No Matching Questions]</div>
+            <div style="font-size:24px; margin-bottom:8px;">🔍</div>
             <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No questions found matching "${escapeHtml(q)}"</div>
             <div style="font-size:12.5px;">Try searching for "funds", "travel", "attendance", or switch to "All Questions".</div>
           </div>
@@ -1421,9 +1419,9 @@ Date: ${todayIso}`;
       }
 
       const categoryLabels = {
-        MPLADS_PROJECTS: 'Local Works',
-        ATTENDANCE: 'Attendance',
-        ALLOWANCES: 'Travel & Salary'
+        MPLADS_PROJECTS: '🏗️ Local Works',
+        ATTENDANCE: '🏛️ Attendance',
+        ALLOWANCES: '✈️ Travel & Salary'
       };
 
       container.innerHTML = filtered.map((item, idx) => `
@@ -1464,7 +1462,7 @@ Date: ${todayIso}`;
       }
 
       if (btnElement) {
-        btnElement.textContent = 'Added to Draft';
+        btnElement.textContent = '✓ Added to Draft';
         btnElement.classList.add('inserted');
         setTimeout(() => {
           btnElement.textContent = '+ Add to Application';
@@ -1513,7 +1511,7 @@ Date: ${todayIso}`;
         if (r.ok) {
           const data = await r.json();
           if (Array.isArray(data) && data.length) {
-            TOPICS = [{ topic_id: 'ALL', label: 'All Questions', description: 'Browse all pre-validated questions.' }, ...data];
+            TOPICS = [{ topic_id: 'ALL', label: '✨ All Questions', description: 'Browse all pre-validated questions.' }, ...data];
             liveApiAvailable = true;
             apiSourceTag.textContent = 'API: RTI Server (:8001) Connected';
           }
@@ -1671,5 +1669,3 @@ Date: ${todayIso}`;
   </script>
 </body>
 </html>
-
-      
