@@ -630,7 +630,6 @@
       </a>
       <nav class="nav" aria-label="Primary">
         <a href="graphdashboard2.html">Search</a>
-        <a href="mps.html">Top 100 MPs</a>
         <a href="graph.html">Graph Explorer</a>
         <a href="ask.html">Budget Dossier</a>
         <a href="rti/rti_page.html">RTI Desk</a>
@@ -672,8 +671,6 @@
   <div class="trail" id="trail">
     <a href="graphdashboard2.html">Home</a>
     <span>/</span>
-    <a href="mps.html">Top 100 MPs</a>
-    <span>/</span>
     <span id="trailCurrent" style="font-weight:600; color:var(--fg);">Profile</span>
   </div>
 
@@ -694,7 +691,7 @@
         </div>
         <div class="hero-actions">
           <button id="flagBtn" type="button" class="btn" style="cursor:pointer; border-color:var(--border-strong); background:var(--surface-soft);" title="Submit an audit annotation or point out an affidavit discrepancy">Report Discrepancy</button>
-          <a href="mps.html" class="btn">← Top 100 MPs</a>
+          <a href="graphdashboard2.html" class="btn">← Back to Search</a>
           <a id="graph-link" href="graph.html" class="btn">Explore Graph →</a>
           <a id="rti-link" href="rti/rti_page.html" class="btn btn-primary" hidden>Draft Section 6(1) RTI →</a>
         </div>
@@ -1936,7 +1933,7 @@
     async function init() {
       if (!nodeId) {
         document.getElementById('entityTitle').textContent = 'No entity selected';
-        document.getElementById('heroBadges').innerHTML = '<a href="mps.html" class="pill pill-accent">Browse Top 100 MPs →</a>';
+        document.getElementById('heroBadges').innerHTML = '<a href="graphdashboard2.html" class="pill pill-accent">Search Leaders →</a>';
         return;
       }
       try {
