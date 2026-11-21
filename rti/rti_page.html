@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bharat Praman — Section 6(1) RTI Filing Desk</title>
+  <title>Bharat Praman — Section 6(1) RTI Drafting Desk</title>
   <script>
     (function () {
       if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
@@ -12,13 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    /* Retro 70s Two-Color Theme (Crisp White + Light Brownish-Yellow)
-       Primary Canvas: #FAF6EE (warm eggshell white) & #FFFFFF (pure crisp white surfaces)
-       Primary Accent: #B7791F (retro golden brownish-yellow / warm ochre)
-       Soft Tints:     #FBF4E6 / #F5E8D0 (warm cream & light brownish-yellow wash)
-       Text & Borders: #2A1D0F (deep warm espresso text for crystal-clear readability)
-    */
     :root {
       color-scheme: light;
       --bg: #FAF6EE;
@@ -33,16 +28,13 @@
       --accent: #B7791F;
       --accent-hover: #9E6414;
       --accent-fg: #FFFFFF;
-      --accent-soft: #FDF6E8;
-      --danger: #B83A1D;
-      --danger-soft: #FBECE8;
-      --shadow-sm: 0 1px 3px rgba(60, 40, 15, 0.06);
-      --shadow-md: 0 8px 24px -4px rgba(60, 40, 15, 0.09), 0 2px 6px -1px rgba(60, 40, 15, 0.04);
       --font-sans: "Plus Jakarta Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
       --font-retro: "Fraunces", "Cooper Black", "Bookman Old Style", "Georgia", serif;
       --font-mono: ui-monospace, SFMono-Regular, "Courier New", monospace;
-      --card-radius: 16px;
-      --btn-radius: 12px;
+      --card-radius: 14px;
+      --btn-radius: 8px;
+      --shadow-sm: 0 1px 3px rgba(60, 40, 15, 0.06);
+      --shadow-md: 0 8px 24px -4px rgba(60, 40, 15, 0.09), 0 2px 6px -1px rgba(60, 40, 15, 0.04);
     }
 
     html.dark {
@@ -60,13 +52,11 @@
       --accent-hover: #E5AA45;
       --accent-fg: #16120C;
       --accent-soft: rgba(216, 150, 46, 0.15);
-      --danger: #E06243;
-      --danger-soft: rgba(224, 98, 67, 0.15);
       --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
       --shadow-md: 0 10px 28px -4px rgba(0, 0, 0, 0.6);
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     [hidden] { display: none !important; }
 
     body {
@@ -75,26 +65,26 @@
       color: var(--fg);
       font: 14.5px/1.6 var(--font-sans);
       -webkit-font-smoothing: antialiased;
+      padding-bottom: 120px; /* Space for sticky bottom bar */
     }
 
     a { color: var(--accent); text-decoration: none; font-weight: 600; }
     a:hover { text-decoration: underline; color: var(--accent-hover); }
     .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
     .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
-    .alert { color: var(--danger); font-weight: 700; }
 
-    /* Retro 70s Masthead Topbar */
+    /* Topbar */
     .topbar {
       background: var(--navy);
-      color: #ffffff;
+      color: #FFFFFF;
       border-bottom: 2.5px solid var(--accent-hover);
       box-shadow: 0 2px 10px rgba(60, 40, 15, 0.1);
       position: sticky;
       top: 0;
-      z-index: 40;
+      z-index: 50;
     }
     .topbar-inner {
-      max-width: 1440px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 12px 20px;
       display: flex;
@@ -109,22 +99,20 @@
       gap: 10px;
       font-family: var(--font-retro);
       font-weight: 800;
-      font-size: 20px;
-      color: #ffffff;
+      font-size: 21px;
+      color: #FFFFFF;
       text-decoration: none;
       letter-spacing: -0.02em;
     }
-    .brand:hover { text-decoration: none; color: #fff6e5; }
     .brand-mark {
-      width: 30px;
-      height: 30px;
-      border-radius: 9px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
       background: rgba(255, 255, 255, 0.22);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: #ffffff;
-      backdrop-filter: blur(4px);
+      color: #FFFFFF;
     }
     .nav {
       display: flex;
@@ -132,588 +120,765 @@
       align-items: center;
       gap: 6px;
     }
-    .nav a, .nav button {
-      border: 1px solid transparent;
-      background: transparent;
-      color: #fff2db;
+    .nav a {
+      color: #FFF2DB;
       padding: 6px 13px;
       border-radius: 999px;
       font: 600 13px/1.2 var(--font-sans);
       text-decoration: none;
-      cursor: pointer;
       transition: all 0.15s ease;
     }
-    .nav a:hover, .nav button:hover {
+    .nav a:hover {
       background: rgba(255, 255, 255, 0.18);
-      color: #ffffff;
-      text-decoration: none;
+      color: #FFFFFF;
     }
     .nav a.active {
-      background: #ffffff;
+      background: #FFFFFF;
       color: var(--navy);
       font-weight: 700;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     }
     html.dark .nav a.active {
       background: var(--accent);
-      color: #16120C;
+      color: #14110D;
     }
 
-    /* Watermelon UI SwitchMode Component */
-    .nav button.switch-mode-btn,
+    /* Switch Mode Button */
     .switch-mode-btn {
       position: relative;
       display: inline-flex;
       align-items: center;
-      width: 58px;
+      width: 54px;
       height: 28px;
       border-radius: 999px;
-      border: 2px solid #D8D6E0;
+      border: 2px solid rgba(255, 255, 255, 0.4);
       background: transparent;
       padding: 0;
-      margin: 0 0 0 4px;
       cursor: pointer;
-      outline: none;
-      user-select: none;
-      overflow: visible;
-      transition: border-color 0.25s ease, transform 0.18s cubic-bezier(0.34, 1.35, 0.64, 1);
-      vertical-align: middle;
-      flex-shrink: 0;
-      box-sizing: border-box;
-      line-height: normal;
+      margin-left: 6px;
     }
-    .nav button.switch-mode-btn:hover,
-    .switch-mode-btn:hover {
-      background: transparent !important;
-      transform: scale(1.05);
-    }
-    .nav button.switch-mode-btn:active,
-    .switch-mode-btn:active {
-      transform: scale(0.96);
-    }
-    html.dark .nav button.switch-mode-btn,
-    html.dark .switch-mode-btn,
-    .switch-mode-btn.is-dark {
-      border-color: #4C4C50;
-    }
-
-    /* Track */
     .switch-mode-track {
       position: absolute;
-      inset: 0;
+      inset: 2px;
       border-radius: 999px;
-      background-color: #FFFFFF;
-      transition: background-color 0.35s ease;
-      z-index: 1;
+      background: rgba(0, 0, 0, 0.2);
     }
-    html.dark .switch-mode-track,
-    .switch-mode-btn.is-dark .switch-mode-track {
-      background-color: #0B0B0B;
-    }
-
-    /* Sliding Knob with Spring Physics (stiffness: 260, damping: 20) */
     .switch-mode-knob {
       position: absolute;
-      top: -2px;
-      left: -2px;
-      width: 28px;
-      height: 28px;
+      left: 3px;
+      top: 3px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      border: 2px solid #D8D6E0;
-      background-color: #F3F2F7;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-      z-index: 3;
-      pointer-events: none;
-      transition: transform 0.36s cubic-bezier(0.34, 1.35, 0.64, 1),
-                  background-color 0.3s ease,
-                  border-color 0.3s ease;
-      transform: translateX(0);
-      box-sizing: border-box;
+      background: #FFFFFF;
+      transition: transform 0.25s cubic-bezier(0.34, 1.35, 0.64, 1);
     }
-    html.dark .switch-mode-knob,
     .switch-mode-btn.is-dark .switch-mode-knob {
-      transform: translateX(30px);
-      background-color: #2A2A2E;
-      border-color: #4C4C50;
-      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.45);
+      transform: translateX(26px);
+      background: var(--duo-gold);
     }
 
-    /* Sun & Moon Icon Slots */
-    .switch-mode-icon {
+    /* Wizard Container */
+    .wizard-wrap {
+      max-width: 860px;
+      margin: 28px auto 140px;
+      padding: 0 20px;
+    }
+
+    /* Stepper & Progress Bar */
+    .stepper-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .progress-bar-track {
+      width: 100%;
+      height: 6px;
+      background: var(--surface-soft);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 14px;
       position: relative;
-      z-index: 4;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.3s ease;
+      width: 25%;
+    }
+    .step-indicators {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .step-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+      background: transparent;
+      border: none;
+    }
+    .step-pill:hover {
+      background: var(--surface-soft);
+      color: var(--fg);
+    }
+    .step-pill.active {
+      color: var(--fg);
+      background: var(--surface-tint);
+      font-weight: 700;
+    }
+    .step-pill.completed {
+      color: var(--accent);
+    }
+    .step-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--surface-soft);
+      border: 1px solid var(--border-strong);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 28px;
-      height: 28px;
-      pointer-events: none;
-      transition: transform 0.35s cubic-bezier(0.34, 1.35, 0.64, 1),
-                  color 0.25s ease;
-      box-sizing: border-box;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--muted);
     }
-
-    /* Sun on Left */
-    .switch-mode-sun {
-      transform: rotate(0deg);
-      color: #686771;
+    .step-pill.active .step-badge {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
     }
-    .switch-mode-sun .sun-solid { display: block; }
-    .switch-mode-sun .sun-outline { display: none; }
-
-    html.dark .switch-mode-sun,
-    .switch-mode-btn.is-dark .switch-mode-sun {
-      transform: rotate(45deg);
-      color: #8A8A8F;
-    }
-    html.dark .switch-mode-sun .sun-solid,
-    .switch-mode-btn.is-dark .switch-mode-sun .sun-solid { display: none; }
-    html.dark .switch-mode-sun .sun-outline,
-    .switch-mode-btn.is-dark .switch-mode-sun .sun-outline { display: block; }
-
-    /* Moon on Right */
-    .switch-mode-moon {
-      transform: rotate(15deg);
-      color: #ABABB4;
-    }
-    .switch-mode-moon .moon-solid { display: none; }
-    .switch-mode-moon .moon-outline { display: block; }
-
-    html.dark .switch-mode-moon,
-    .switch-mode-btn.is-dark .switch-mode-moon {
-      transform: rotate(0deg);
-      color: #F4F4FB;
-    }
-    html.dark .switch-mode-moon .moon-solid,
-    .switch-mode-btn.is-dark .switch-mode-moon .moon-solid { display: block; }
-    html.dark .switch-mode-moon .moon-outline,
-    .switch-mode-btn.is-dark .switch-mode-moon .moon-outline { display: none; }
-
-    main { max-width: 1440px; margin: 0 auto; padding: 24px 20px 64px; }
-
-    /* Masthead */
-    .masthead {
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      margin-bottom: 20px;
-      background: var(--surface);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-    .masthead-top {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      background: var(--surface); border-left: 3px solid var(--accent);
-    }
-    h1 {
-      margin: 0;
-      font: 700 22px/1.2 var(--font-sans);
-      color: var(--fg);
-      letter-spacing: -0.01em;
-    }
-    .sub-id {
-      font: 600 12px/1.3 var(--font-mono);
+    .step-pill.completed .step-badge {
+      background: var(--surface-tint);
+      border-color: var(--accent);
       color: var(--accent);
-      text-transform: uppercase;
+    }
+
+    /* Professional Page Header */
+    .desk-page-head {
+      margin-bottom: 22px;
+    }
+    .desk-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--accent);
       margin-bottom: 4px;
     }
-
-    /* Sections */
-    .section {
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      margin-bottom: 20px;
-      background: var(--surface);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-    .section-head {
-      background: var(--surface-soft);
+    .desk-title {
+      font-family: var(--font-retro);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       color: var(--fg);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 16px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font: 700 12px/1.2 var(--font-sans);
-      letter-spacing: 0.01em;
+      margin-bottom: 4px;
     }
-    .section-head-light {
-      background: var(--surface-soft);
-      color: var(--fg);
-      border-bottom: 1px solid var(--border);
-      padding: 9px 14px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font: 700 11.5px/1.2 var(--font-mono);
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1.06fr 1.14fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .ctrl-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-    .ctrl-label {
-      font: 600 11.5px/1.2 var(--font-mono);
+    .desk-desc {
+      font-size: 14px;
       color: var(--muted);
-      text-transform: uppercase;
+      line-height: 1.45;
     }
 
-    /* Buttons */
-    .btn {
+    /* Wizard Content Cards */
+    .step-pane {
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .step-pane.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .duo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: all 0.15s ease;
+    }
+    .duo-card-title {
+      font-family: var(--font-retro);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--fg);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Popular Leader Chips */
+    .chip-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .leader-chip {
+      background: var(--surface-soft);
+      border: 2px solid var(--border-strong);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--fg);
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 0 var(--border);
+    }
+    .leader-chip:hover {
+      border-color: var(--accent);
+      background: var(--surface-tint);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 var(--border-strong);
+    }
+    .leader-chip.active {
+      background: var(--duo-gold-soft);
+      border-color: var(--duo-gold-shadow);
+      color: #2C2013;
+      box-shadow: 0 2px 0 var(--duo-gold-shadow);
+    }
+
+    /* Authority Summary Card */
+    .authority-preview {
+      background: var(--surface-soft);
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .auth-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 13.5px;
+    }
+    .auth-row:last-child { border-bottom: none; }
+    .auth-label {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .auth-val {
+      font-weight: 700;
+      color: var(--fg);
+      text-align: right;
+    }
+
+    /* Form Fields */
+    .input-group {
+      margin-bottom: 16px;
+    }
+    .input-label {
+      display: block;
+      font-weight: 600;
+      font-size: 13.5px;
+      color: var(--fg);
+      margin-bottom: 6px;
+    }
+    .duo-input {
+      width: 100%;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--fg);
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    .duo-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.15);
+    }
+
+    /* Topic Buttons (Pills) */
+    .topic-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .topic-filter-btn {
       border: 1px solid var(--border);
       background: var(--surface);
       color: var(--fg);
       padding: 6px 14px;
-      font: 600 12px/1.2 var(--font-sans);
       border-radius: 6px;
-      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    .btn:hover {
+    .topic-filter-btn:hover {
       background: var(--surface-soft);
+      border-color: var(--border-strong);
+    }
+    .topic-filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+    }
+
+    /* Preset Question Cards */
+    .preset-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.15s ease;
+      position: relative;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .preset-card:hover {
+      border-color: var(--border-strong);
+    }
+    .preset-card.selected {
+      border-color: var(--accent);
+      background: var(--surface-soft);
+      box-shadow: 0 2px 8px rgba(183, 121, 31, 0.1);
+    }
+    .preset-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .preset-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border-strong);
+      background: var(--surface);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      margin-top: 2px;
+      transition: all 0.15s ease;
+      font-size: 12px;
+    }
+    .preset-card.selected .preset-checkbox {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+    }
+    .preset-content {
+      flex: 1;
+    }
+    .preset-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .preset-title {
+      font-weight: 700;
+      font-size: 14.5px;
+      color: var(--fg);
+    }
+    .preset-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface-tint);
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+    .preset-text-display {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+    .preset-card.selected .preset-text-display {
+      color: var(--fg);
+    }
+
+    /* Editable Preset Area */
+    .preset-edit-toggle {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .preset-edit-toggle:hover {
+      background: var(--surface-tint);
+    }
+    .preset-edit-drawer {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-strong);
+      display: none;
+    }
+    .preset-edit-drawer.open {
+      display: block;
+    }
+    .preset-textarea {
+      width: 100%;
+      min-height: 80px;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--fg);
+      line-height: 1.45;
+      resize: vertical;
+      outline: none;
+    }
+    .preset-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.15);
+    }
+    .preset-drawer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      gap: 8px;
+    }
+    .preset-hint-tag {
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+
+    /* Custom Question Box */
+    .custom-q-box {
+      background: var(--surface-soft);
+      border: 1px dashed var(--border-strong);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 18px;
+    }
+    .custom-validator-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+    .validator-ok {
+      background: rgba(15, 118, 110, 0.12);
+      color: #0F766E;
+      border: 1px solid rgba(15, 118, 110, 0.3);
+    }
+    .validator-warn {
+      background: rgba(183, 121, 31, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(183, 121, 31, 0.3);
+    }
+    .validator-block {
+      background: rgba(220, 38, 38, 0.12);
+      color: #DC2626;
+      border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+
+    /* Final Actions (Step 4) */
+    .celebrate-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .celebrate-title {
+      font-family: var(--font-retro);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--fg);
+      margin-bottom: 4px;
+    }
+    .celebrate-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .action-card-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .action-card-btn:hover {
+      border-color: var(--accent);
+      text-decoration: none;
+    }
+    .action-card-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(183, 121, 31, 0.2);
+    }
+    .action-card-btn.primary:hover {
+      background: var(--accent-hover);
+    }
+    .action-card-btn.accent {
+      background: var(--surface-tint);
       border-color: var(--border-strong);
       color: var(--accent);
     }
-    .btn.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-    }
-    .btn-accent {
-      border: 1px solid var(--accent);
-      color: #ffffff;
-      background: var(--accent);
+    .action-btn-label {
       font-weight: 700;
+      font-size: 14px;
     }
-    .btn-accent:hover {
-      background: var(--accent-hover);
-      color: #ffffff;
-    }
-    .btn-solid {
-      background: var(--surface-tint);
-      color: var(--accent);
-      border: 1.5px solid var(--border-strong);
-      font-weight: 700;
-    }
-    .btn-solid:hover {
-      background: var(--accent);
-      color: #ffffff;
+    .action-btn-sub {
+      font-size: 11.5px;
+      opacity: 0.85;
     }
 
-    input[type="text"], textarea, select {
-      border: 1.5px solid var(--border-strong);
-      border-radius: var(--btn-radius);
+    /* Sticky Bottom Nav Bar */
+    .duo-bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
       background: var(--surface);
-      color: var(--fg);
-      padding: 8px 12px;
-      font: 13.5px/1.45 var(--font-sans);
-      outline: none;
-      transition: border-color 0.15s ease;
-    }
-    input[type="text"]:focus, textarea:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--surface-tint);
-    }
-
-    /* Raw Table */
-    table.raw-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-    table.raw-table th, table.raw-table td {
-      border-bottom: 1px solid var(--border);
-      padding: 8px 12px;
-      text-align: left;
-      vertical-align: top;
-      overflow-wrap: anywhere;
-    }
-    table.raw-table thead th {
-      background: var(--surface-soft);
-      color: var(--muted);
-      font: 600 11.5px/1.3 var(--font-sans);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    table.raw-table th.key-col {
-      width: 34%;
-      background: var(--surface-tint);
-      font: 600 11.5px/1.3 var(--font-mono);
-      color: var(--muted);
-      text-transform: uppercase;
-      border-right: 1px solid var(--border);
-    }
-    table.raw-table tbody tr:hover td { background: var(--surface-soft); }
-
-    .alert-box {
-      border: 1px solid rgba(220, 38, 38, 0.3);
-      border-left: 4px solid var(--danger);
-      background: var(--danger-soft);
-      padding: 12px 16px;
-      margin: 12px 16px;
-      font-size: 12.5px;
-      border-radius: var(--btn-radius);
-    }
-    .ok-box {
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      background: var(--surface-tint);
-      padding: 10px 14px;
-      margin: 10px 0;
-      font: 600 12px/1.4 var(--font-mono);
-      border-radius: var(--btn-radius);
-    }
-    .status-bar {
-      padding: 8px 18px;
-      font: 500 11.5px/1.3 var(--font-mono);
-      color: var(--muted);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 8px;
-      background: var(--surface);
-    }
-
-    #draftEditor {
-      width: 100%;
-      min-height: 480px;
-      border: 0;
       border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 18px;
-      font: 12.5px/1.6 var(--font-mono);
-      resize: vertical;
+      padding: 12px 20px;
+      z-index: 45;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+    }
+    .bottom-bar-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .duo-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .duo-btn-secondary {
       background: var(--surface);
+      border-color: var(--border-strong);
       color: var(--fg);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .duo-btn-secondary:hover {
+      background: var(--surface-soft);
+      border-color: var(--fg);
+    }
+    .duo-btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(183, 121, 31, 0.2);
+      min-width: 160px;
+    }
+    .duo-btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 12px rgba(183, 121, 31, 0.3);
+    }
+    .duo-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none !important;
     }
 
-    /* Discovery & Omnibox Deck matching 70s retro search-card */
-    .discovery-deck {
-      border: 1.5px solid var(--border-strong);
-      border-radius: 18px;
-      background: var(--surface);
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow-md);
-      transition: all 0.2s ease;
-    }
-    .discovery-deck:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 4px var(--surface-tint), var(--shadow-md);
-    }
-    .discovery-title {
-      font: 700 12.5px/1.2 var(--font-sans);
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .search-bar-wrap {
+    /* Modal PDF Viewer */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 8, 6, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
       display: flex;
       align-items: center;
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      background: var(--bg);
-      padding: 10px 16px;
-      gap: 12px;
-      transition: all 0.2s ease;
+      justify-content: center;
+      padding: 16px;
+      animation: modalFadeIn 0.2s ease-out;
     }
-    .search-bar-wrap:focus-within {
-      border-color: var(--accent);
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-dialog {
       background: var(--surface);
-      box-shadow: 0 0 0 3px var(--surface-tint);
-    }
-    .search-input {
-      border: none !important;
-      padding: 4px 0 !important;
-      font: 500 14.5px/1.4 var(--font-sans) !important;
+      border: 2px solid var(--border-strong);
+      border-radius: 20px;
       width: 100%;
-      outline: none;
-      background: transparent;
-      color: var(--fg);
-    }
-    .category-pills {
+      max-width: 900px;
+      height: 90vh;
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     }
-    .cat-pill {
-      border: 1.5px solid var(--border-strong);
-      background: var(--surface-soft);
-      color: var(--fg);
-      font: 600 12.5px/1.2 var(--font-sans);
-      padding: 7px 15px;
-      border-radius: 9999px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .cat-pill:hover {
-      background: var(--surface-tint);
-      border-color: var(--accent);
-      color: var(--accent);
-      transform: translateY(-1px);
-    }
-    .cat-pill.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-      font-weight: 700;
-      box-shadow: 0 1px 4px rgba(183, 121, 31, 0.3);
-    }
-
-    /* 1-Click Starter Packs */
-    .quick-packs-row {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1.5px solid var(--border);
+    .modal-header {
+      padding: 14px 20px;
+      border-bottom: 2px solid var(--border);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 8px;
-    }
-    .quick-pack-label {
-      font: 700 11.5px/1.2 var(--font-sans);
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .pack-btn {
-      border: 1.5px solid var(--border-strong);
-      background: var(--surface);
-      color: var(--fg);
-      padding: 6px 14px;
-      font: 600 12px/1.2 var(--font-sans);
-      border-radius: 9999px;
-      cursor: pointer;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.15s ease;
-    }
-    .pack-btn:hover {
-      background: var(--surface-soft);
-      border-color: var(--accent);
-      color: var(--accent);
-      transform: translateY(-1px);
-    }
-
-    /* Question Cards List */
-    .question-cards-container {
-      display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
-      max-height: 560px;
-      overflow-y: auto;
-      background: var(--surface);
+      background: var(--surface-soft);
     }
-    .q-card {
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      background: var(--surface);
-      padding: 14px 16px;
+    .modal-title {
+      font-weight: 800;
+      font-size: 16px;
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: all 0.15s ease;
-    }
-    .q-card:hover {
-      border-color: var(--accent);
-      background: var(--surface-tint);
-      box-shadow: var(--shadow-sm);
-    }
-    .q-card-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 8px;
     }
-    .q-card-title {
-      font: 700 13.5px/1.3 var(--font-sans);
-      color: var(--fg);
-    }
-    .q-card-badge {
-      font: 700 10px/1 var(--font-mono);
-      background: var(--surface-tint);
-      color: var(--accent);
-      border: 1px solid var(--border);
-      padding: 3px 8px;
-      border-radius: 4px;
-      white-space: nowrap;
-    }
-    .q-card-text {
-      font: 13px/1.5 var(--font-sans);
-      color: var(--muted);
-      margin: 0;
-    }
-    .q-card-action-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 4px;
-    }
-    .insert-btn {
-      border: 1px solid var(--border);
+    .modal-close-btn {
       background: var(--surface);
-      color: var(--accent);
-      padding: 5px 12px;
-      font: 700 11.5px/1.2 var(--font-mono);
-      border-radius: 6px;
+      border: 2px solid var(--border-strong);
+      border-radius: 10px;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
       cursor: pointer;
+      color: var(--fg);
+      font-weight: 700;
       transition: all 0.15s ease;
     }
-    .insert-btn:hover {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
+    .modal-close-btn:hover {
+      background: var(--duo-red-soft);
+      border-color: var(--duo-red);
+      color: var(--duo-red);
     }
-    .insert-btn.inserted {
-      background: #15803d;
-      color: #ffffff;
-      border-color: #15803d;
+    .modal-body {
+      flex: 1;
+      background: #3A3228;
+      position: relative;
+      overflow-y: auto;
+      padding: 24px 16px;
     }
-    .q-card-id {
-      font: 500 11px/1 var(--font-mono);
-      color: var(--muted);
+    /* Official Legal Paper Sheet Styling */
+    .legal-sheet {
+      background: #FFFFFF;
+      color: #1A140E;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 38px 46px;
+      border-radius: 6px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
+      border: 1px solid #C4B298;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .legal-sheet-header {
+      border-bottom: 2.5px solid #1A140E;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .legal-sheet-emblem {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    .legal-sheet-title {
+      font-family: var(--font-retro);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #1A140E;
+      text-transform: uppercase;
+    }
+    .legal-sheet-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #554332;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .legal-sheet-body {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12.5px;
     }
 
-    @media (max-width: 980px) {
-      .grid-2 { grid-template-columns: 1fr; }
+    @media (max-width: 720px) {
+      .step-indicators { flex-wrap: wrap; gap: 6px; }
+      .step-pill { font-size: 11.5px; padding: 4px 8px; }
+      .legal-sheet { padding: 20px 16px; }
+      .bottom-bar-inner { flex-direction: column; }
+      .duo-btn { width: 100%; }
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  <!-- Retro 70s Masthead Topbar -->
+
+  <!-- Topbar -->
   <header class="topbar">
     <div class="topbar-inner">
       <a href="../graphdashboard2.html" class="brand" id="navBrand">
@@ -733,943 +898,846 @@
         <a href="#" class="active">RTI Desk</a>
         <a id="navRtiArchive" href="../rti_archive.html">RTI Archive</a>
         <a id="navGlossary" href="../graph.html#glossary">Glossary &amp; IPC</a>
-        <a id="navBenchmark" href="../graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">Architecture Benchmark</a>
         <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
-          <span class="switch-mode-track" aria-hidden="true"></span>
-          <span class="switch-mode-knob" aria-hidden="true"></span>
-          <span class="switch-mode-icon switch-mode-sun" aria-hidden="true">
-            <svg class="sun-solid" width="13" height="13" viewBox="0 0 512 512" fill="currentColor">
-              <path d="M256 160c-53 0-96 43-96 96s43 96 96 96 96-43 96-96-43-96-96-96zm0 240c-79.5 0-144-64.5-144-144s64.5-144 144-144 144-144 144-144 144-144 144 64.5 144 144-64.5 144-144 144zm0-352c13.3 0 24-10.7 24-24V16c0-13.3-10.7-24-24-24s-24 10.7-24 24v8c0 13.3 10.7 24 24 24zm0 464c-13.3 0-24 10.7-24 24v8c0 13.3 10.7 24 24 24s24-10.7 24-24v-8c0-13.3-10.7-24-24-24zm208-208c0-13.3-10.7-24-24-24h-8c-13.3 0-24 10.7-24 24s10.7 24 24 24h8c13.3 0 24-10.7 24-24zm-376 0c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24s10.7 24 24 24h24c13.3 0 24-10.7 24-24zm322.8-114.8c9.4-9.4 9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0zm-289.6 289.6c-9.4 9.4-9.4 24.6 0 33.9l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0zm0-289.6l-5.7 5.7c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l5.7-5.7c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0zm289.6 289.6l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9z"/>
-            </svg>
-            <svg class="sun-outline" width="13" height="13" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="256" cy="256" r="96"/>
-              <line x1="256" y1="48" x2="256" y2="96"/>
-              <line x1="256" y1="416" x2="256" y2="464"/>
-              <line x1="464" y1="256" x2="416" y2="256"/>
-              <line x1="96" y1="256" x2="48" y2="256"/>
-              <line x1="403.08" y1="108.92" x2="369.14" y2="142.86"/>
-              <line x1="142.86" y1="369.14" x2="108.92" y2="403.08"/>
-              <line x1="403.08" y1="403.08" x2="369.14" y2="369.14"/>
-              <line x1="142.86" y1="142.86" x2="108.92" y2="108.92"/>
-            </svg>
-          </span>
-          <span class="switch-mode-icon switch-mode-moon" aria-hidden="true">
-            <svg class="moon-solid" width="13" height="13" viewBox="0 0 512 512" fill="currentColor">
-              <path d="M264 480A232 232 0 0 1 32 248c0-94 56.23-179.9 143.27-213.9 7.77-3 16.54-1 22.18 5.1s6.61 15 2.47 22.4A175.87 175.87 0 0 0 176 160c0 97 79 176 176 176 34.6 0 67.23-10.15 95.12-28.7 6.94-4.63 16.14-4.5 22.75 1.1s8.85 14.2 6.06 22.1C438.3 420.2 355.6 480 264 480z"/>
-            </svg>
-            <svg class="moon-outline" width="13" height="13" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M160 136c0-30.62 4.51-61.61 16-88C99.57 81.27 48 159.32 48 248c0 119.29 96.71 216 216 216 88.68 0 166.73-51.57 200-128-26.39 11.49-57.38 16-88 16-119.29 0-216-96.71-216-216z"/>
-            </svg>
-          </span>
+          <span class="switch-mode-track"></span>
+          <span class="switch-mode-knob"></span>
         </button>
       </nav>
     </div>
   </header>
 
-  <main>
-    <!-- Masthead & Subject Record -->
-    <section class="masthead">
-      <div class="masthead-top">
-        <div>
-          <div class="sub-id" id="subjectMeta">SECTION 6(1) STATUTORY DRAFTING WORKSTATION</div>
-          <h1 id="pageTitle">SECTION 6(1) RTI APPLICATION GENERATOR</h1>
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-          <a id="entityBackLink" href="../node.html" class="btn" hidden>← Back to Entity</a>
-          <a href="../rti_archive.html" class="btn" style="background:rgba(183,121,31,0.12); color:var(--accent); border-color:var(--accent); font-weight:700;">📂 RTI Archive &amp; PDFs (50 Curated) →</a>
-          <button id="downloadPdfBtn" type="button" class="btn btn-accent">Download Form A (PDF)</button>
-          <button id="downloadTxtBtn" type="button" class="btn">Download .TXT</button>
-          <button id="copyDraftBtn" type="button" class="btn btn-solid">Copy Draft Text</button>
-        </div>
-      </div>
-      <div id="statusBar" class="status-bar" role="status">
-        <span id="statusText">Initializing RTI Desk...</span>
-        <span id="apiSourceTag" class="mono">Source: Checking :8001...</span>
-      </div>
-    </section>
+  <!-- Main Duolingo-Style Wizard -->
+  <main class="wizard-wrap">
 
-    <!-- Subject Metadata + Deadlines + Authority Table -->
-    <section class="section">
-      <div class="section-head">
-        <span>01 // Target Public Authority &amp; Statutory Timeline</span>
-        <span class="mono" id="modeBadge" style="font-weight:600; color:var(--accent);">MODE: CHECKING</span>
+    <!-- Stepper & Progress Tracker -->
+    <div class="stepper-header">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
       </div>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
-        <table class="raw-table">
-          <tbody>
-            <tr><th class="key-col">Subject / Representative</th><td id="tblRepName">—</td></tr>
-            <tr><th class="key-col">House / Body</th><td class="mono" id="tblHouse">—</td></tr>
-            <tr><th class="key-col">Constituency / Jurisdiction</th><td id="tblArea">—</td></tr>
-            <tr><th class="key-col">Party / Affiliation</th><td id="tblParty">—</td></tr>
-            <tr><th class="key-col">Term Start Date</th><td class="mono" id="tblTermStart">—</td></tr>
-          </tbody>
-        </table>
-        <table class="raw-table">
-          <tbody>
-            <tr><th class="key-col">Designated PIO Authority</th><td id="tblAuthority">—</td></tr>
-            <tr><th class="key-col">PIO Address</th><td id="tblPioAddr">—</td></tr>
-            <tr><th class="key-col">Prescribed Fee (Sec 6(1))</th><td class="mono" id="tblFee">Rs. 10/-</td></tr>
-            <tr><th class="key-col">Statutory Reply Due (+30 Days)</th><td class="mono alert" id="tblReplyDue">—</td></tr>
-            <tr><th class="key-col">First Appeal Window (+60 Days)</th><td class="mono" id="tblAppealDue">—</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="ctrl-row" id="districtRow">
-        <span class="ctrl-label">District Override:</span>
-        <input id="districtInput" type="text" placeholder="Enter District Name (required for MPLADS / DM PIO)..." style="flex:1; max-width:360px;" />
-        <button id="applyDistrictBtn" type="button" class="btn">Apply District</button>
-        <span id="districtAlert" class="mono alert" hidden>District required by selected authority</span>
-      </div>
-      <div id="notesBox" class="alert-box" hidden></div>
-    </section>
-
-    <!-- Global Discovery & Intent Omnibox Deck -->
-    <section class="discovery-deck">
-      <div class="discovery-title">
-        <span>Search &amp; Discover Statutory Questions</span>
-        <span id="bankCountTag" class="mono" style="font-size:11.5px; color:var(--accent);">0 Available</span>
-      </div>
-      <div class="search-bar-wrap">
-        
-        <input 
-          id="suggestSearchInput" 
-          type="text" 
-          class="search-input" 
-          placeholder="Search what you want to know: e.g. 'flight tickets', 'unspent funds', 'attendance', 'road works', 'bills'..." 
-        />
-        <button id="clearSearchBtn" type="button" class="btn" style="padding:2px 8px; font-size:11px;" hidden>Clear</button>
-      </div>
-
-      <!-- Human-friendly Category Pills -->
-      <div class="category-pills" id="topicButtons">
-        <!-- Injected via JS -->
-      </div>
-      <div id="topicDesc" style="padding:8px 2px 2px; font-size:13px; color:var(--muted);">—</div>
-      <div id="alreadyOnProfileWarning" class="alert-box" hidden></div>
-
-      <!-- Quick Starter Packs -->
-      <div class="quick-packs-row">
-        <span class="quick-pack-label">Statutory Templates:</span>
-        <button type="button" class="pack-btn" data-pack="MPLADS">Local Works Audit Pack</button>
-        <button type="button" class="pack-btn" data-pack="ATTENDANCE">Attendance &amp; Speeches Pack</button>
-        <button type="button" class="pack-btn" data-pack="ALLOWANCES">Allowances &amp; Entitlements</button>
-      </div>
-    </section>
-
-    <div class="grid-2">
-      <!-- Left Column: Applicant Particulars, Legal Validator, Question Cards -->
-      <div>
-        <!-- Applicant Particulars -->
-        <section class="section">
-          <div class="section-head">
-            <span>02 // Applicant Particulars (Section 6(1))</span>
-            <span class="mono" style="font-size:11px; color:var(--accent);">Applied to draft in real-time</span>
-          </div>
-          <table class="raw-table">
-            <tbody>
-              <tr>
-                <th class="key-col">Full Legal Name</th>
-                <td><input id="appName" type="text" placeholder="[Your Full Name]" style="width:100%;" /></td>
-              </tr>
-              <tr>
-                <th class="key-col">Postal Address</th>
-                <td><input id="appAddr" type="text" placeholder="[House/Street, City, PIN Code]" style="width:100%;" /></td>
-              </tr>
-              <tr>
-                <th class="key-col">Phone / Email</th>
-                <td><input id="appContact" type="text" placeholder="[Mobile No. / Email ID]" style="width:100%;" /></td>
-              </tr>
-              <tr>
-                <th class="key-col">Fee Payment Mode</th>
-                <td><input id="appFeeMode" type="text" value="Indian Postal Order (IPO) / Online RTI Gateway Fee Rs. 10/-" style="width:100%;" /></td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <!-- Custom Question Legal Writing Assistant -->
-        <section class="section">
-          <div class="section-head">
-            <span>03 // Custom Question Assistant</span>
-            <span class="mono" style="font-size:11px; color:var(--accent);">Sec 2(f) &amp; Sec 8(1)(j) Checker</span>
-          </div>
-          <div style="padding:16px;">
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-              <input id="customQuestionInput" type="text" placeholder="Type your own question (e.g. 'Status of flyover works in sector 12')..." style="flex:1; min-width:240px;" />
-              <button id="insertCustomBtn" type="button" class="btn btn-solid">+ Insert into Draft</button>
-            </div>
-            <div id="complianceVerdict" class="ok-box">Ready: Enter specific records, sanction orders, dates, or fund ledgers.</div>
-            <div style="margin-top:8px; font:12px/1.4 var(--font-sans); color:var(--muted);">
-              <strong>Statutory Guidance:</strong> Officers only provide existing material records. Avoid "Why" or personal opinion questions, and avoid private family/banking records (exempt under Sec 8(1)(j)).
-            </div>
-          </div>
-        </section>
-
-        <!-- Question Bank Cards -->
-        <section class="section">
-          <div class="section-head">
-            <span>04 // Available RTI Questions</span>
-            <span class="mono" style="font-size:11px; color:var(--accent);" id="filterStatusTag">Showing All</span>
-          </div>
-          
-          <div class="question-cards-container" id="questionBankCards">
-            <!-- Cards injected via JS -->
-            <div class="mono" style="padding:16px; color:var(--muted);">Loading question bank...</div>
-          </div>
-          <div id="otherTopicsBox" style="padding:10px 16px; font:12px/1.3 var(--font-mono); color:var(--accent); background:var(--surface-tint); border-top:1px solid var(--border);" hidden></div>
-        </section>
-      </div>
-
-      <!-- Right Column: Live Editable Statutory Form A Draft -->
-      <div>
-        <section class="section">
-          <div class="section-head">
-            <span>05 // Form A Application Text (Live Preview)</span>
-            <span class="mono" id="templateIdTag" style="font-size:11px; color:var(--accent);">FORM A // SECTION 6(1)</span>
-          </div>
-          <div class="ctrl-row">
-            <button id="regenerateDraftBtn" type="button" class="btn">Reset to Template</button>
-            <button id="downloadPdfBtn2" type="button" class="btn btn-accent">Export Form A PDF</button>
-            <button id="printDraftBtn" type="button" class="btn">Print</button>
-            <a href="https://rtionline.gov.in/" target="_blank" rel="noopener" class="btn" style="color:var(--accent); font-weight:700;">RTIONLINE.GOV.IN ↗</a>
-          </div>
-          <textarea id="draftEditor" spellcheck="false" aria-label="Editable RTI Application Form A Draft"></textarea>
-          
-          <div class="section-head-light">
-            <span>Statutory Submission Checklist</span>
-            <span class="mono">Proofing Guide</span>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="raw-table">
-              <tbody>
-                <tr><th class="key-col">1. Applicant Proof</th><td>Attach Indian citizenship ID copy if submitting offline via Speed Post AD (Section 3 RTI Act, 2005).</td></tr>
-                <tr><th class="key-col">2. Application Fee</th><td>Rs. 10/- via IPO / Court Fee Stamp / Treasury Challan / RTIONLINE portal. BPL cardholders exempt (attach BPL certificate copy).</td></tr>
-                <tr><th class="key-col">3. Sec 6(3) Transfer</th><td>If another PIO holds part of the record, the receiving PIO must transfer within 5 days under Section 6(3).</td></tr>
-                <tr><th class="key-col">4. First Appeal</th><td>If no reply within 30 days, file First Appeal under Section 19(1) to the First Appellate Authority within 30 days after expiry.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <div class="step-indicators">
+        <button class="step-pill active" id="pillStep1" onclick="goToStep(1)">
+          <span class="step-badge">1</span>
+          <span>Target Authority</span>
+        </button>
+        <button class="step-pill" id="pillStep2" onclick="goToStep(2)">
+          <span class="step-badge">2</span>
+          <span>Questions &amp; Presets</span>
+        </button>
+        <button class="step-pill" id="pillStep3" onclick="goToStep(3)">
+          <span class="step-badge">3</span>
+          <span>Applicant Info</span>
+        </button>
+        <button class="step-pill" id="pillStep4" onclick="goToStep(4)">
+          <span class="step-badge">4</span>
+          <span>Form A Draft</span>
+        </button>
       </div>
     </div>
+
+    <!-- Workspace Page Header -->
+    <div class="desk-page-head">
+      <div class="desk-badge">STATUTORY WORKSTATION // SECTION 6(1)</div>
+      <h1 class="desk-title" id="mascotTitle">Section 6(1) RTI Application Generator</h1>
+      <p class="desk-desc" id="mascotDesc">Formulate legally-binding Form A statutory petitions to inspect official records and audit public funds.</p>
+    </div>
+
+    <!-- ================= STEP 1: TARGET AUTHORITY ================= -->
+    <div class="step-pane active" id="step1Pane">
+      <div class="duo-card">
+        <div class="duo-card-title">
+          <span>Target Representative or Public Body</span>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="customRepInput">Enter Representative, Ministry, or Authority Name:</label>
+          <input type="text" id="customRepInput" class="duo-input" placeholder="Type name (e.g. Rahul Gandhi, Shashi Tharoor, Ministry of Railways, Lok Sabha Secretariat)..." />
+        </div>
+
+        <!-- Resolved Authority Snapshot Table -->
+        <div class="authority-preview">
+          <div class="auth-row">
+            <span class="auth-label">Target Representative / Body:</span>
+            <span class="auth-val" id="dispTargetName">—</span>
+          </div>
+          <div class="auth-row">
+            <span class="auth-label">Designated PIO Authority:</span>
+            <span class="auth-val" id="dispPioName">Central Public Information Officer (CPIO), Lok Sabha Secretariat</span>
+          </div>
+          <div class="auth-row">
+            <span class="auth-label">PIO Mailing Address:</span>
+            <span class="auth-val" id="dispPioAddr">Parliament House Annexe, New Delhi - 110001</span>
+          </div>
+          <div class="auth-row">
+            <span class="auth-label">Statutory Prescribed Fee:</span>
+            <span class="auth-val mono" id="dispFee">Rs. 10/- (Section 6(1))</span>
+          </div>
+          <div class="auth-row">
+            <span class="auth-label">Statutory Reply Window:</span>
+            <span class="auth-val mono" id="dispReplyDue" style="color:var(--accent);">Within 30 Days (Section 7(1))</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= STEP 2: QUESTIONS & EDITABLE PRESETS ================= -->
+    <div class="step-pane" id="step2Pane">
+      <div class="duo-card">
+        <div class="duo-card-title">
+          <span>Select &amp; Edit Questions</span>
+          <span style="font-size:13px; font-weight:700; color:var(--duo-green-shadow); margin-left:auto;" id="selectedCountBadge">0 Questions Selected</span>
+        </div>
+
+        <!-- Topic Categories -->
+        <div class="topic-filter-row" id="topicFilterRow">
+          <button type="button" class="topic-filter-btn active" data-topic="ALL">All Topics</button>
+          <button type="button" class="topic-filter-btn" data-topic="MPLADS_PROJECTS">Local Works (MPLADS)</button>
+          <button type="button" class="topic-filter-btn" data-topic="ATTENDANCE">Attendance &amp; Speeches</button>
+          <button type="button" class="topic-filter-btn" data-topic="ALLOWANCES">Travel &amp; Allowances</button>
+        </div>
+
+        <!-- Preset Question Cards Container -->
+        <div id="presetsContainer">
+          <!-- Dynamically Rendered with Checkbox + Inline Editable Textarea -->
+        </div>
+
+        <!-- Add Custom Question Box -->
+        <div class="custom-q-box">
+          <div style="font-weight:800; font-size:15px; margin-bottom:6px; color:var(--fg);">
+            Add a Custom Question:
+          </div>
+          <textarea id="userCustomQuestionInput" class="preset-textarea" placeholder="Type your question here (e.g., 'Status and sanctioned budget of flyover works in sector 12')..."></textarea>
+          
+          <div id="customVerdictBadge" class="custom-validator-pill validator-ok">
+            Valid: Ask for specific files, sanction orders, dates, or expenditure ledgers.
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button type="button" class="duo-btn duo-btn-primary" style="padding:8px 18px; font-size:13px;" id="addCustomQBtn">
+              + Add Custom Question
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= STEP 3: APPLICANT PARTICULARS ================= -->
+    <div class="step-pane" id="step3Pane">
+      <div class="duo-card">
+        <div class="duo-card-title">
+          <span>Applicant Particulars (Section 6(1))</span>
+        </div>
+        <p style="font-size:13.5px; color:var(--muted); margin-bottom:18px;">
+          The Public Information Officer (PIO) needs your contact details to deliver certified copies and notices to you.
+        </p>
+
+        <div class="input-group">
+          <label class="input-label" for="inputAppName">Full Legal Name *</label>
+          <input type="text" id="inputAppName" class="duo-input" value="Citizen of India" placeholder="e.g. Ramesh Kumar" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="inputAppAddr">Complete Mailing Address (for Postal Delivery) *</label>
+          <input type="text" id="inputAppAddr" class="duo-input" value="H.No. 42, Civil Lines, New Delhi - 110001" placeholder="e.g. House No., Street, City, State, PIN Code" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="inputAppContact">Phone Number / Email ID *</label>
+          <input type="text" id="inputAppContact" class="duo-input" value="+91-9876543210 / citizen@example.com" placeholder="e.g. +91-9876543210 / yourname@gmail.com" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="inputAppFeeMode">Fee Payment Particulars (Rs. 10/-)</label>
+          <select id="inputAppFeeMode" class="duo-input">
+            <option value="Online RTI Payment Gateway (Debit/UPI/Net Banking via RTIONLINE.GOV.IN)">Online RTI Portal Gateway (Rs. 10/- via UPI/Cards)</option>
+            <option value="Indian Postal Order (IPO) No. [IPO-NUMBER] for Rs. 10/-">Indian Postal Order (IPO) for Rs. 10/-</option>
+            <option value="Court Fee Stamp / Treasury Challan of Rs. 10/- affixed">Court Fee Stamp of Rs. 10/-</option>
+            <option value="Below Poverty Line (BPL) — Application Fee Exempted (BPL Card Copy Attached)">BPL Cardholder (Fee Exempted under Section 7(5))</option>
+          </select>
+        </div>
+
+        <!-- Section 6(2) Reassurance Box -->
+        <div style="background:var(--duo-blue-soft); border:2px solid var(--duo-blue); border-radius:14px; padding:14px 18px; margin-top:20px;">
+          <div style="font-weight:800; font-size:13.5px; color:var(--duo-blue-shadow); margin-bottom:4px;">
+            Legal Protection: Section 6(2) of RTI Act, 2005
+          </div>
+          <div style="font-size:13px; color:var(--fg); line-height:1.45;">
+            "An applicant making request for information shall not be required to give any reason for requesting the information or any other personal details except those that may be necessary for contacting him."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= STEP 4: FORM A READY ================= -->
+    <div class="step-pane" id="step4Pane">
+      <!-- Banner -->
+      <div class="celebrate-banner">
+        <div class="celebrate-title">Your RTI Application is Ready</div>
+        <div class="celebrate-subtitle">
+          Your statutory Form A petition has been formulated under Section 6(1) of the Right to Information Act, 2005.
+        </div>
+      </div>
+
+      <!-- Quick Action Cards (Interactive PDF, Download, Copy, Portal) -->
+      <div class="action-grid">
+        <button type="button" class="action-card-btn primary" id="viewPdfModalBtn">
+          <span class="action-btn-label">View Form A</span>
+          <span class="action-btn-sub">Interactive in-browser petition viewer</span>
+        </button>
+
+        <button type="button" class="action-card-btn accent" id="downloadPdfFinalBtn">
+          <span class="action-btn-label">Download Form A PDF</span>
+          <span class="action-btn-sub">Printable A4 document</span>
+        </button>
+
+        <button type="button" class="action-card-btn" id="copyFinalDraftBtn">
+          <span class="action-btn-label">Copy Draft Text</span>
+          <span class="action-btn-sub">Ready to paste into RTIONLINE</span>
+        </button>
+
+        <a href="https://rtionline.gov.in/" target="_blank" rel="noopener" class="action-card-btn">
+          <span class="action-btn-label">RTIONLINE.GOV.IN ↗</span>
+          <span class="action-btn-sub">Official Central Portal</span>
+        </a>
+      </div>
+
+      <!-- Accordion for Raw Draft Text -->
+      <div class="draft-accordion">
+        <div class="draft-accordion-header" id="accordionToggle">
+          <span>Inspect / Edit Full Raw Form A Petition Text</span>
+          <span id="accordionArrow">▼</span>
+        </div>
+        <div class="draft-accordion-body" id="accordionBody">
+          <textarea id="finalDraftTextarea" class="raw-textarea" spellcheck="false"></textarea>
+          <div style="font-size:12px; color:var(--muted); margin-top:8px;">
+            Any changes made above will automatically reflect when you click "View Form A" or "Download Form A PDF".
+          </div>
+        </div>
+      </div>
+
+      <!-- 4-Step Filing Instructions -->
+      <div class="duo-card" style="margin-top:20px;">
+        <div class="duo-card-title">
+          <span>How to File Your RTI (4 Steps)</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+          <div style="background:var(--surface-soft); padding:14px; border-radius:12px; border:1px solid var(--border);">
+            <div style="font-weight:800; font-size:13.5px; margin-bottom:4px; color:var(--duo-blue-shadow);">Step 1: Choose Mode</div>
+            <div style="font-size:12.5px; color:var(--muted);">File online at <strong>rtionline.gov.in</strong> or print the PDF for offline Speed Post.</div>
+          </div>
+          <div style="background:var(--surface-soft); padding:14px; border-radius:12px; border:1px solid var(--border);">
+            <div style="font-weight:800; font-size:13.5px; margin-bottom:4px; color:var(--duo-blue-shadow);">Step 2: Pay Rs. 10/-</div>
+            <div style="font-size:12.5px; color:var(--muted);">Pay via UPI/cards online or buy a Rs. 10 Indian Postal Order (IPO) at any Post Office.</div>
+          </div>
+          <div style="background:var(--surface-soft); padding:14px; border-radius:12px; border:1px solid var(--border);">
+            <div style="font-weight:800; font-size:13.5px; margin-bottom:4px; color:var(--duo-blue-shadow);">Step 3: Track 30 Days</div>
+            <div style="font-size:12.5px; color:var(--muted);">Under Section 7(1), the PIO must reply or provide documents within 30 days.</div>
+          </div>
+          <div style="background:var(--surface-soft); padding:14px; border-radius:12px; border:1px solid var(--border);">
+            <div style="font-weight:800; font-size:13.5px; margin-bottom:4px; color:var(--duo-blue-shadow);">Step 4: First Appeal</div>
+            <div style="font-size:12.5px; color:var(--muted);">If delayed or refused, file First Appeal under Section 19(1) with the appellate authority.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
+  <!-- Sticky Bottom Navigation Bar (Duolingo Style) -->
+  <footer class="duo-bottom-bar">
+    <div class="bottom-bar-inner">
+      <button type="button" class="duo-btn duo-btn-secondary" id="backStepBtn" onclick="prevStep()">
+        ← Back
+      </button>
+
+      <div style="font-size:13.5px; font-weight:700; color:var(--muted);" id="bottomStepIndicator">
+        Step 1 of 4
+      </div>
+
+      <button type="button" class="duo-btn duo-btn-primary" id="nextStepBtn" onclick="nextStep()">
+        Continue →
+      </button>
+    </div>
+  </footer>
+
+  <!-- Modal Interactive PDF / Legal Sheet Viewer -->
+  <div class="modal-overlay" id="pdfModal" hidden>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>Form A Statutory RTI Petition (Live Preview)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="duo-btn duo-btn-secondary" style="padding:6px 14px; font-size:12px;" id="modalPrintBtn">Print</button>
+          <button type="button" class="duo-btn duo-btn-primary" style="padding:6px 14px; font-size:12px;" id="modalDownloadBtn">Download PDF</button>
+          <button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="modalDocBody">
+        <div class="legal-sheet">
+          <div class="legal-sheet-header">
+            <div class="legal-sheet-title">FORM A // RIGHT TO INFORMATION ACT, 2005</div>
+            <div class="legal-sheet-sub">Statutory Application under Section 6(1) | Rule 3 of RTI Rules, 2012</div>
+          </div>
+          <div class="legal-sheet-body" id="modalLegalSheetContent">
+            <!-- Form A content rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const isFile = location.protocol === 'file:';
-    const host = location.hostname || '127.0.0.1';
-    const RTI_API = (location.port === '5500' || isFile) ? `http://${host}:8001` : '';
-    const UI_PREFIX = location.pathname.startsWith('/rti/')
-      ? '../'
-      : ((location.port === '8001' || isFile) ? `http://${host}:5500/` : '');
-
-    // Nav URLs matching graphdashboard2.html
-    document.getElementById('navBrand').href = `${UI_PREFIX}graphdashboard2.html`;
-    document.getElementById('navHome').href = `${UI_PREFIX}graphdashboard2.html`;
-    document.getElementById('navMps').href = `${UI_PREFIX}mps.html`;
-    document.getElementById('navGraph').href = `${UI_PREFIX}graph.html`;
-    document.getElementById('navAsk').href = `${UI_PREFIX}ask.html`;
-    document.getElementById('navGlossary').href = `${UI_PREFIX}graph.html#glossary`;
-    document.getElementById('navBenchmark').href = `${UI_PREFIX}graphdashboard2.html#benchmark`;
-
-    // Theme Sync
-    const themeToggle = document.getElementById('themeToggle');
-    function syncThemeBtn() {
-      const isDark = document.documentElement.classList.contains('dark');
-      if (themeToggle) {
-        themeToggle.classList.toggle('is-dark', isDark);
-        themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
-        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
-        themeToggle.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
-      }
-    }
-    syncThemeBtn();
-    if (themeToggle) {
-      themeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
-        localStorage.setItem('bp_theme', isDark ? 'dark' : 'light');
-        syncThemeBtn();
-      });
-    }
-
-    function escapeHtml(v) {
-      return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-
-    function fmtDateDisplay(iso) {
-      if (!iso) return '—';
-      const d = new Date(iso);
-      if (Number.isNaN(d.getTime())) return String(iso);
-      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-
-    // Legal Compliance Validation
-    const ALREADY_PATTERNS = [
-      { re: /\b(asset|assets|movable|immovable|liabilities|net\s*worth|property|wealth)\b/i,
-        msg: 'AFFIDAVIT CHECK: Candidate assets & liabilities are already disclosed in Form 26 affidavits indexed in Bharat Praman Entity Ledger. Only seek post-election updates or IT verification records if discrepant.' },
-      { re: /\b(criminal|fir|ipc|charge|court|case\s*number|conviction)\b/i,
-        msg: 'AFFIDAVIT CHECK: Pending criminal cases & IPC charges declared on nomination date are already indexed on Entity Ledger. Use RTI only for post-affidavit trial status, closure reports, or state sanction orders.' },
-      { re: /\b(education|degree|qualification|age|birth)\b/i,
-        msg: 'AFFIDAVIT CHECK: Educational qualifications & age are published in ECI Form 26. Seek university verification records only where a discrepancy exists.' }
-    ];
-    const PRIVATE_PATTERNS = [
-      /\b(medical|health|illness|hospital|pan\s*card|aadhaar|bank\s*account\s*number|family|spouse|children|personal\s*phone|home\s*address|tax\s*return|itr)\b/i
-    ];
-    const OPINION_PATTERNS = [
-      /^\s*(why|how\s+come)\b/i,
-      /\b(justify|opinion|think|feel|intention|motive|explain\s+why|reason\s+behind)\b/i
-    ];
-
-    function checkQuestion(text) {
-      const t = (text || '').trim();
-      if (!t) return { level: 'idle', msg: 'Ready: Enter specific records, sanction orders, dates, or fund ledgers.' };
-      if (PRIVATE_PATTERNS.some((re) => re.test(t))) {
-        return { level: 'block', msg: 'SECTION 8(1)(j) PRIVACY ALERT: Personal medical records, Aadhaar/PAN, bank numbers, and private family details are exempt under RTI Section 8(1)(j) unless overriding public interest is established.' };
-      }
-      if (OPINION_PATTERNS.some((re) => re.test(t))) {
-        return { level: 'warn', msg: 'SECTION 2(f) OPINION ALERT: PIOs are only bound to furnish material records (files, sanctions, certificates) — not answer "why" or speculative questions. Rephrase as "Provide certified copies of sanction orders/file notings regarding..."' };
-      }
-      const already = ALREADY_PATTERNS.find((x) => x.re.test(t));
-      if (already) return { level: 'info', msg: already.msg };
-      return { level: 'ok', msg: 'VALID SEC 2(f) RECORD REQUEST: Specific, material information held by a public authority.' };
-    }
-
-    // Topics & Questions
-    const MOCK_TOPICS = [
-      {
-        topic_id: 'ALL',
-        label: 'All Questions',
-        description: 'Browse all available pre-validated questions across development funds, attendance, and travel expenses.',
-        already_on_profile: false,
-        needs_district: false
-      },
-      {
-        topic_id: 'MPLADS_PROJECTS',
-        label: 'Local Works & Funds (MPLADS)',
-        description: 'Works recommended, funds sanctioned and released, executing agencies, and completion status.',
-        already_on_profile: false,
-        needs_district: true
-      },
-      {
-        topic_id: 'ATTENDANCE',
-        label: 'Attendance & Debates',
-        description: 'Sittings attended, questions asked, debates participated in, and committee meetings.',
-        already_on_profile: false,
-        needs_district: false
-      },
-      {
-        topic_id: 'ALLOWANCES',
-        label: 'Salary, Travel & Allowances',
-        description: 'Category-wise totals of salary, air/rail travel claims, constituency office allowance, and entitlements paid.',
-        already_on_profile: false,
-        needs_district: false
-      }
-    ];
-
-    const MOCK_QUESTIONS = {
-      MPLADS_PROJECTS: [
-        {
-          id: 'MPL-01',
-          title: 'All Recommended Works & Estimated Budgets',
-          text: 'List all works recommended under MPLADS by {mp_name} for {area} from {term_start} to date, with name of work, recommendation date, and estimated cost.',
-          keywords: 'works recommended projects list development budget cost roads water schools'
-        },
-        {
-          id: 'MPL-02',
-          title: 'Sanctioned vs Released Fund Amounts',
-          text: 'For each work recommended under MPLADS by {mp_name}, please state the amount sanctioned, the amount released to the implementing agency, and the date of release.',
-          keywords: 'sanctioned released amount funds release money spent ledgers'
-        },
-        {
-          id: 'MPL-03',
-          title: 'Work Completion Status & Utilization Certificates',
-          text: 'Please state current status of each work (not started, in progress, completed) and provide copies of Utilization Certificates (UCs) submitted by executing agencies in {district} district.',
-          keywords: 'status completed pending in progress utilization certificates ucs finished'
-        },
-        {
-          id: 'MPL-04',
-          title: 'Projects Delayed Over 12 Months',
-          text: 'List works sanctioned under MPLADS whose completion has exceeded 12 months past scheduled deadline, with reasons recorded on file and penalty action taken against contractors.',
-          keywords: 'delayed overdue stalled late deadline penalty contractor'
-        },
-        {
-          id: 'MPL-05',
-          title: 'Unspent Balance & Bank Interest Ledgers',
-          text: 'Provide unspent balance details, bank account statement extracts, and interest accrued on MPLADS funds for {district} district from {term_start} to date.',
-          keywords: 'unspent balance interest bank statement funds remaining'
-        }
-      ],
-      ATTENDANCE: [
-        {
-          id: 'ATT-01',
-          title: 'Parliament Sitting Attendance Register Extracts',
-          text: 'Please provide session-wise attendance register extracts for {mp_name} in {house_name} from {term_start} to date, showing total sittings held vs signed.',
-          keywords: 'attendance sittings present days signed register absent'
-        },
-        {
-          id: 'ATT-02',
-          title: 'Questions Asked (Starred & Unstarred)',
-          text: 'Please provide the list and total count of questions (starred and unstarred) asked by {mp_name} in the {house_name} from {term_start} to date, with date and subject of each.',
-          keywords: 'questions asked starred unstarred parliament questions inquiry'
-        },
-        {
-          id: 'ATT-03',
-          title: 'Debates & Special Mentions (Zero Hour / Rule 377)',
-          text: 'Please provide the list of debates, Zero Hour matters, and special mentions raised by {mp_name} in {house_name} in the period, with date and topic.',
-          keywords: 'debates speeches participation spoke zero hour rule 377 special mention'
-        },
-        {
-          id: 'ATT-04',
-          title: 'Parliamentary Committee Meeting Attendance',
-          text: 'List all Parliamentary Standing and Consultative Committees of which {mp_name} was a member, showing dates of meetings held vs meetings attended.',
-          keywords: 'committee meetings standing committee member attended absent'
-        },
-        {
-          id: 'ATT-05',
-          title: 'Private Member Bills & Resolutions',
-          text: 'Please provide details of Private Member Bills and Resolutions introduced by {mp_name} in the period, with current legislative status.',
-          keywords: 'private member bill bills introduced resolution legislative'
-        }
-      ],
-      ALLOWANCES: [
-        {
-          id: 'ALW-01',
-          title: 'Total Salary, Daily & Constituency Allowances',
-          text: 'Provide month-wise total salary, constituency allowance, office expense allowance, and Daily Allowance disbursed to {mp_name} from {term_start} to date.',
-          keywords: 'salary monthly allowances earnings income pay daily allowance'
-        },
-        {
-          id: 'ALW-02',
-          title: 'Air Travel Journeys & Reimbursement Totals',
-          text: 'Please provide the number of air journeys claimed by {mp_name} in the period, total public funds reimbursed, and official sectors travelled.',
-          keywords: 'air travel flights flight tickets airline travel allowance airfare'
-        },
-        {
-          id: 'ALW-03',
-          title: 'Rail Journeys & Free Pass Coupons Used',
-          text: 'Please provide the number of rail journeys and travel coupons/warrants issued to and claimed by {mp_name} and companion in the period.',
-          keywords: 'train rail travel railway pass coupons train tickets'
-        },
-        {
-          id: 'ALW-04',
-          title: 'Telephone, Internet & Office Secretarial Assistance',
-          text: 'Provide total amount reimbursed for telephone, mobile, internet, and secretarial assistance staff salaries for {mp_name} in the period.',
-          keywords: 'phone bill mobile internet staff personal assistant pa salary secretarial'
-        },
-        {
-          id: 'ALW-05',
-          title: 'Official Foreign & Domestic Study Tours',
-          text: 'Provide details of official foreign or domestic delegations/study visits attended by {mp_name} and total expenditure funded by the Secretariat.',
-          keywords: 'foreign visit abroad delegation official tour study visit travel'
-        }
-      ]
-    };
+    // State Management
+    let currentStep = 1;
+    const TOTAL_STEPS = 4;
 
     const params = new URLSearchParams(location.search);
-    const entityId = params.get('id') || 'demo-mp';
-    const paramName = params.get('name') || '';
-    const paramArea = params.get('constituency') || '';
-    const initialTopicParam = params.get('topic') || '';
-    let districtOverride = params.get('district') || '';
+    let entityId = params.get('id') || 'demo-mp';
+    let repName = params.get('name') || 'Narendra Modi';
+    let constituency = params.get('constituency') || 'Varanasi (Uttar Pradesh)';
+    let house = 'LOK_SABHA';
 
-    if (entityId !== 'demo-mp' && !entityId.startsWith('ministry-')) {
-      const backLink = document.getElementById('entityBackLink');
-      backLink.href = `${UI_PREFIX}node.html?id=${encodeURIComponent(entityId)}`;
-      backLink.hidden = false;
+    // Preset Questions Data
+    const PRESETS = [
+      {
+        id: 'MPL-01',
+        category: 'MPLADS_PROJECTS',
+        categoryLabel: 'Local Works',
+        title: 'All Recommended Works & Estimated Budgets',
+        defaultText: 'Please provide certified copies of all development works recommended under MPLADS by {rep_name} for {constituency} from 2024 to date, including project name, recommendation date, and estimated budget.',
+        text: '',
+        selected: true
+      },
+      {
+        id: 'MPL-02',
+        category: 'MPLADS_PROJECTS',
+        categoryLabel: 'Local Works',
+        title: 'Sanctioned vs Released Fund Amounts',
+        defaultText: 'For each work recommended under MPLADS by {rep_name}, please state the amount sanctioned by the District Authority, the amount released to executing agencies, and current completion stage.',
+        text: '',
+        selected: true
+      },
+      {
+        id: 'MPL-03',
+        category: 'MPLADS_PROJECTS',
+        categoryLabel: 'Local Works',
+        title: 'Delayed Works Exceeding 12 Months',
+        defaultText: 'List all works recommended under MPLADS whose physical completion has exceeded 12 months beyond the scheduled completion date, along with reasons on file and penalty imposed on contractors.',
+        text: '',
+        selected: false
+      },
+      {
+        id: 'ATT-01',
+        category: 'ATTENDANCE',
+        categoryLabel: 'Attendance',
+        title: 'Parliament Sitting Attendance Register',
+        defaultText: 'Please provide session-wise attendance register extracts for {rep_name} in Lok Sabha from 2024 to date, showing total sittings held versus sittings signed in the register.',
+        text: '',
+        selected: true
+      },
+      {
+        id: 'ATT-02',
+        category: 'ATTENDANCE',
+        categoryLabel: 'Attendance',
+        title: 'Questions Asked (Starred & Unstarred)',
+        defaultText: 'Please provide the total count and list of questions (starred and unstarred) tabled by {rep_name} in Lok Sabha, including question date, ministry addressed, and official subject.',
+        text: '',
+        selected: false
+      },
+      {
+        id: 'ALW-01',
+        category: 'ALLOWANCES',
+        categoryLabel: 'Allowances',
+        title: 'Total Salary, Daily & Office Allowances',
+        defaultText: 'Provide month-wise total salary, constituency allowance, office expense allowance, and Daily Allowance disbursed to {rep_name} from 2024 to date.',
+        text: '',
+        selected: false
+      },
+      {
+        id: 'ALW-02',
+        category: 'ALLOWANCES',
+        categoryLabel: 'Allowances',
+        title: 'Air & Rail Travel Reimbursements',
+        defaultText: 'Please provide the number of air journeys claimed by {rep_name} in the period, total public funds reimbursed, and official sectors travelled.',
+        text: '',
+        selected: false
+      }
+    ];
+
+    // Initialize preset texts
+    PRESETS.forEach(p => {
+      p.text = p.defaultText
+        .replace(/\{rep_name\}/g, repName)
+        .replace(/\{constituency\}/g, constituency);
+    });
+
+    let customQuestions = [];
+    let currentTopicFilter = 'ALL';
+
+    // Theme Management
+    const themeToggle = document.getElementById('themeToggle');
+    function syncTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      themeToggle.classList.toggle('is-dark', isDark);
+      themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
+    }
+    syncTheme();
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('bp_theme', isDark ? 'dark' : 'light');
+      syncTheme();
+    });
+
+    // Step Navigation
+    function goToStep(step) {
+      if (step < 1 || step > TOTAL_STEPS) return;
+      currentStep = step;
+      updateWizardUI();
     }
 
-    let TOPICS = MOCK_TOPICS;
-    let currentTopicId = initialTopicParam || 'ALL';
-    let lastServerPayload = null;
-    let liveApiAvailable = false;
-
-    const statusText = document.getElementById('statusText');
-    const apiSourceTag = document.getElementById('apiSourceTag');
-    const draftEditor = document.getElementById('draftEditor');
-    const districtInput = document.getElementById('districtInput');
-    const topicButtons = document.getElementById('topicButtons');
-    const customQuestionInput = document.getElementById('customQuestionInput');
-    const suggestSearchInput = document.getElementById('suggestSearchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-
-    districtInput.value = districtOverride;
-
-    function buildOfflinePayload(topicId) {
-      const todayIso = new Date().toISOString().slice(0, 10);
-      const replyDate = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
-      const appealDate = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
-
-      const isMinistryTarget = entityId.startsWith('ministry-');
-      const minName = isMinistryTarget
-        ? (paramName || ('Central Public Information Officer (CPIO), Ministry of ' + entityId.replace('ministry-', '').toUpperCase()))
-        : '';
-
-      const person = {
-        name: paramName || (entityId === 'demo-mp' ? 'Demo Member of Parliament' : entityId),
-        constituency: paramArea || (isMinistryTarget ? 'Government of India (Central Secretariat)' : 'Demo Parliamentary Constituency'),
-        state: 'India',
-        district: districtOverride || (entityId === 'demo-mp' ? 'New Delhi' : ''),
-        house: isMinistryTarget ? 'UNION_MINISTRY' : 'LOK_SABHA',
-        party: isMinistryTarget ? 'Executive Ministry' : 'Public Representative',
-        term_start: '2024-06-04'
-      };
-
-      const effectiveTopic = (topicId === 'ALL') ? 'MPLADS_PROJECTS' : topicId;
-      const authority = isMinistryTarget
-        ? {
-            name: minName,
-            pio_address: 'Central RTI Cell, Concerned Ministry Bhawan, New Delhi - 110001 (Verify division CPIO on rtionline.gov.in)',
-            fee: 10,
-            verified: false
-          }
-        : {
-            name: effectiveTopic === 'MPLADS_PROJECTS'
-              ? `District Collector / District Nodal Authority (${person.district || '[district]'})`
-              : 'Central Public Information Officer (CPIO), Lok Sabha Secretariat',
-            pio_address: effectiveTopic === 'MPLADS_PROJECTS'
-              ? `Office of the District Magistrate / Nodal Officer MPLADS, ${person.district || '[district]'}`
-              : 'Parliament House Annexe, New Delhi - 110001',
-            fee: 10,
-            verified: false
-          };
-
-      const area = person.constituency || person.state || '[area]';
-      const qList = MOCK_QUESTIONS[effectiveTopic] || MOCK_QUESTIONS.MPLADS_PROJECTS;
-      const qs = qList.slice(0, 3).map((q, idx) =>
-        `${idx + 1}. ` + q.text
-          .replace(/\{mp_name\}/g, person.name)
-          .replace(/\{area\}/g, area)
-          .replace(/\{district\}/g, person.district || '[district]')
-          .replace(/\{house_name\}/g, 'Lok Sabha')
-          .replace(/\{term_start\}/g, person.term_start)
-      ).join('\n');
-
-      const topicObj = TOPICS.find((t) => t.topic_id === effectiveTopic) || MOCK_TOPICS[1];
-      const subj = isMinistryTarget
-        ? `Release of BE vs RE budget utilization, sanction orders, and physical outcome achievements`
-        : `${topicObj.label.replace(/^[^\s]+\s+/, '')} regarding ${person.name} (${area})`;
-
-      const text = `To,
-The Public Information Officer,
-${authority.name}
-${authority.pio_address}
-
-Subject: Request for information under the RTI Act, 2005: ${subj}
-
-Sir/Madam,
-
-Under Section 6(1) of the Right to Information Act, 2005, I request the following information for the period ${person.term_start} to ${todayIso}:
-
-${qs}
-
-I am paying the application fee of Rs. ${authority.fee}/- as prescribed.
-If any part of this information is held by another public authority, please transfer this application to it under Section 6(3) of the Act. If any information is refused, please cite the specific provision relied on and give the particulars of the first appellate authority.
-
-Yours faithfully,
-[Your Full Name]
-[Your Address]
-[Your Contact / Email]
-Date: ${todayIso}`;
-
-      const notes = [isMinistryTarget
-        ? 'Union Ministry CPIO template generated. Confirm exact Division CPIO at rtionline.gov.in before filing.'
-        : 'Generated via built-in template. Confirm PIO postal/portal address before submission.'];
-
-      return {
-        politician: person,
-        authority,
-        template: { template_id: 'T_' + effectiveTopic, language: 'en', text },
-        missing_fields: (!person.district && topicObj.needs_district) ? ['district'] : [],
-        deadlines: { reply_due: replyDate, first_appeal_by: appealDate },
-        notes,
-        _offline: true
-      };
-    }
-
-    function applyApplicantFields(baseText) {
-      const name = document.getElementById('appName').value.trim() || '[Your Full Name]';
-      const addr = document.getElementById('appAddr').value.trim() || '[Your Address]';
-      const contact = document.getElementById('appContact').value.trim() || '[Your Contact / Email]';
-      return String(baseText || '')
-        .replace(/\{applicant_name\}|\[Your Full Name\]/g, name)
-        .replace(/\{applicant_address\}|\[Your Address\]/g, addr)
-        .replace(/\{applicant_contact\}|\[Your Contact \/ Email\]/g, contact);
-    }
-
-    function renderTopicButtons() {
-      topicButtons.innerHTML = TOPICS.map((t) => 
-        `<button type="button" class="cat-pill ${t.topic_id === currentTopicId ? 'active' : ''}" data-topic="${escapeHtml(t.topic_id)}">${escapeHtml(t.label)}</button>`
-      ).join('');
-      const activeTopic = TOPICS.find((t) => t.topic_id === currentTopicId);
-      document.getElementById('topicDesc').textContent = activeTopic ? (activeTopic.description || '') : '—';
-      const warnBox = document.getElementById('alreadyOnProfileWarning');
-      if (activeTopic && activeTopic.already_on_profile) {
-        warnBox.hidden = false;
-        warnBox.innerHTML = `<strong>DUPLICATE DATA NOTICE:</strong> This topic is already present on the public profile (${escapeHtml(activeTopic.profile_section || 'Affidavit')}). Only file an RTI for records not yet published.`;
+    function nextStep() {
+      if (currentStep < TOTAL_STEPS) {
+        currentStep++;
+        updateWizardUI();
       } else {
-        warnBox.hidden = true;
+        // On Step 4, trigger PDF view
+        viewPdfModal();
       }
     }
 
-    function renderPayload(payload) {
-      lastServerPayload = payload;
-      const p = payload.politician || {};
-      const auth = payload.authority || {};
-      const dl = payload.deadlines || {};
-      const tpl = payload.template || {};
-
-      document.getElementById('pageTitle').textContent = `SECTION 6(1) RTI // ${String(p.name || entityId).toUpperCase()}`;
-      document.getElementById('subjectMeta').textContent = `ENTITY ID: ${entityId} // TEMPLATE: ${tpl.template_id || 'FORM A'}`;
-      document.getElementById('tblRepName').textContent = p.name || paramName || entityId;
-      document.getElementById('tblHouse').textContent = p.house || '—';
-      document.getElementById('tblArea').textContent = [p.constituency, p.district, p.state].filter(Boolean).join(', ') || '—';
-      document.getElementById('tblParty').textContent = p.party || '—';
-      document.getElementById('tblTermStart').textContent = p.term_start || '—';
-
-      document.getElementById('tblAuthority').textContent = auth.name || 'NO CONFIGURED PIO AUTHORITY FOR THIS HOUSE/TOPIC';
-      document.getElementById('tblPioAddr').textContent = auth.pio_address || '—';
-      document.getElementById('tblFee').textContent = auth.fee ? `Rs. ${auth.fee}/-` : 'As prescribed under applicable RTI rules';
-      document.getElementById('tblReplyDue').textContent = dl.reply_due ? `${dl.reply_due} (${fmtDateDisplay(dl.reply_due)})` : '30 days from receipt';
-      document.getElementById('tblAppealDue').textContent = dl.first_appeal_by ? `${dl.first_appeal_by} (${fmtDateDisplay(dl.first_appeal_by)})` : '60 days from receipt';
-
-      document.getElementById('modeBadge').textContent = payload._offline ? 'MODE: LOCAL STATUTORY TEMPLATE' : 'MODE: LIVE RTI SERVER (:8001)';
-      document.getElementById('templateIdTag').textContent = `${tpl.template_id || 'FORM A'} // SECTION 6(1)`;
-
-      const missingDistrict = (payload.missing_fields || []).includes('district');
-      document.getElementById('districtAlert').hidden = !missingDistrict;
-
-      const notesBox = document.getElementById('notesBox');
-      const notes = payload.notes || [];
-      if (notes.length) {
-        notesBox.hidden = false;
-        notesBox.innerHTML = '<strong>VERIFICATION NOTES:</strong><ul style="margin:4px 0 0 18px; padding:0;">' +
-          notes.map((n) => `<li>${escapeHtml(n)}</li>`).join('') + '</ul>';
-      } else {
-        notesBox.hidden = true;
-      }
-
-      if (tpl.text) {
-        draftEditor.value = applyApplicantFields(tpl.text);
-      } else {
-        draftEditor.value = 'No automatic Form A template returned. Select another topic or add questions from the question cards.';
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        updateWizardUI();
       }
     }
 
-    // Question Cards Generator & Filter
-    function getAllQuestions() {
-      const p = (lastServerPayload && lastServerPayload.politician) || {};
-      const repName = p.name || paramName || (entityId === 'demo-mp' ? 'Demo Member of Parliament' : entityId);
-      const area = p.constituency || paramArea || 'Demo Constituency';
-      const district = p.district || districtOverride || 'New Delhi';
-      const house = p.house || 'Lok Sabha';
-      const termStart = p.term_start || '2024-06-04';
+    function updateWizardUI() {
+      // 1. Progress Bar & Step Badges
+      const pct = (currentStep / TOTAL_STEPS) * 100;
+      document.getElementById('progressBarFill').style.width = `${pct}%`;
 
-      let list = [];
-      Object.keys(MOCK_QUESTIONS).forEach((cat) => {
-        MOCK_QUESTIONS[cat].forEach((item) => {
-          list.push({
-            id: item.id,
-            category: cat,
-            title: item.title,
-            keywords: item.keywords,
-            text: item.text
-              .replace(/\{mp_name\}/g, repName)
-              .replace(/\{area\}/g, area)
-              .replace(/\{district\}/g, district)
-              .replace(/\{house_name\}/g, house)
-              .replace(/\{term_start\}/g, termStart)
-          });
-        });
+      for (let s = 1; s <= TOTAL_STEPS; s++) {
+        const pill = document.getElementById(`pillStep${s}`);
+        pill.classList.remove('active', 'completed');
+        if (s === currentStep) pill.classList.add('active');
+        else if (s < currentStep) pill.classList.add('completed');
+
+        const pane = document.getElementById(`step${s}Pane`);
+        if (pane) pane.classList.toggle('active', s === currentStep);
+      }
+
+      // 2. Step Title & Guidance updates
+      const title = document.getElementById('mascotTitle');
+      const desc = document.getElementById('mascotDesc');
+
+      if (currentStep === 1) {
+        title.textContent = 'Section 6(1) RTI Application Generator';
+        desc.textContent = 'Formulate legally-binding Form A statutory petitions to inspect official records and audit public funds.';
+      } else if (currentStep === 2) {
+        title.textContent = 'Select Statutory Questions';
+        desc.textContent = 'Choose pre-validated questions or edit specifics such as dates, sanctioned amounts, and project names.';
+      } else if (currentStep === 3) {
+        title.textContent = 'Applicant Particulars';
+        desc.textContent = 'Under Section 6(1), the PIO requires applicant contact particulars to deliver certified copies and notices.';
+      } else if (currentStep === 4) {
+        title.textContent = 'Form A Statutory Petition Ready';
+        desc.textContent = 'Your application has been formatted under the Right to Information Act, 2005. Review, print, or download below.';
+      }
+
+      // 3. Bottom Navigation Bar
+      const backBtn = document.getElementById('backStepBtn');
+      const nextBtn = document.getElementById('nextStepBtn');
+      const stepIndicator = document.getElementById('bottomStepIndicator');
+
+      backBtn.disabled = (currentStep === 1);
+      stepIndicator.textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
+
+      if (currentStep === 1) {
+        nextBtn.textContent = 'Continue to Questions →';
+      } else if (currentStep === 2) {
+        const selCount = getSelectedQuestions().length;
+        nextBtn.textContent = `Continue (${selCount} Selected) →`;
+      } else if (currentStep === 3) {
+        nextBtn.textContent = 'Generate Form A →';
+      } else if (currentStep === 4) {
+        nextBtn.textContent = 'View Form A Again';
+      }
+
+      // If entering Step 4, compile full draft
+      if (currentStep === 4) {
+        compileFullDraft();
+      }
+    }
+
+    // Step 1: User Text Input for Authority
+    const repInput = document.getElementById('customRepInput');
+    if (repInput) {
+      repInput.value = repName;
+      repInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        repName = val || 'Designated Public Authority';
+        house = val.toLowerCase().includes('ministry') ? 'UNION_MINISTRY' : 'LOK_SABHA';
+        constituency = house === 'UNION_MINISTRY' ? 'Central Secretariat, New Delhi' : 'Jurisdiction / Parliamentary House';
+        entityId = val.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        updateAuthorityDisplay();
+        refreshPresetTexts();
       });
-      return list;
     }
 
-    function renderQuestionCards() {
-      const q = suggestSearchInput.value.trim().toLowerCase();
-      clearSearchBtn.hidden = !q;
+    function updateAuthorityDisplay() {
+      document.getElementById('dispTargetName').textContent = repName;
+      if (house === 'UNION_MINISTRY') {
+        document.getElementById('dispPioName').textContent = `Central Public Information Officer (CPIO), ${repName}`;
+        document.getElementById('dispPioAddr').textContent = 'Central RTI Cell, Concerned Ministry Bhawan, New Delhi - 110001';
+      } else {
+        document.getElementById('dispPioName').textContent = 'Central Public Information Officer (CPIO), Lok Sabha Secretariat';
+        document.getElementById('dispPioAddr').textContent = 'Parliament House Annexe, New Delhi - 110001';
+      }
+      const due = new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      document.getElementById('dispReplyDue').textContent = `Within 30 Days (Due: ${due})`;
+    }
 
-      let all = getAllQuestions();
-      let filtered = all;
+    function refreshPresetTexts() {
+      PRESETS.forEach(p => {
+        p.text = p.defaultText
+          .replace(/\{rep_name\}/g, repName)
+          .replace(/\{constituency\}/g, constituency);
+      });
+      renderPresets();
+    }
 
-      if (currentTopicId !== 'ALL') {
-        filtered = filtered.filter((item) => item.category === currentTopicId);
+    // Step 2: Render Preset Cards with Inline Edit Drawer
+    function renderPresets() {
+      const container = document.getElementById('presetsContainer');
+      let filtered = PRESETS;
+      if (currentTopicFilter !== 'ALL') {
+        filtered = PRESETS.filter(p => p.category === currentTopicFilter);
       }
 
-      if (q) {
-        filtered = all.filter((item) => 
-          item.title.toLowerCase().includes(q) ||
-          item.text.toLowerCase().includes(q) ||
-          (item.keywords || '').toLowerCase().includes(q)
-        );
-      }
-
-      document.getElementById('bankCountTag').textContent = `${filtered.length} Available`;
-      document.getElementById('filterStatusTag').textContent = q 
-        ? `Found ${filtered.length} matching "${q}"` 
-        : (currentTopicId === 'ALL' ? 'Showing All Categories' : `Filtered: ${currentTopicId}`);
-
-      const container = document.getElementById('questionBankCards');
-      if (!filtered.length) {
-        container.innerHTML = `
-          <div style="padding:32px 16px; text-align:center; color:var(--muted);">
-            <div style="font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px;">[No Matching Questions]</div>
-            <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No questions found matching "${escapeHtml(q)}"</div>
-            <div style="font-size:12.5px;">Try searching for "funds", "travel", "attendance", or switch to "All Questions".</div>
-          </div>
-        `;
-        return;
-      }
-
-      const categoryLabels = {
-        MPLADS_PROJECTS: 'Local Works',
-        ATTENDANCE: 'Attendance',
-        ALLOWANCES: 'Travel & Salary'
-      };
-
-      container.innerHTML = filtered.map((item, idx) => `
-        <div class="q-card">
-          <div class="q-card-header">
-            <span class="q-card-title">${escapeHtml(item.title)}</span>
-            <span class="q-card-badge">${categoryLabels[item.category] || item.category}</span>
-          </div>
-          <p class="q-card-text">${escapeHtml(item.text)}</p>
-          <div class="q-card-action-row">
-            <button type="button" class="insert-btn" data-qid="${escapeHtml(item.id)}">+ Add to Application</button>
-            <span class="q-card-id">${escapeHtml(item.id)}</span>
+      container.innerHTML = filtered.map(p => `
+        <div class="preset-card ${p.selected ? 'selected' : ''}" id="card-${p.id}">
+          <div class="preset-card-top">
+            <div class="preset-checkbox" onclick="togglePresetSelect('${p.id}')">
+              ${p.selected ? '✓' : ''}
+            </div>
+            <div class="preset-content">
+              <div class="preset-title-row">
+                <span class="preset-title">${p.title}</span>
+                <span class="preset-badge">${p.categoryLabel}</span>
+              </div>
+              <div class="preset-text-display" id="display-${p.id}">${escapeHtml(p.text)}</div>
+              <div>
+                <button type="button" class="preset-edit-toggle" onclick="toggleEditDrawer('${p.id}')">
+                  Edit Question Text
+                </button>
+              </div>
+              <div class="preset-edit-drawer" id="drawer-${p.id}">
+                <textarea class="preset-textarea" id="textarea-${p.id}" oninput="updatePresetText('${p.id}', this.value)">${escapeHtml(p.text)}</textarea>
+                <div class="preset-drawer-actions">
+                  <span class="preset-hint-tag">Feel free to modify years, specific roads/works, or wording.</span>
+                  <button type="button" class="preset-edit-toggle" style="color:var(--muted);" onclick="resetPresetText('${p.id}')">
+                    Reset to Default
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       `).join('');
+
+      updateSelectedCount();
     }
 
-    function insertQuestionIntoDraft(questionText, btnElement) {
-      const clean = (questionText || '').trim();
-      if (!clean) return;
-      const cur = draftEditor.value || '';
-      const lines = cur.split(/\r?\n/);
-      let maxNum = 0;
-      let lastNumIdx = -1;
-      lines.forEach((line, i) => {
-        const m = line.match(/^\s*(\d+)\.\s+/);
-        if (m) {
-          maxNum = Math.max(maxNum, Number(m[1]));
-          lastNumIdx = i;
+    function togglePresetSelect(id) {
+      const p = PRESETS.find(x => x.id === id);
+      if (p) {
+        p.selected = !p.selected;
+        const card = document.getElementById(`card-${p.id}`);
+        if (card) {
+          card.classList.toggle('selected', p.selected);
+          const box = card.querySelector('.preset-checkbox');
+          if (box) box.textContent = p.selected ? '✓' : '';
         }
+        updateSelectedCount();
+      }
+    }
+
+    function toggleEditDrawer(id) {
+      const drawer = document.getElementById(`drawer-${id}`);
+      if (drawer) {
+        drawer.classList.toggle('open');
+      }
+    }
+
+    function updatePresetText(id, newText) {
+      const p = PRESETS.find(x => x.id === id);
+      if (p) {
+        p.text = newText;
+        const disp = document.getElementById(`display-${id}`);
+        if (disp) disp.textContent = newText;
+        if (!p.selected) {
+          p.selected = true;
+          const card = document.getElementById(`card-${id}`);
+          if (card) card.classList.add('selected');
+          updateSelectedCount();
+        }
+      }
+    }
+
+    function resetPresetText(id) {
+      const p = PRESETS.find(x => x.id === id);
+      if (p) {
+        p.text = p.defaultText
+          .replace(/\{rep_name\}/g, repName)
+          .replace(/\{constituency\}/g, constituency);
+        renderPresets();
+      }
+    }
+
+    function updateSelectedCount() {
+      const count = getSelectedQuestions().length;
+      document.getElementById('selectedCountBadge').textContent = `${count} Questions Selected`;
+      if (currentStep === 2) {
+        document.getElementById('nextStepBtn').textContent = `Continue (${count} Selected) →`;
+      }
+    }
+
+    function getSelectedQuestions() {
+      const selectedPresets = PRESETS.filter(p => p.selected).map(p => p.text);
+      return [...selectedPresets, ...customQuestions];
+    }
+
+    // Category Filter Buttons
+    document.querySelectorAll('.topic-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.topic-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTopicFilter = btn.dataset.topic;
+        renderPresets();
       });
-      const newLine = `${maxNum + 1}. ${clean}`;
-      if (lastNumIdx >= 0) {
-        lines.splice(lastNumIdx + 1, 0, newLine);
-        draftEditor.value = lines.join('\n');
-      } else {
-        draftEditor.value = cur + '\n\n' + newLine;
-      }
+    });
 
-      if (btnElement) {
-        btnElement.textContent = 'Added to Draft';
-        btnElement.classList.add('inserted');
-        setTimeout(() => {
-          btnElement.textContent = '+ Add to Application';
-          btnElement.classList.remove('inserted');
-        }, 2200);
-      }
-      statusText.textContent = `Inserted Question #${maxNum + 1} into Form A Draft.`;
-    }
+    // Custom Question Handling & Realtime Sec 2(f) Validation
+    const customInput = document.getElementById('userCustomQuestionInput');
+    const customVerdict = document.getElementById('customVerdictBadge');
 
-    // 1-Click Starter Bundles
-    function insertBundle(packType) {
-      const all = getAllQuestions();
-      const matched = all.filter((item) => item.category.startsWith(packType)).slice(0, 3);
-      if (!matched.length) return;
-      matched.forEach((m) => insertQuestionIntoDraft(m.text));
-      statusText.textContent = `Loaded ${matched.length} questions from ${packType} Pack into Form A Draft.`;
-      draftEditor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    async function loadDraft() {
-      statusText.textContent = `Loading Form A Template (${currentTopicId})...`;
-      if (!entityId.startsWith('ministry-') && entityId !== 'demo-mp' && currentTopicId !== 'ALL') {
-        try {
-          const url = `${RTI_API}/politicians/${encodeURIComponent(entityId)}/rti/${encodeURIComponent(currentTopicId)}?district=${encodeURIComponent(districtOverride)}`;
-          const r = await fetch(url);
-          if (r.ok) {
-            const data = await r.json();
-            liveApiAvailable = true;
-            apiSourceTag.textContent = 'API: RTI Server (:8001) Connected';
-            renderPayload(data);
-            statusText.textContent = `Form A Ready for ${String(data.politician?.name || entityId).toUpperCase()}.`;
-            renderQuestionCards();
-            return;
-          }
-        } catch (_) {}
-      }
-      const fallback = buildOfflinePayload(currentTopicId);
-      renderPayload(fallback);
-      statusText.textContent = `Form A Ready (${fallback._offline ? 'Template Mode' : 'Live'}).`;
-      renderQuestionCards();
-    }
-
-    async function init() {
-      try {
-        const r = await fetch(`${RTI_API}/rti/topics`);
-        if (r.ok) {
-          const data = await r.json();
-          if (Array.isArray(data) && data.length) {
-            TOPICS = [{ topic_id: 'ALL', label: 'All Questions', description: 'Browse all pre-validated questions.' }, ...data];
-            liveApiAvailable = true;
-            apiSourceTag.textContent = 'API: RTI Server (:8001) Connected';
-          }
-        }
-      } catch (_) {}
-      if (!TOPICS.length) {
-        TOPICS = MOCK_TOPICS;
-        apiSourceTag.textContent = 'API (:8001) Standby // Statutory Template Active';
-      }
-      renderTopicButtons();
-      await loadDraft();
-    }
-
-    // Export Functions (PDF via jsPDF + .TXT + Clipboard + Print)
-    function downloadTextFile() {
-      const content = draftEditor.value || '';
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }));
-      a.download = `Bharat_Praman_FormA_${entityId}_${currentTopicId}.txt`;
-      a.click();
-    }
-
-    function downloadPdf() {
-      const content = draftEditor.value || '';
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        downloadTextFile();
+    customInput.addEventListener('input', () => {
+      const val = customInput.value.trim();
+      if (!val) {
+        customVerdict.className = 'custom-validator-pill validator-ok';
+        customVerdict.className = 'custom-validator-pill validator-ok';
+        customVerdict.textContent = 'Valid: Ask for specific files, sanction orders, dates, or expenditure ledgers.';
         return;
       }
-      try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-        doc.setFont('courier', 'bold');
-        doc.setFontSize(12);
-        doc.text('FORM A - APPLICATION UNDER RIGHT TO INFORMATION ACT, 2005', 15, 16);
-        doc.setFont('courier', 'normal');
-        doc.setFontSize(9.5);
-        doc.text('Section 6(1) Statutory Filing | Generated via Bharat Praman RTI Desk', 15, 22);
-        doc.line(15, 25, 195, 25);
-
-        doc.setFont('courier', 'normal');
-        doc.setFontSize(10);
-        const lines = doc.splitTextToSize(content, 178);
-        let y = 32;
-        lines.forEach((line) => {
-          if (y > 280) {
-            doc.addPage();
-            y = 18;
-          }
-          doc.text(line, 15, y);
-          y += 5.2;
-        });
-        doc.save(`Bharat_Praman_FormA_${entityId}_${currentTopicId}.pdf`);
-      } catch (_) {
-        downloadTextFile();
+      if (/^\s*(why|how come|reasons for your personal)\b/i.test(val)) {
+        customVerdict.className = 'custom-validator-pill validator-warn';
+        customVerdict.textContent = 'Sec 2(f) Guidance: Officers provide material records, not personal opinions. Rephrase as "Provide certified copies of sanction orders regarding..."';
+      } else if (/\b(pan card|aadhaar|bank account|medical|health|illness)\b/i.test(val)) {
+        customVerdict.className = 'custom-validator-pill validator-block';
+        customVerdict.textContent = 'Sec 8(1)(j) Alert: Private personal medical or bank account details are exempt from disclosure.';
+      } else {
+        customVerdict.className = 'custom-validator-pill validator-ok';
+        customVerdict.textContent = 'Valid Sec 2(f) Request: Seeking verifiable public records held by the authority.';
       }
+    });
+
+    document.getElementById('addCustomQBtn').addEventListener('click', () => {
+      const val = customInput.value.trim();
+      if (!val) return;
+      customQuestions.push(val);
+      customInput.value = '';
+      customVerdict.className = 'custom-validator-pill validator-ok';
+      customVerdict.textContent = 'Custom question successfully included in your RTI application.';
+      updateSelectedCount();
+    });
+
+    // Step 4: Compiling Form A Petition Text
+    function compileFullDraft() {
+      const appName = document.getElementById('inputAppName').value.trim() || 'Citizen of India';
+      const appAddr = document.getElementById('inputAppAddr').value.trim() || 'Address not specified';
+      const appContact = document.getElementById('inputAppContact').value.trim() || 'Contact not specified';
+      const appFee = document.getElementById('inputAppFeeMode').value;
+
+      const rawPioName = document.getElementById('dispPioName').textContent;
+      const pioAddr = document.getElementById('dispPioAddr').textContent;
+
+      const pioBlock = rawPioName.toLowerCase().startsWith('central public information')
+        ? rawPioName
+        : `The Central Public Information Officer (CPIO),\n${rawPioName}`;
+
+      const questions = getSelectedQuestions();
+      const todayIso = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+      let qNumbered = questions.length 
+        ? questions.map((q, i) => `${i + 1}. ${q}`).join('\n\n')
+        : '1. Please provide certified copies of records relating to official duties, sanctioned works, and public funds administered during the current term.';
+
+      const draft = `FORM A
+APPLICATION FOR INFORMATION UNDER SECTION 6(1) OF THE RIGHT TO INFORMATION ACT, 2005
+
+To,
+${pioBlock}
+${pioAddr}
+
+1. Full Name of the Applicant:
+   ${appName}
+
+2. Address for Correspondence:
+   ${appAddr}
+
+3. Contact Particulars:
+   ${appContact}
+
+4. Subject Matter of Information:
+   Request for certified public records regarding ${repName}, ${constituency}.
+
+5. Particulars of Information Required:
+${qNumbered}
+
+6. Statutory Declaration under Section 6(2):
+   As prescribed under Section 6(2) of the RTI Act, 2005, the applicant is not required to provide reasons for requesting the above official information.
+
+7. Application Fee Details:
+   A statutory fee of Rs. 10/- is paid via: ${appFee}.
+
+8. Transfer under Section 6(3):
+   If any part of the requested information or records is held by another public authority, please transfer this application under Section 6(3) within 5 days of receipt under intimation to the applicant.
+
+Place: India
+Date: ${todayIso}
+
+________________________________
+Signature / Name of Applicant: ${appName}`;
+
+      document.getElementById('finalDraftTextarea').value = draft;
+      const sheetContent = document.getElementById('modalLegalSheetContent');
+      if (sheetContent) sheetContent.textContent = draft;
     }
 
-    // Event Wiring
-    topicButtons.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-topic]');
-      if (!b) return;
-      currentTopicId = b.dataset.topic;
-      renderTopicButtons();
-      renderQuestionCards();
-      if (currentTopicId !== 'ALL') {
-        loadDraft();
-      }
+    // Accordion Toggle
+    document.getElementById('accordionToggle').addEventListener('click', () => {
+      const body = document.getElementById('accordionBody');
+      const arrow = document.getElementById('accordionArrow');
+      body.classList.toggle('open');
+      arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
     });
 
-    // Quick starter packs
-    document.querySelectorAll('.pack-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        insertBundle(btn.dataset.pack);
-      });
-    });
+    // jsPDF Generation (Supports both Blob URL Modal Viewer & Direct Download)
+    function generatePdfDoc() {
+      if (!window.jspdf || !window.jspdf.jsPDF) return null;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const content = document.getElementById('finalDraftTextarea').value;
 
-    document.getElementById('applyDistrictBtn').addEventListener('click', () => {
-      districtOverride = districtInput.value.trim();
-      loadDraft();
-    });
-    districtInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        districtOverride = districtInput.value.trim();
-        loadDraft();
-      }
-    });
+      // Header Banner
+      doc.setFillColor(183, 121, 31);
+      doc.rect(0, 0, 210, 14, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('courier', 'bold');
+      doc.setFontSize(10.5);
+      doc.text('FORM A - STATUTORY APPLICATION UNDER SECTION 6(1) RTI ACT, 2005', 15, 9.5);
 
-    suggestSearchInput.addEventListener('input', renderQuestionCards);
-    clearSearchBtn.addEventListener('click', () => {
-      suggestSearchInput.value = '';
-      renderQuestionCards();
-      suggestSearchInput.focus();
-    });
+      // Subheader
+      doc.setTextColor(60, 40, 15);
+      doc.setFontSize(8);
+      doc.setFont('courier', 'normal');
+      doc.text('Generated via Bharat Praman RTI Filing Desk | Compliant with Right to Information Rules, 2012', 15, 19);
+      doc.setDrawColor(200, 180, 150);
+      doc.line(15, 22, 195, 22);
 
-    // Question card insert delegation
-    document.getElementById('questionBankCards').addEventListener('click', (e) => {
-      const btn = e.target.closest('.insert-btn');
-      if (!btn) return;
-      const qid = btn.dataset.qid;
-      const all = getAllQuestions();
-      const item = all.find((x) => x.id === qid);
-      if (item) insertQuestionIntoDraft(item.text, btn);
-    });
-
-    customQuestionInput.addEventListener('input', () => {
-      const res = checkQuestion(customQuestionInput.value);
-      const box = document.getElementById('complianceVerdict');
-      box.className = (res.level === 'block' || res.level === 'warn') ? 'alert-box' : 'ok-box';
-      box.style.margin = '10px 0 0 0';
-      box.textContent = res.msg;
-    });
-
-    document.getElementById('insertCustomBtn').addEventListener('click', () => {
-      const q = customQuestionInput.value.trim();
-      if (!q) { customQuestionInput.focus(); return; }
-      insertQuestionIntoDraft(q);
-      customQuestionInput.value = '';
-    });
-
-    ['appName', 'appAddr', 'appContact'].forEach((id) => {
-      document.getElementById(id).addEventListener('input', () => {
-        if (lastServerPayload && lastServerPayload.template && lastServerPayload.template.text) {
-          draftEditor.value = applyApplicantFields(lastServerPayload.template.text);
+      // Body Text
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(8.8);
+      doc.setTextColor(30, 20, 10);
+      const lines = doc.splitTextToSize(content, 180);
+      let y = 28;
+      lines.forEach(line => {
+        if (y > 282) {
+          doc.addPage();
+          doc.setDrawColor(200, 180, 150);
+          doc.line(15, 15, 195, 15);
+          y = 20;
         }
+        doc.text(line, 15, y);
+        y += 4.2;
       });
-    });
 
-    document.getElementById('regenerateDraftBtn').addEventListener('click', () => {
-      if (lastServerPayload && lastServerPayload.template && lastServerPayload.template.text) {
-        draftEditor.value = applyApplicantFields(lastServerPayload.template.text);
-      } else {
-        loadDraft();
+      return doc;
+    }
+
+    // Interactive PDF / Legal Sheet Modal Viewer
+    function viewPdfModal() {
+      compileFullDraft();
+      document.getElementById('pdfModal').hidden = false;
+    }
+
+    document.getElementById('viewPdfModalBtn').addEventListener('click', viewPdfModal);
+    document.getElementById('modalCloseBtn').addEventListener('click', () => {
+      document.getElementById('pdfModal').hidden = true;
+    });
+    document.getElementById('pdfModal').addEventListener('click', (e) => {
+      if (e.target.id === 'pdfModal') {
+        document.getElementById('pdfModal').hidden = true;
       }
     });
-    document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdf);
-    document.getElementById('downloadPdfBtn2').addEventListener('click', downloadPdf);
-    document.getElementById('downloadTxtBtn').addEventListener('click', downloadTextFile);
-    document.getElementById('copyDraftBtn').addEventListener('click', (e) => {
-      navigator.clipboard.writeText(draftEditor.value || '');
-      const btn = e.currentTarget;
-      btn.textContent = 'Copied to Clipboard!';
-      setTimeout(() => { btn.textContent = 'Copy Draft Text'; }, 1600);
-    });
-    document.getElementById('printDraftBtn').addEventListener('click', () => {
+
+    // Print Modal
+    document.getElementById('modalPrintBtn').addEventListener('click', () => {
+      const content = document.getElementById('finalDraftTextarea').value;
       const w = window.open('', '_blank');
       if (w) {
-        w.document.write(`<pre style="font:12.5px/1.6 Consolas,monospace;white-space:pre-wrap;padding:28px;">${escapeHtml(draftEditor.value || '')}</pre>`);
+        w.document.write(`
+          <!doctype html>
+          <html>
+          <head><title>Print RTI Form A</title></head>
+          <body style="font: 12.5px/1.6 Courier, monospace; padding: 40px; white-space: pre-wrap;">
+          ${escapeHtml(content)}
+          </body>
+          </html>
+        `);
         w.document.close();
+        w.focus();
         w.print();
       }
     });
 
-    init();
+    // Direct PDF Download
+    function downloadPdfFile() {
+      compileFullDraft();
+      const doc = generatePdfDoc();
+      if (!doc) return;
+      doc.save(`Bharat_Praman_FormA_${repName.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    document.getElementById('downloadPdfFinalBtn').addEventListener('click', downloadPdfFile);
+    document.getElementById('modalDownloadBtn').addEventListener('click', downloadPdfFile);
+
+    // Copy Draft Text
+    document.getElementById('copyFinalDraftBtn').addEventListener('click', (e) => {
+      compileFullDraft();
+      const text = document.getElementById('finalDraftTextarea').value;
+      navigator.clipboard.writeText(text);
+      const btn = e.currentTarget;
+      const originalLabel = btn.querySelector('.action-btn-label').textContent;
+      btn.querySelector('.action-btn-label').textContent = 'Copied to Clipboard!';
+      setTimeout(() => {
+        btn.querySelector('.action-btn-label').textContent = originalLabel;
+      }, 2000);
+    });
+
+    // Helper: Escape HTML
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    // Initialize UI
+    updateAuthorityDisplay();
+    renderPresets();
+    updateWizardUI();
   </script>
 </body>
 </html>
-
-      
