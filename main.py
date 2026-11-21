@@ -1,9 +1,6 @@
 """Search API for the Bharat Praman Neo4j graph."""
 
 import os
-import uuid
-import datetime
-from typing import Optional
 import logging
 import json
 import re
@@ -19,13 +16,11 @@ from functools import lru_cache
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
 from neo4j import GraphDatabase, READ_ACCESS, unit_of_work
 from neo4j.exceptions import DriverError, Neo4jError
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from glossary import search as glossary_search, lookup as glossary_lookup
 from cypher_templates import plan_from_template, TEMPLATE_COLUMNS, EMPTY_OK_TEMPLATES, _state as template_state
@@ -42,8 +37,6 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE") or None
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
-DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").split("DEEPSEEK_API_KEY=")[-1].strip()
-DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 LOCAL_CYPHER_MODEL_URL = (os.getenv("LOCAL_CYPHER_MODEL_URL") or os.getenv("QWEN_CYPHER_URL") or "").rstrip("/")
 
 GEMINI_PLAN_SCHEMA = {
@@ -92,10 +85,6 @@ if missing_settings:
 driver = GraphDatabase.driver(
     NEO4J_URI,
     auth=(NEO4J_USERNAME, NEO4J_PASSWORD),
-    max_connection_pool_size=int(os.getenv("NEO4J_MAX_POOL_SIZE", "100")),
-    max_connection_lifetime=3600,
-    connection_acquisition_timeout=30.0,
-    keep_alive=True,
 )
 
 
@@ -115,87 +104,13 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Bharat Praman API", lifespan=lifespan)
 logger = logging.getLogger("uvicorn.error")
 
-# High-concurrency scalability: compress responses > 1KB (reduces graph payload by 70-80%)
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        os.getenv("FRONTEND_ORIGIN", "http://localhost:5500"),
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "https://bharat-praman-production.up.railway.app",
-    ],
-    allow_origin_regex=os.getenv("FRONTEND_ORIGIN_REGEX", r"https?://[^/]+:(?:5500|8080)"),
+    allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-
-
-@app.middleware("http")
-async def _security_headers_middleware(request: Request, call_next):
-    """Enforce defense-in-depth security headers on all responses."""
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    return response
-
-
-_RL_LOCK = threading.Lock()
-_RL_BUCKETS: dict[tuple[str, str], list[float]] = {}
-_RL_HEAVY_PATHS = {"/api/rag/ask", "/api/rag/ask/stream", "/api/rag/search", "/api/ask", "/api/budget/ask"}
-_RL_HEAVY_LIMIT = int(os.getenv("RL_HEAVY_RPM", "15"))
-_RL_API_LIMIT = int(os.getenv("RL_API_RPM", "90"))
-_RL_FLAG_LIMIT = int(os.getenv("RL_FLAG_RPM", "5"))
-_RL_WINDOW_S = 60.0
-
-
-@app.middleware("http")
-async def _rate_limit_middleware(request: Request, call_next):
-    path = request.url.path
-    if not path.startswith("/api/"):
-        return await call_next(request)
-
-    xff = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
-    ip = xff or (request.client.host if request.client else "unknown")
-
-    if path == "/api/flags" and request.method == "POST":
-        tier = "flag"
-        limit = _RL_FLAG_LIMIT
-    elif path in _RL_HEAVY_PATHS:
-        tier = "heavy"
-        limit = _RL_HEAVY_LIMIT
-    else:
-        tier = "api"
-        limit = _RL_API_LIMIT
-
-    now = time.monotonic()
-    cutoff = now - _RL_WINDOW_S
-    key = (ip, tier)
-
-    with _RL_LOCK:
-        if len(_RL_BUCKETS) > 5000:
-            stale = [k for k, ts in _RL_BUCKETS.items() if not ts or ts[-1] < cutoff]
-            for k in stale:
-                del _RL_BUCKETS[k]
-        hits = [t for t in _RL_BUCKETS.get(key, ()) if t >= cutoff]
-        if len(hits) >= limit:
-            retry_after = max(1, int(_RL_WINDOW_S - (now - hits[0])))
-            return JSONResponse(
-                status_code=429,
-                content={"detail": f"Rate limit exceeded ({limit} requests/min for {tier}). Please wait {retry_after}s."},
-                headers={"Retry-After": str(retry_after)},
-            )
-        hits.append(now)
-        _RL_BUCKETS[key] = hits
-
-    return await call_next(request)
 
 
 _PLAN_CACHE = OrderedDict()
@@ -333,11 +248,6 @@ def get_cached_ask_response(question: str):
         item = _ASK_RESPONSE_CACHE.get(key)
         if not item:
             return None
-        if item.get("result_type") == "unsupported":
-            return None
-        tplan = plan_from_template(question)
-        if tplan and tplan.get("template_id") and item.get("template_id") != tplan.get("template_id"):
-            return None
         return json.loads(json.dumps(item))
 
 
@@ -364,38 +274,6 @@ class GraphExpandRequest(BaseModel):
     seed_ids: list[str] = Field(min_length=1, max_length=8)
     offset: int = Field(default=0, ge=0)
     limit: int = Field(default=100, ge=1, le=100)
-
-
-class DiscrepancySubmitRequest(BaseModel):
-    target_id: Optional[str] = Field(default=None, max_length=128)
-    target_name: str = Field(min_length=2, max_length=150)
-    category: str = Field(default="OTHER", max_length=50)
-    claimed_correction: str = Field(min_length=5, max_length=1500)
-    source_url: Optional[str] = Field(default="", max_length=500)
-    email: Optional[str] = Field(default="", max_length=150)
-
-    @field_validator("claimed_correction", "target_name", mode="after")
-    @classmethod
-    def sanitize_text(cls, v: str) -> str:
-        # Strip script or html tags to prevent XSS in public audit feed
-        return re.sub(r"<[^>]*?>", "", v or "").strip()
-
-    @field_validator("source_url", mode="after")
-    @classmethod
-    def validate_url(cls, v: Optional[str]) -> Optional[str]:
-        if not v or not v.strip():
-            return ""
-        v = v.strip()
-        if not re.match(r"^https?://[^\s/$.?#].[^\s]*$", v, re.IGNORECASE):
-            raise ValueError("source_url must be a valid HTTP or HTTPS URL.")
-        return v
-
-    @field_validator("category", mode="after")
-    @classmethod
-    def validate_category(cls, v: str) -> str:
-        allowed = {"ASSETS", "CRIMINAL_CASES", "EDUCATION", "PARTY_AFFILIATION", "OTHER"}
-        cat = (v or "OTHER").strip().upper()
-        return cat if cat in allowed else "OTHER"
 
 
 class AskRequest(BaseModel):
@@ -478,9 +356,6 @@ RETURN count(DISTINCT r) AS total
 
 @app.get("/")
 def home():
-    dashboard = BASE_DIR / "graphdashboard2.html"
-    if dashboard.is_file():
-        return FileResponse(dashboard)
     return {"message": "Bharat Praman API is running", "docs": "/docs"}
 
 
@@ -512,18 +387,9 @@ def glossary_get(acronym: str, ministry: str | None = Query(default=None, max_le
     return {"acronym": acronym, **item}
 
 
-_IPC_SECTIONS_CACHE = {"expires_at": 0.0, "value": None}
-_IPC_SECTIONS_LOCK = threading.Lock()
-
-
 @app.get("/api/ipc-sections")
 def ipc_sections_list():
-    """Return major IPC sections with one-line explanations and live MLA charged counts (cached 10m)."""
-    now = time.monotonic()
-    with _IPC_SECTIONS_LOCK:
-        if _IPC_SECTIONS_CACHE["value"] and _IPC_SECTIONS_CACHE["expires_at"] > now:
-            return _IPC_SECTIONS_CACHE["value"]
-
+    """Return major IPC sections with one-line explanations and live MLA charged counts."""
     query = (
         "MATCH (p:MLA)-[:FACES]->(:CriminalCase)-[:UNDER]->(s:Section) "
         "RETURN s.code AS code, count(DISTINCT p) AS mla_count"
@@ -549,11 +415,7 @@ def ipc_sections_list():
         if counts.get(code, 0) > 0
     ]
     items.sort(key=lambda item: (-item["mla_count"], item["code"]))
-    res = {"items": items, "count": len(items)}
-    with _IPC_SECTIONS_LOCK:
-        _IPC_SECTIONS_CACHE["value"] = res
-        _IPC_SECTIONS_CACHE["expires_at"] = time.monotonic() + 600
-    return res
+    return {"items": items, "count": len(items)}
 
 
 class RagAskRequest(BaseModel):
@@ -608,64 +470,6 @@ def rag_search(req: RagAskRequest):
             "graph_context": "",
             "error": str(exc),
         }
-
-
-@app.post("/api/rag/ask/stream")
-def rag_ask_stream(req: RagAskRequest):
-    """Server-Sent Events twin of /api/rag/ask: streams DeepSeek tokens as they arrive."""
-    from fastapi.responses import StreamingResponse
-    from reports_agent import answer_reports_stream, _source_portal_url
-
-    detail_level = "short" if str(req.detail_level).strip().lower() == "short" else "long"
-    reasoning_mode = str(req.reasoning_mode or "auto").strip().lower()
-    scope = req.ministries if req.ministries else req.ministry
-
-    def _sse(obj: dict) -> str:
-        return f"data: {json.dumps(obj, default=str, ensure_ascii=False)}\n\n"
-
-    def _gen():
-        try:
-            for ev in answer_reports_stream(
-                req.question,
-                ministry=scope,
-                years=req.years,
-                detail_level=detail_level,
-                reasoning_mode=reasoning_mode,
-            ):
-                if ev.get("type") == "meta":
-                    ev = {
-                        "type": "meta",
-                        "cached": bool(ev.get("cached")),
-                        "reasoning_mode": ev.get("reasoning_mode", "chat"),
-                        "detail_level": detail_level,
-                        "graph_context": ev.get("graph_context", ""),
-                        "sources": [
-                            {
-                                "title": h.get("title"),
-                                "file": h.get("file"),
-                                "ministry": h.get("ministry"),
-                                "year": h.get("year"),
-                                "page": h.get("page"),
-                                "section": h.get("section"),
-                                "breadcrumb": h.get("breadcrumb"),
-                                "score": h.get("rrf_score") or h.get("score"),
-                                "source_url": _source_portal_url(
-                                    h.get("ministry", ""), h.get("title", ""), h.get("file", "")
-                                ),
-                            }
-                            for h in (ev.get("hits") or [])
-                        ],
-                    }
-                yield _sse(ev)
-        except Exception:
-            logger.exception("RAG stream failed")
-            yield _sse({"type": "error", "detail": "Streaming synthesis failed."})
-
-    return StreamingResponse(
-        _gen(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no", "Connection": "keep-alive"},
-    )
 
 
 @app.post("/api/rag/ask")
@@ -991,15 +795,16 @@ def gemini_cypher_plan(question: str) -> dict:
         cached_plan["_examples_used"] = 0
         return cached_plan
 
-    # 1. PRIORITY 1: Fine-tuned Qwen 3B Cypher Model answers FIRST (if configured)
+    # 1. PRIORITY 1: Fine-tuned Qwen 3B Cypher Model answers FIRST
     local_plan = query_local_qwen_cypher_plan(question)
     if local_plan is not None:
         return local_plan
 
-    if not DEEPSEEK_API_KEY and not GEMINI_API_KEY:
+    # 2. PRIORITY 2: Gemini API Fallback
+    if not GEMINI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="Text-to-Cypher is not configured. Set DEEPSEEK_API_KEY or GEMINI_API_KEY in BACKEND/.env.",
+            detail="Text-to-Cypher is not configured. Set GEMINI_API_KEY or LOCAL_CYPHER_MODEL_URL in BACKEND/.env.",
         )
 
     selected_examples = select_cypher_examples(question, limit=3)
@@ -1048,7 +853,6 @@ QUERY GUIDANCE
 - Keep paths to at most 5 relationship hops. Use a specific path pattern with labels and relationship types when possible; avoid unconstrained graph scans.
 - Write path syntax as `MATCH p=(a:Label)-[:RELATION]->(b:Label)`. Put property filters in WHERE (for example `WHERE toLower(a.name) CONTAINS toLower($name)`); do not put a node property map immediately before a relationship.
 - For questions about party membership, traverse MEMBER_OF. For cases, traverse FACES. For portfolios, traverse HOLDS_PORTFOLIO. For constituencies and states, traverse REPRESENTS then IN_STATE. For legal sections, traverse CriminalCase-[:UNDER]->Section. For election-by-election declarations (assets, liabilities, party, case count), traverse Person-[:FILED]->Affidavit-[:FOR_ELECTION]->Election; each Affidavit is the record filed for that election.
-- To aggregate MP metrics (total_assets, liabilities, age, counts) by state, traverse `(p:Person:MP)-[:REPRESENTS]->(:Constituency)-[:IN_STATE]->(s:State)` with `WHERE p.liabilities IS NOT NULL` (or `p.total_assets IS NOT NULL`) and `RETURN s.name AS state, sum(p.liabilities) AS total_liabilities, count(DISTINCT p) AS mp_count ORDER BY total_liabilities DESC LIMIT 50`. This pattern is fully supported — never mark state-level MP aggregations unsupported.
 - Do not add a path branch unless the question requires it. For party/state/case statistics, use one MATCH pattern, aggregate with count(DISTINCT ...), and put filters in WHERE. For individual comparisons, return graph paths instead of averages.
 - Match names against the properties for that label: people can use name, first_name/last_name, myneta_name, or aliases; parties use name; cases use case_no, case_id, or fir_no; sections use code; states and constituencies use name. Use case-insensitive comparisons and Cypher parameters. Do not interpolate user text into query strings.
 - For a question specifically about elected MLAs, constrain the person with both labels `:Person:MLA`. For MPs, constrain `:Person:MP`. For a broader politician/person question, use `:Person`. Use MEMBER_OF for graph party links; only use party_name when the question asks for that stored property itself.
@@ -1063,57 +867,6 @@ QUERY GUIDANCE
             for item in selected_examples
         )
         system_prompt += example_block
-
-    # 2. PRIORITY 2: DeepSeek API Primary Text-to-Cypher Planner
-    if DEEPSEEK_API_KEY:
-        try:
-            ds_req = urllib.request.Request(
-                "https://api.deepseek.com/chat/completions",
-                data=json.dumps({
-                    "model": DEEPSEEK_MODEL,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": question},
-                    ],
-                    "temperature": 0,
-                    "max_tokens": 1200,
-                    "response_format": {"type": "json_object"},
-                }).encode("utf-8"),
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                },
-                method="POST",
-            )
-            with urllib.request.urlopen(ds_req, timeout=25) as ds_resp:
-                ds_payload = json.loads(ds_resp.read().decode("utf-8"))
-            ds_text = ds_payload["choices"][0]["message"]["content"].strip()
-            if ds_text.startswith("```"):
-                ds_text = re.sub(r"^```(?:json)?\s*|\s*```$", "", ds_text, flags=re.I)
-            plan = json.loads(ds_text)
-            if (
-                isinstance(plan, dict)
-                and set(plan) == {"result_type", "cypher", "parameters", "explanation"}
-                and plan.get("result_type") in {"graph", "aggregate", "unsupported"}
-                and isinstance(plan.get("cypher"), str)
-                and isinstance(plan.get("explanation"), str)
-            ):
-                if plan["result_type"] == "unsupported":
-                    plan["cypher"] = ""
-                    plan["parameters"] = {}
-                else:
-                    plan["parameters"] = validate_cypher_parameters(plan["parameters"])
-                plan["_cache_hit"] = False
-                plan["_examples_used"] = len(selected_examples)
-                plan["_usage_metadata"] = ds_payload.get("usage", {})
-                plan["_model_used"] = DEEPSEEK_MODEL
-                cache_cypher_plan(question, plan)
-                return plan
-        except Exception as ds_exc:
-            logger.warning("DeepSeek Cypher planner failed, falling back to Gemini: %s", ds_exc)
-            if not GEMINI_API_KEY:
-                raise HTTPException(status_code=502, detail="DeepSeek could not generate a valid query plan.")
-
     request_body = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"role": "user", "parts": [{"text": question}]}],
@@ -1227,29 +980,29 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
     schema_text = re.sub(r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"", "''", cypher)
     allowed_labels = {
         "Affidavit", "AffidavitChange", "AssemblyConstituency", "Chunk", "Constituency", "CriminalCase",
-        "DiscrepancyReport", "Document", "Election", "ElectionRecord", "ElectionResult", "HistoricalMP", "Ministry", "MLA", "MP",
-        "Party", "PartyChange", "Person", "PublicAuthority", "RTIRecord", "Section", "State",
+        "Document", "Election", "ElectionRecord", "ElectionResult", "HistoricalMP", "Ministry", "MLA", "MP",
+        "Party", "PartyChange", "Person", "Section", "State",
     }
     allowed_relationships = {
-        "CONTESTED", "DEFECTED_TO", "DISCLOSES", "FACES", "FILED", "FILED_ABOUT", "FILED_AFFIDAVIT", "FILED_TO", "FLAGGED_FOR", "FOR_ELECTION", "FROM",
+        "CONTESTED", "DISCLOSES", "FACES", "FILED", "FILED_AFFIDAVIT", "FOR_ELECTION", "FROM",
         "HAS_AFFIDAVIT_CHANGE", "HAS_CHUNK", "HAS_ELECTION_RECORD", "HAS_PARTY_CHANGE",
         "HOLDS_PORTFOLIO", "IN_STATE", "ISSUED_BY", "MEMBER_OF", "REPRESENTS",
         "SIMILAR_CASE_PROFILE", "UNDER", "WON_ELECTION",
     }
     allowed_properties = {
-        "affidavit_id", "age", "aliases", "asset_jump", "asset_pct_jump", "case_id", "case_no", "case_type", "category", "charges_framed", "claim", "claimed_correction",
-        "claimed_value", "code", "council_section", "court", "created_at", "convicted_cases", "criminal_case_count", "criminal_cases_count_from",
-        "criminal_cases_count_to", "criminal_cases_count_change", "data", "department", "doc_id", "document_url", "education", "election",
-        "election_id", "election_source", "election_verified", "election_year", "entity_id", "evidence_url", "field_contested", "file", "filing_date", "fir_no",
-        "first_name", "from_assets", "from_constituency", "from_party", "from_year", "gender", "id", "immovable_assets", "in_defections", "ipc_sections",
-        "jaccard_score", "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
-        "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons", "out_defections",
-        "party", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession", "public_authority", "questions", "rank",
-        "rank_order", "rationale", "received_date", "registration_no", "relationships", "reply_summary", "response_date", "role",
-        "serious_criminal_cases", "shared_count", "shared_sections", "source_date", "source_document", "source_document_date",
-        "source_url", "special_responsibilities", "state", "status", "style", "summary", "switcher_community", "switcher_pagerank",
-        "terms", "title", "to_assets", "to_constituency", "to_party", "to_year", "total_assets", "total_assets_change", "total_assets_from",
-        "total_assets_percent_change", "total_assets_to", "type", "visualisation", "nodes", "year",
+        "affidavit_id", "age", "aliases", "case_id", "case_no", "case_type", "charges_framed", "code", "council_section", "court",
+        "convicted_cases", "criminal_case_count", "criminal_cases_count_from", "criminal_cases_count_to", "criminal_cases_count_change",
+        "data", "doc_id", "education", "election", "election_id", "election_source", "election_verified",
+        "election_year", "entity_id", "file", "fir_no", "first_name", "from_constituency", "from_party", "from_year",
+        "gender", "id", "immovable_assets", "in_defections", "ipc_sections", "jaccard_score",
+        "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
+        "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons",
+        "out_defections", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession",
+        "rank", "rank_order", "relationships", "role", "serious_criminal_cases", "shared_count", "shared_sections",
+        "source_date", "source_document", "source_document_date", "source_url", "special_responsibilities", "state",
+        "status", "style", "switcher_community", "switcher_pagerank", "terms", "title", "to_constituency", "to_party", "to_year",
+        "total_assets", "total_assets_change", "total_assets_from", "total_assets_percent_change", "total_assets_to",
+        "type", "visualisation", "nodes", "year",
     }
     node_patterns = re.findall(r"\(([^()]*)\)", schema_text)
     labels = {
@@ -1262,18 +1015,12 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
     if labels - allowed_labels or relationships - allowed_relationships or properties - allowed_properties:
         raise HTTPException(status_code=400, detail="The generated query uses a label, relationship, or property outside the Neo4j schema.")
 
-    # Disallow disconnected Cartesian product node matches (e.g. MATCH (a:Person), (b:Person))
-    for match_clause in re.finditer(r"\bMATCH\s+([^W]+?)(?=\bWHERE\b|\bRETURN\b|\bWITH\b|\bMATCH\b|$)", cypher, re.IGNORECASE):
-        segment = match_clause.group(1).strip()
-        if "," in segment and "-" not in segment and "->" not in segment and "<-" not in segment:
-            raise HTTPException(status_code=400, detail="Cartesian product node matches without relationships are disallowed for system stability.")
-
     if not labels:
         raise HTTPException(status_code=400, detail="Generated queries must constrain matches to a known graph label.")
     if result_type == "graph":
         path_match = re.search(r"\bp\s*=\s*(.+?)(?=\bWHERE\b|\bRETURN\b)", schema_text, re.IGNORECASE | re.DOTALL)
-        if not path_match:
-            raise HTTPException(status_code=400, detail="Graph queries must bind a path variable p = ...")
+        if not path_match or not re.search(r"\[[^\]]+\]", path_match.group(1)):
+            raise HTTPException(status_code=400, detail="Graph queries must use a specific labeled relationship path.")
         if len(re.findall(r"\[[^\]]+\]", path_match.group(1))) > 5:
             raise HTTPException(status_code=400, detail="Graph paths are limited to five relationship hops.")
 
@@ -1779,41 +1526,9 @@ def get_graph_algorithms(limit: int = Query(default=20, ge=1, le=50)):
         )
 
 
-_NODE_DETAIL_CACHE = OrderedDict()
-_NODE_DETAIL_CACHE_LOCK = threading.Lock()
-_NODE_DETAIL_CACHE_TTL = 300  # 5 minutes
-_NODE_DETAIL_MAX_ITEMS = 500
-
-
-def get_cached_node_detail(node_id: str):
-    now = time.monotonic()
-    with _NODE_DETAIL_CACHE_LOCK:
-        item = _NODE_DETAIL_CACHE.get(node_id)
-        if not item:
-            return None
-        expires_at, data = item
-        if expires_at <= now:
-            del _NODE_DETAIL_CACHE[node_id]
-            return None
-        _NODE_DETAIL_CACHE.move_to_end(node_id)
-        return json.loads(json.dumps(data))
-
-
-def cache_node_detail(node_id: str, data: dict):
-    with _NODE_DETAIL_CACHE_LOCK:
-        _NODE_DETAIL_CACHE[node_id] = (time.monotonic() + _NODE_DETAIL_CACHE_TTL, json.loads(json.dumps(data)))
-        _NODE_DETAIL_CACHE.move_to_end(node_id)
-        while len(_NODE_DETAIL_CACHE) > _NODE_DETAIL_MAX_ITEMS:
-            _NODE_DETAIL_CACHE.popitem(last=False)
-
-
 @app.get("/api/nodes/{node_id}")
 def get_node_detail(node_id: str):
-    """Return a node, up to 100 direct connections, and their properties (cached 5m)."""
-    cached = get_cached_node_detail(node_id)
-    if cached is not None:
-        return cached
-
+    """Return a node, up to 100 direct connections, and their properties."""
     try:
         records, _, _ = driver.execute_query(
             NODE_DETAIL_QUERY,
@@ -1864,33 +1579,14 @@ def get_node_detail(node_id: str):
                 "properties": json_safe(edge["properties"]),
             })
 
-        flag_records, _, _ = driver.execute_query(
-            """
-            MATCH (f:DiscrepancyReport)-[:FLAGGED_FOR]->(n)
-            WHERE elementId(n) = $id OR n.entity_id = $id OR toString(n.person_id) = $id
-            RETURN f.id AS id, f.category AS category, f.claimed_correction AS claimed_correction,
-                   f.source_url AS source_url, f.status AS status, f.created_at AS created_at
-            ORDER BY f.created_at DESC
-            LIMIT 10
-            """,
-            parameters_={"id": node_id},
-            database_=NEO4J_DATABASE,
-            routing_="r",
-        )
-        flags = [r.data() for r in flag_records]
-
         total_edges = count_records[0]["total"] if count_records else 0
-        res = {
+        return {
             "node": node,
             "nodes": list(nodes.values()),
             "edges": edges,
             "total_edges": total_edges,
             "truncated": total_edges > len(edges),
-            "flags": flags,
-            "flag_count": len(flags),
         }
-        cache_node_detail(node_id, res)
-        return res
     except HTTPException:
         raise
     except (Neo4jError, DriverError):
@@ -2003,201 +1699,3 @@ def get_case_flows(node_id: str, limit: int = Query(default=50, ge=1, le=100)):
             status_code=503,
             detail="The graph database query failed. Check the Neo4j connection.",
         )
-
-
-# ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
-# Self-Auditing Graph: Public Discrepancy Reporting Feed
-# Append-only: (:DiscrepancyReport)-[:FLAGGED_FOR]->(:Person) without mutating ECI data
-# ---------------------------------------------------------------------------
-@app.post("/api/flags")
-def submit_discrepancy(req: DiscrepancySubmitRequest):
-    """
-    Append-only citizen discrepancy report.
-    Creates a (:DiscrepancyReport) node and links (:DiscrepancyReport)-[:FLAGGED_FOR]->(:Person)
-    without mutating the underlying verified ECI node properties.
-    """
-    try:
-        flag_id = f"flag_{uuid.uuid4().hex[:12]}"
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-
-        q_write = """
-        OPTIONAL MATCH (p:Person)
-        WHERE ($target_id IS NOT NULL AND $target_id <> '' AND (
-            elementId(p) = $target_id OR p.entity_id = $target_id OR toString(p.person_id) = $target_id
-        )) OR (
-            $target_name IS NOT NULL AND $target_name <> '' AND toLower(p.name) = toLower($target_name)
-        )
-        WITH p LIMIT 1
-        CREATE (f:DiscrepancyReport {
-          id: $id,
-          target_id: coalesce($target_id, ''),
-          target_name: coalesce(p.name, $target_name),
-          category: $category,
-          claimed_correction: $claimed_correction,
-          source_url: coalesce($source_url, ''),
-          email: coalesce($email, ''),
-          status: 'PENDING_REVIEW',
-          created_at: $created_at
-        })
-        FOREACH (_ IN CASE WHEN p IS NOT NULL THEN [1] ELSE [] END |
-          CREATE (f)-[:FLAGGED_FOR]->(p)
-        )
-        RETURN f.id AS id, f.target_name AS target_name, (p IS NOT NULL) AS linked
-        """
-
-        records, _, _ = driver.execute_query(
-            q_write,
-            parameters_={
-                "id": flag_id,
-                "target_id": req.target_id or "",
-                "target_name": req.target_name.strip(),
-                "category": req.category.strip().upper(),
-                "claimed_correction": req.claimed_correction.strip(),
-                "source_url": (req.source_url or "").strip(),
-                "email": (req.email or "").strip(),
-                "created_at": now_iso,
-            },
-            database_=NEO4J_DATABASE,
-            routing_="w",
-        )
-
-        linked = records[0]["linked"] if records else False
-        resolved_name = records[0]["target_name"] if records else req.target_name
-
-        if req.target_id:
-            with _NODE_DETAIL_CACHE_LOCK:
-                _NODE_DETAIL_CACHE.pop(req.target_id, None)
-
-        return {
-            "status": "ok",
-            "flag_id": flag_id,
-            "target_name": resolved_name,
-            "linked_to_graph": linked,
-            "message": "Discrepancy report recorded as a public audit annotation.",
-        }
-    except Exception as e:
-        logger.exception("Failed to write discrepancy report")
-        raise HTTPException(status_code=500, detail="Failed to record discrepancy report.")
-
-
-@app.get("/api/flags")
-def list_discrepancies(
-    target_id: Optional[str] = None,
-    status: Optional[str] = None,
-    limit: int = 50,
-):
-    """Return recent public discrepancy reports."""
-    try:
-        limit = min(max(1, limit), 200)
-        q_read = """
-        MATCH (f:DiscrepancyReport)
-        WHERE ($target_id IS NULL OR $target_id = '' OR f.target_id = $target_id)
-          AND ($status IS NULL OR $status = '' OR f.status = $status)
-        OPTIONAL MATCH (f)-[:FLAGGED_FOR]->(p:Person)
-        RETURN f.id AS id,
-               f.target_id AS target_id,
-               coalesce(p.name, f.target_name) AS target_name,
-               f.category AS category,
-               f.claimed_correction AS claimed_correction,
-               f.source_url AS source_url,
-               f.status AS status,
-               f.created_at AS created_at
-        ORDER BY f.created_at DESC
-        LIMIT $limit
-        """
-        records, _, _ = driver.execute_query(
-            q_read,
-            parameters_={"target_id": target_id or "", "status": status or "", "limit": limit},
-            database_=NEO4J_DATABASE,
-            routing_="r",
-        )
-        return {
-            "total": len(records),
-            "reports": [r.data() for r in records],
-        }
-    except Exception as e:
-        logger.exception("Failed to fetch discrepancy reports")
-        raise HTTPException(status_code=500, detail="Failed to fetch discrepancy reports.")
-
-
-# # Unified Single-Port Mode (Railway / Cloud Run / Docker)
-# Serves RTI endpoints + whitelisted frontend UI assets on the same port.
-# ---------------------------------------------------------------------------
-from fastapi.responses import FileResponse, RedirectResponse
-
-try:
-    from rti import server as _rti_server
-
-    @app.get("/rti/topics")
-    def _unified_rti_topics():
-        return _rti_server.topics()
-
-    @app.get("/politicians/{entity_id}/rti-details")
-    def _unified_rti_details(entity_id: str):
-        return _rti_server.rti_details(entity_id)
-
-    @app.get("/politicians/{entity_id}/rti/{topic_id}")
-    def _unified_rti_for_topic(entity_id: str, topic_id: str, district: str | None = None):
-        return _rti_server.rti_for_topic(entity_id, topic_id, district=district)
-
-    @app.get("/politicians/{entity_id}/rti/{topic_id}/suggest")
-    def _unified_rti_suggest(entity_id: str, topic_id: str, q: str = "", district: str | None = None):
-        return _rti_server.suggest(entity_id, topic_id, q=q, district=district)
-
-    @app.get("/rti-page")
-    def _unified_rti_page():
-        return _rti_server.rti_page()
-
-    @app.get("/rti-archive")
-    @app.get("/rti-documents")
-    def _unified_rti_archive():
-        return _rti_server.rti_archive_page()
-
-    @app.get("/rti/curated")
-    def _unified_rti_curated():
-        return _rti_server.get_curated_rtis()
-
-    @app.get("/rti/documents/{rti_id}/pdf")
-    def _unified_rti_pdf(rti_id: str):
-        return _rti_server.get_rti_pdf_endpoint(rti_id)
-
-    @app.get("/rti/documents/{rti_id}")
-    def _unified_rti_meta(rti_id: str):
-        return _rti_server.get_rti_document_meta(rti_id)
-except Exception as _rti_exc:
-    logger.warning("Unified RTI routes not mounted: %s", _rti_exc)
-
-
-_ALLOWED_UI_EXTS = {".html", ".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".webp", ".pdf"}
-
-
-@app.get("/rti_scraper/pdfs/{filename}")
-@app.get("/pdfs/{filename}")
-def _serve_pdf_asset(filename: str):
-    if "/" in filename or "\\" in filename or filename.startswith("."):
-        raise HTTPException(status_code=404, detail="Not found")
-    target = (BASE_DIR / "rti_scraper" / "pdfs" / filename).resolve()
-    if target.parent != (BASE_DIR / "rti_scraper" / "pdfs").resolve() or target.suffix.lower() != ".pdf" or not target.is_file():
-        raise HTTPException(status_code=404, detail="Not found")
-    return FileResponse(target, media_type="application/pdf")
-
-
-@app.get("/rti/{filename}")
-def _serve_rti_asset(filename: str):
-    if "/" in filename or "\\" in filename or filename.startswith("."):
-        raise HTTPException(status_code=404, detail="Not found")
-    target = (BASE_DIR / "rti" / filename).resolve()
-    if target.parent != (BASE_DIR / "rti").resolve() or target.suffix.lower() not in _ALLOWED_UI_EXTS or not target.is_file():
-        raise HTTPException(status_code=404, detail="Not found")
-    return FileResponse(target)
-
-
-@app.get("/{filename}")
-def _serve_root_ui_asset(filename: str):
-    if "/" in filename or "\\" in filename or filename.startswith("."):
-        raise HTTPException(status_code=404, detail="Not found")
-    target = (BASE_DIR / filename).resolve()
-    if target.parent != BASE_DIR.resolve() or target.suffix.lower() not in _ALLOWED_UI_EXTS or not target.is_file():
-        raise HTTPException(status_code=404, detail="Not found")
-    return FileResponse(target)
