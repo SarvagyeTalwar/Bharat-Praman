@@ -66,17 +66,16 @@
     }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body.is-party-entity #kpiStrip,
-    body.is-party-entity #kpiCardAssets,
-    body.is-party-entity #kpiCardLiabilities,
-    body.is-party-entity #kpiCardNetWorth,
-    body.is-party-entity #kpiCardCriminalCases,
-    body.is-party-entity #wealthTrajectoryCard,
-    body.is-party-entity #identityFinancialSection,
-    body.is-party-entity #identityCard,
-    body.is-party-entity #financialCard,
-    body.is-party-entity #criminalCard,
-    body.is-party-entity #graphCard {
+    body.is-summary-hidden #kpiStrip,
+    body.is-summary-hidden #kpiCardAssets,
+    body.is-summary-hidden #kpiCardLiabilities,
+    body.is-summary-hidden #kpiCardNetWorth,
+    body.is-summary-hidden #kpiCardCriminalCases,
+    body.is-summary-hidden #wealthTrajectoryCard,
+    body.is-summary-hidden #identityFinancialSection,
+    body.is-summary-hidden #identityCard,
+    body.is-summary-hidden #financialCard,
+    body.is-summary-hidden #graphCard {
       display: none !important;
     }
     body {
@@ -726,15 +725,6 @@
       </div>
     </section>
 
-    <!-- Party Details Overview (Visible only for Party Type) -->
-    <section class="card" id="partySummaryCard" hidden style="margin-bottom: 18px;">
-      <div class="card-head">
-        <span>Party Profile &amp; Affiliations</span>
-        <span class="card-sub" id="partyTypeSub">Political Organization</span>
-      </div>
-      <div id="partySummaryWrap"><div class="empty">Loading party details...</div></div>
-    </section>
-
     <!-- Multi-Term Wealth Trajectory & Asset Growth -->
     <section class="card" id="wealthTrajectoryCard" style="margin-bottom: 18px;">
       <div class="card-head">
@@ -774,12 +764,12 @@
       <div id="criminalTableWrap"><div class="empty">Checking linked criminal case records...</div></div>
     </section>
 
-    <section class="card" id="flowsCard">
+    <section class="card" id="rtiRecordsCard" style="margin-top:18px;" hidden>
       <div class="card-head">
-        <span>1-to-2 Hop Criminal Case Paths</span>
-        <span class="card-sub">Neo4j Graph Traversal</span>
+        <span id="rtiRecordsHeadTitle">Filed Public RTIs &amp; Official CPIO Replies</span>
+        <span class="card-sub" id="rtiRecordsSubTag">Neo4j (:RTIRecord)</span>
       </div>
-      <div id="flowsTableWrap"><div class="empty">Querying paths...</div></div>
+      <div id="rtiRecordsWrap"><div class="empty">Checking linked RTI records...</div></div>
     </section>
 
     <section class="card" id="connectionsCard">
@@ -792,6 +782,14 @@
         <button id="expandButton" class="btn" type="button" hidden>Load Next 100</button>
       </div>
       <div id="connectionsTableWrap"><div class="empty">Loading connections...</div></div>
+    </section>
+
+    <section class="card" id="flowsCard">
+      <div class="card-head">
+        <span>1-to-2 Hop Criminal Case Paths</span>
+        <span class="card-sub">Neo4j Graph Traversal</span>
+      </div>
+      <div id="flowsTableWrap"><div class="empty">Querying paths...</div></div>
     </section>
 
     <section class="card" id="graphCard">
@@ -813,9 +811,9 @@
 
   <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
   <script>
-    const API_BASE = (window.BP_CONFIG && window.BP_CONFIG.apiBase) || (['http:', 'https:'].includes(location.protocol)
-      ? `${location.protocol}//${location.hostname || '127.0.0.1'}:8000`
-      : 'http://127.0.0.1:8000');
+    const API_BASE = (window.BP_CONFIG && typeof window.BP_CONFIG.apiBase === 'string')
+      ? window.BP_CONFIG.apiBase
+      : (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '');
 
     function getCssVar(name, fallback) {
       return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -920,10 +918,62 @@
     const nodeId = params.get('id');
     const fromQuery = params.get('from') || '';
     const nodeTypeParam = params.get('type') || '';
-    let isCurrentParty = /party/i.test(nodeTypeParam) || (/party/i.test(nodeId || '') && !/part/i.test(nodeTypeParam));
-    if (isCurrentParty) {
-      document.body.classList.add('is-party-entity');
+
+    const SUMMARY_HIDDEN_TYPES = new Set([
+      'party',
+      'affidavit',
+      'affidavitchange',
+      'constituency',
+      'assemblyconstituency',
+      'election',
+      'electionrecord',
+      'electionresult',
+      'rtirecord',
+      'criminalcase',
+    ]);
+    const PERSON_LABELS = new Set(['person', 'mla', 'mp', 'minister', 'candidate', 'historicalmp']);
+
+    function normalizeTypeName(val) {
+      return String(val || '').trim().toLowerCase().replace(/[\s_-]+/g, '');
     }
+
+    function matchedHiddenTypeLabel(labels) {
+      return (labels || []).find((l) => SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(l))) || '';
+    }
+
+    function isPartyLabel(labels) {
+      return (labels || []).some((l) => normalizeTypeName(l) === 'party');
+    }
+
+    function shouldHideSummaryBlocks(focus, props, focusLabels) {
+      if (focusLabels.some((l) => PERSON_LABELS.has(normalizeTypeName(l)))) return false;
+      if (matchedHiddenTypeLabel(focusLabels)) return true;
+      const typeCandidates = [focus.type, props.type, props.entity_type, props.label, nodeTypeParam];
+      if (typeCandidates.some((v) => SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(v)))) return true;
+      if (String(props.entity_id || '').trim().toLowerCase().startsWith('party_')) return true;
+      return /^party([_:-]|$)/i.test(String(nodeId || '').trim());
+    }
+
+    function buildNodeHref(id, labelsOrType, extra) {
+      const q = new URLSearchParams({ id: String(id) });
+      const typeHint = Array.isArray(labelsOrType)
+        ? matchedHiddenTypeLabel(labelsOrType)
+        : (SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(labelsOrType)) ? String(labelsOrType) : '');
+      if (typeHint) q.set('type', typeHint);
+      if (extra) {
+        Object.entries(extra).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') q.set(k, String(v));
+        });
+      }
+      return `node.html?${q.toString()}`;
+    }
+
+    let isSummaryHidden = SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(nodeTypeParam))
+      || /^party([_:-]|$)/i.test(String(nodeId || '').trim());
+    if (isSummaryHidden) {
+      document.body.classList.add('is-summary-hidden');
+    }
+    let currentProfileData = null;
     let allConnections = [];
     let currentLimit = 100;
 
@@ -976,7 +1026,7 @@
       cy.on('tap', 'node', (e) => {
         const targetId = e.target.id();
         if (targetId && targetId !== nodeId) {
-          location.href = `node.html?${new URLSearchParams({ id: targetId, from: fromQuery })}`;
+          location.href = buildNodeHref(targetId, e.target.data('typeHint') || '', { from: fromQuery });
         }
       });
     }
@@ -1101,12 +1151,15 @@
       wrap.innerHTML = `<div style="overflow-x:auto;">
         <table class="clean-table">
           <thead><tr><th>Relationship</th><th>Connected Entity</th><th>Type</th><th>Action</th></tr></thead>
-          <tbody>${filtered.map((c) => `<tr>
-            <td class="mono" style="font-size:12px; color:var(--muted);">${escapeHtml(c.relType)}</td>
-            <td><a href="node.html?id=${encodeURIComponent(c.id)}" style="font-weight:600;">${escapeHtml(c.name)}</a></td>
-            <td><span class="pill">${escapeHtml(c.type)}</span></td>
-            <td><a href="node.html?id=${encodeURIComponent(c.id)}">Open →</a></td>
-          </tr>`).join('')}</tbody>
+          <tbody>${filtered.map((c) => {
+            const href = buildNodeHref(c.id, c.typeHint);
+            return `<tr>
+              <td class="mono" style="font-size:12px; color:var(--muted);">${escapeHtml(c.relType)}</td>
+              <td><a href="${escapeHtml(href)}" style="font-weight:600;">${escapeHtml(c.name)}</a></td>
+              <td><span class="pill">${escapeHtml(c.type)}</span></td>
+              <td><a href="${escapeHtml(href)}">Open →</a></td>
+            </tr>`;
+          }).join('')}</tbody>
         </table>
       </div>`;
     }
@@ -1116,6 +1169,14 @@
       const wrapEl = document.getElementById('wealthTrajectoryWrap');
       const subTagEl = document.getElementById('trajectorySubTag');
       const badgeEl = document.getElementById('trajectoryBadge');
+
+      if (isSummaryHidden) {
+        if (cardEl) {
+          cardEl.hidden = true;
+          cardEl.style.display = 'none';
+        }
+        return;
+      }
 
       const nodes = data.nodes || [];
       const pointsByYear = new Map();
@@ -1356,18 +1417,13 @@
       const dataEdges = data.edges || [];
       const displayName = resolveDisplayName(focus);
 
-      const isParty = focusLabels.some((l) => String(l).toLowerCase() === 'party')
-        || String(props.type || '').toLowerCase() === 'party'
-        || String(focus.type || '').toLowerCase() === 'party'
-        || String(props.entity_type || '').toLowerCase() === 'party'
-        || String(props.label || '').toLowerCase() === 'party'
-        || /party/i.test(nodeTypeParam)
-        || (/party/i.test(nodeId || '') && !focusLabels.some(l => ['person', 'mla', 'mp', 'minister', 'candidate'].includes(String(l).toLowerCase())));
+      const hideSummary = shouldHideSummaryBlocks(focus, props, focusLabels);
+      const isParty = isPartyLabel(focusLabels) || String(props.entity_id || '').trim().toLowerCase().startsWith('party_');
+      isSummaryHidden = hideSummary;
+      document.body.classList.toggle('is-summary-hidden', hideSummary);
 
-      isCurrentParty = isParty;
-      document.body.classList.toggle('is-party-entity', isParty);
-
-      const partyBoxes = [
+      // Hide KPI summary cards, Wealth Trajectory, Identity/Financial cards, and Relationship Graph for non-person entity types.
+      const summaryHiddenBlocks = [
         document.getElementById('kpiStrip'),
         document.getElementById('kpiCardAssets'),
         document.getElementById('kpiCardLiabilities'),
@@ -1377,26 +1433,28 @@
         document.getElementById('identityFinancialSection'),
         document.getElementById('identityCard'),
         document.getElementById('financialCard'),
-        document.getElementById('criminalCard'),
         document.getElementById('graphCard')
       ];
-      partyBoxes.forEach((el) => {
+      summaryHiddenBlocks.forEach((el) => {
         if (el) {
-          el.hidden = isParty;
-          el.style.display = isParty ? 'none' : '';
+          el.hidden = hideSummary;
+          el.style.display = hideSummary ? 'none' : '';
         }
       });
+
+      const flagBtn = document.getElementById('flagBtn');
+      if (flagBtn) flagBtn.style.display = '';
 
       document.getElementById('entityTitle').textContent = displayName;
       document.title = `${displayName} — Bharat Praman`;
       document.getElementById('trailCurrent').textContent = displayName;
       document.getElementById('avatarInitials').textContent = initialsFor(displayName);
-      document.getElementById('entityTypeTag').textContent = isParty ? 'Political Party' : (focusLabels.join(' · ') || 'Entity');
+      document.getElementById('entityTypeTag').textContent = focusLabels.join(' · ') || 'Entity';
 
       const photoUrl = props.photo_url || props.image_url || props.photo || props.avatar_url;
       const photoEl = document.getElementById('candidatePhoto');
       const initEl = document.getElementById('avatarInitials');
-      if (!isParty && photoUrl && /^https?:\/\//i.test(String(photoUrl))) {
+      if (!hideSummary && photoUrl && /^https?:\/\//i.test(String(photoUrl))) {
         photoEl.onload = () => { photoEl.hidden = false; initEl.hidden = true; };
         photoEl.onerror = () => { photoEl.hidden = true; initEl.hidden = false; };
         photoEl.src = photoUrl;
@@ -1415,27 +1473,20 @@
       const stateNodes = dataNodes.filter((n) => (n.labels || []).includes('State')).map((n) => resolveDisplayName(n));
       const ministryNodes = dataNodes.filter((n) => (n.labels || []).includes('Ministry')).map((n) => resolveDisplayName(n));
 
-      const partyStr = isParty ? '' : (partyNodes.join(', ') || props.party_name || '');
+      const partyStr = partyNodes.join(', ') || props.party_name || '';
       const consStr = consNodes.join(', ') || props.constituency || '';
       const stateStr = stateNodes.join(', ') || props.state || '';
-      const caseCount = isParty ? 0 : Number(props.criminal_case_count || 0);
+      const caseCount = Number(props.criminal_case_count || 0);
 
       const badges = [];
-      if (isParty) {
-        const fb = document.getElementById("flagBtn"); if (fb) fb.style.display = "none";
-        badges.push('<span class="pill pill-accent">Political Party</span>');
-        if (stateStr) badges.push(`<span class="pill">${escapeHtml(stateStr)}</span>`);
-        if (props.abbreviation || props.short_name) badges.push(`<span class="pill mono">${escapeHtml(props.abbreviation || props.short_name)}</span>`);
-      } else {
-        focusLabels.forEach((l) => badges.push(`<span class="pill pill-accent">${escapeHtml(l)}</span>`));
-        if (partyStr) badges.push(`<span class="pill">${escapeHtml(partyStr)}</span>`);
-        if (consStr || stateStr) badges.push(`<span class="pill">${escapeHtml([consStr, stateStr].filter(Boolean).join(', '))}</span>`);
-        if (props.terms != null) badges.push(`<span class="pill">${escapeHtml(props.terms)} Term(s)</span>`);
-        if (caseCount > 0) badges.push(`<span class="pill pill-danger">${caseCount} Criminal Case(s)</span>`);
-      }
+      focusLabels.forEach((l) => badges.push(`<span class="pill pill-accent">${escapeHtml(l)}</span>`));
+      if (partyStr) badges.push(`<span class="pill">${escapeHtml(partyStr)}</span>`);
+      if (consStr || stateStr) badges.push(`<span class="pill">${escapeHtml([consStr, stateStr].filter(Boolean).join(', '))}</span>`);
+      if (props.terms != null) badges.push(`<span class="pill">${escapeHtml(props.terms)} Term(s)</span>`);
+      if (caseCount > 0) badges.push(`<span class="pill pill-danger">${caseCount} Criminal Case(s)</span>`);
       document.getElementById('heroBadges').innerHTML = badges.join('');
 
-      const isPolitician = !isParty && focusLabels.some((l) => ['person', 'mla', 'mp', 'minister', 'candidate'].includes(String(l).toLowerCase()));
+      const isPolitician = !hideSummary && focusLabels.some((l) => PERSON_LABELS.has(normalizeTypeName(l)));
       const entityId = props.entity_id || props.id || focus.id;
       const rtiLink = document.getElementById('rti-link');
       if (isPolitician) {
@@ -1446,35 +1497,14 @@
       }
       document.getElementById('graph-link').href = `graph.html?${new URLSearchParams({ query: displayName, filter: 'all', mode: 'keyword' })}`;
 
-      // Show Party Details overview card if isParty
-      const partySummaryCard = document.getElementById('partySummaryCard');
-      if (partySummaryCard) {
-        partySummaryCard.hidden = !isParty;
-        if (isParty) {
-        const fb = document.getElementById("flagBtn"); if (fb) fb.style.display = "none";
-          partySummaryCard.style.display = '';
-          const pWrap = document.getElementById('partySummaryWrap');
-          const partyRows = [
-            ['Political Party', displayName, ''],
-            ['Party Code / Abbr', props.abbreviation || props.short_name || props.code || '—', 'mono'],
-            ['Recognized Status', props.status || props.party_type || 'Registered Political Party', ''],
-            ['State / Jurisdiction', stateStr || props.state || 'National / Multi-State', ''],
-            ['Database Reference ID', props.entity_id || focus.id, 'mono']
-          ];
-          pWrap.replaceChildren(buildKeyValTable(partyRows));
-        } else {
-          partySummaryCard.style.display = 'none';
-        }
-      }
+      const hasAssets = hasNumericValue(props.total_assets);
+      const hasLiab = hasNumericValue(props.liabilities);
+      const assets = Number(props.total_assets);
+      const liab = Number(props.liabilities);
+      const netWorth = hasAssets && hasLiab ? assets - liab : (hasAssets ? assets : null);
+      const netNeg = netWorth !== null && netWorth < 0;
 
-      if (!isParty) {
-        const hasAssets = hasNumericValue(props.total_assets);
-        const hasLiab = hasNumericValue(props.liabilities);
-        const assets = Number(props.total_assets);
-        const liab = Number(props.liabilities);
-        const netWorth = hasAssets && hasLiab ? assets - liab : (hasAssets ? assets : null);
-        const netNeg = netWorth !== null && netWorth < 0;
-
+      if (!hideSummary) {
         document.getElementById('kpiAssets').textContent = fmtCompact(props.total_assets);
         document.getElementById('kpiAssetsExact').textContent = fmtExact(props.total_assets);
         document.getElementById('kpiLiabilities').textContent = fmtCompact(props.liabilities);
@@ -1485,18 +1515,20 @@
         const casesEl = document.getElementById('kpiCases');
         casesEl.textContent = String(props.criminal_case_count ?? 0);
         casesEl.classList.toggle('alert-text', caseCount > 0);
+      }
 
-        const alerts = [];
-        if (caseCount > 0) alerts.push(`Affidavit Alert: ${caseCount} declared criminal case(s).`);
-        if (netNeg) alerts.push('Financial Alert: Declared liabilities exceed total assets.');
-        const alertEl = document.getElementById('alertBanner');
-        if (alerts.length) {
-          alertEl.textContent = alerts.join('  •  ');
-          alertEl.hidden = false;
-        } else {
-          alertEl.hidden = true;
-        }
+      const alerts = [];
+      if (!isParty && caseCount > 0) alerts.push(`Affidavit Alert: ${caseCount} declared criminal case(s).`);
+      if (!isParty && netNeg) alerts.push('Financial Alert: Declared liabilities exceed total assets.');
+      const alertEl = document.getElementById('alertBanner');
+      if (alerts.length) {
+        alertEl.textContent = alerts.join('  •  ');
+        alertEl.hidden = false;
+      } else {
+        alertEl.hidden = true;
+      }
 
+      if (!hideSummary) {
         const profStr = Array.isArray(props.profession) ? props.profession.join(', ') : (props.profession || '—');
         document.getElementById('identityTableWrap').replaceChildren(buildKeyValTable([
           ['Full Name', displayName, ''],
@@ -1521,38 +1553,35 @@
           ['Council / Responsibilities', props.council_section || props.special_responsibilities || '—', ''],
         ]));
 
-        // Render Multi-Term Wealth Trajectory & Asset Growth Visualizer
         renderWealthTrajectory(data, props, displayName, isPolitician);
+      }
 
-        const caseNodes = dataNodes.filter((n) => (n.labels || []).some((l) => String(l).toLowerCase().includes('case')));
-        document.getElementById('criminalCountTag').textContent = `${caseNodes.length} linked node(s) · Affidavit count: ${caseCount}`;
-        const crimWrap = document.getElementById('criminalTableWrap');
-        if (!caseNodes.length) {
-          crimWrap.innerHTML = `<div class="empty">${caseCount > 0 ? `Affidavit reports ${caseCount} case(s); see 1-to-2 hop paths below.` : 'No criminal case nodes linked to this profile.'}</div>`;
-        } else {
-          crimWrap.innerHTML = `<div style="overflow-x:auto;">
-            <table class="clean-table">
-              <thead><tr><th>#</th><th>Case</th><th>FIR / Station</th><th>Court</th><th>Status</th><th>IPC Sections</th><th>Inspect</th></tr></thead>
-              <tbody>${caseNodes.map((cn, idx) => {
-                const cp = cn.properties || {};
-                const ipcs = Array.isArray(cp.ipc_sections) ? cp.ipc_sections : (cp.ipc_sections ? [cp.ipc_sections] : []);
-                const ipcHtml = ipcs.length ? ipcs.map((s) => `<span class="ipc-badge">IPC ${escapeHtml(s)}</span>`).join('') : '—';
-                return `<tr>
-                  <td class="mono">${idx + 1}</td>
-                  <td style="font-weight:600;">${escapeHtml(resolveDisplayName(cn))}</td>
-                  <td class="mono">${escapeHtml(cp.fir_no || '—')}</td>
-                  <td>${escapeHtml(cp.court || '—')}</td>
-                  <td>${escapeHtml(cp.status || '—')}</td>
-                  <td>${ipcHtml}</td>
-                  <td><a href="node.html?id=${encodeURIComponent(cn.id)}">Open →</a></td>
-                </tr>`;
-              }).join('')}</tbody>
-            </table>
-          </div>`;
-        }
+      const caseNodes = dataNodes.filter((n) => (n.labels || []).some((l) => String(l).toLowerCase().includes('case')));
+      document.getElementById('criminalCountTag').textContent = `${caseNodes.length} linked node(s) · Affidavit count: ${caseCount}`;
+      const crimWrap = document.getElementById('criminalTableWrap');
+      if (!caseNodes.length) {
+        crimWrap.innerHTML = `<div class="empty">${caseCount > 0 ? `Affidavit reports ${caseCount} case(s); see 1-to-2 hop paths below.` : 'No criminal case nodes linked to this profile.'}</div>`;
       } else {
-        const alertEl = document.getElementById('alertBanner');
-        if (alertEl) alertEl.hidden = true;
+        crimWrap.innerHTML = `<div style="overflow-x:auto;">
+          <table class="clean-table">
+            <thead><tr><th>#</th><th>Case</th><th>FIR / Station</th><th>Court</th><th>Status</th><th>IPC Sections</th><th>Inspect</th></tr></thead>
+            <tbody>${caseNodes.map((cn, idx) => {
+              const cp = cn.properties || {};
+              const ipcs = Array.isArray(cp.ipc_sections) ? cp.ipc_sections : (cp.ipc_sections ? [cp.ipc_sections] : []);
+              const ipcHtml = ipcs.length ? ipcs.map((s) => `<span class="ipc-badge">IPC ${escapeHtml(s)}</span>`).join('') : '—';
+              const caseHref = buildNodeHref(cn.id, cn.labels || 'CriminalCase');
+              return `<tr>
+                <td class="mono">${idx + 1}</td>
+                <td style="font-weight:600;">${escapeHtml(resolveDisplayName(cn))}</td>
+                <td class="mono">${escapeHtml(cp.fir_no || '—')}</td>
+                <td>${escapeHtml(cp.court || '—')}</td>
+                <td>${escapeHtml(cp.status || '—')}</td>
+                <td>${ipcHtml}</td>
+                <td><a href="${escapeHtml(caseHref)}">Open →</a></td>
+              </tr>`;
+            }).join('')}</tbody>
+          </table>
+        </div>`;
       }
 
       allConnections = dataEdges.map((e) => {
@@ -1563,6 +1592,7 @@
           relType: e.type,
           name: resolveDisplayName(other),
           type: (other?.labels || [])[0] || 'Entity',
+          typeHint: matchedHiddenTypeLabel(other?.labels),
         };
       });
       document.getElementById('connCountTag').textContent = `${data.total_edges ?? dataEdges.length} total edge(s)`;
@@ -1586,14 +1616,14 @@
       document.getElementById('graphStatsTag').textContent = `${nodesById.size} nodes · ${dataEdges.length} edges`;
       const graphEl = document.getElementById('graph');
       const graphEmptyEl = document.getElementById('graphEmpty');
-      if (cy && dataEdges.length && !isParty) {
+      if (cy && dataEdges.length && !hideSummary) {
         graphEl.hidden = false;
         graphEmptyEl.hidden = true;
         const elements = [];
         nodesById.forEach((n, idStr) => {
           elements.push({
             group: 'nodes',
-            data: { id: idStr, label: resolveDisplayName(n) },
+            data: { id: idStr, label: resolveDisplayName(n), typeHint: matchedHiddenTypeLabel(n.labels) },
             classes: [...(n.labels || []).map((x) => String(x).toLowerCase()), ...(idStr === String(focus.id) ? ['focus'] : [])].join(' '),
           });
         });
@@ -1617,6 +1647,118 @@
       }
     }
 
+    function renderRtiSection(data) {
+      const focus = data.node || {};
+      const props = focus.properties || {};
+      const labels = (focus.labels || []).map((l) => String(l));
+      const isRtiNode = labels.includes('RTIRecord');
+      const rtiCard = document.getElementById('rtiRecordsCard');
+      const rtiWrap = document.getElementById('rtiRecordsWrap');
+      const rtiTitle = document.getElementById('rtiRecordsHeadTitle');
+      const rtiSub = document.getElementById('rtiRecordsSubTag');
+      if (!rtiCard || !rtiWrap) return;
+
+      const statusBadge = (st) => {
+        const s = String(st || 'partial_response').toLowerCase();
+        const label = s.replace(/_/g, ' ').toUpperCase();
+        if (s.includes('full')) return `<span class="pill pill-accent">${escapeHtml(label)}</span>`;
+        if (s.includes('no')) return `<span class="pill pill-danger">${escapeHtml(label)}</span>`;
+        return `<span class="pill">${escapeHtml(label)}</span>`;
+      };
+
+      if (isRtiNode) {
+        const wtCard = document.getElementById('wealthTrajectoryCard');
+        if (wtCard) wtCard.hidden = true;
+        const rtiLink = document.getElementById('rti-link');
+        if (rtiLink && props.admin_pdf_url) {
+          rtiLink.href = props.admin_pdf_url;
+          rtiLink.target = '_blank';
+          rtiLink.rel = 'noopener';
+          rtiLink.textContent = 'View Official Reply PDF ↗';
+          rtiLink.hidden = false;
+        }
+        const qs = Array.isArray(props.questions) ? props.questions : (props.questions ? [props.questions] : []);
+        const tags = Array.isArray(props.tags) ? props.tags : [];
+        rtiTitle.textContent = 'Filed RTI Questions & Official CPIO Reply';
+        rtiSub.textContent = `${props.department || 'CPIO'} · ${props.date_filed || 'Filed RTI'}`;
+        rtiWrap.innerHTML = `
+          <div style="padding:16px 18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+              <div>${statusBadge(props.response_status)} <span class="pill">${escapeHtml(props.department || 'Public Authority')}</span> <span class="pill">${escapeHtml(props.state || 'Central Government')}</span></div>
+              ${props.admin_pdf_url ? `<a href="${escapeHtml(props.admin_pdf_url)}" target="_blank" rel="noopener" class="btn btn-primary">Open Official Stamped Reply PDF ↗</a>` : ''}
+            </div>
+            ${props.subject ? `<p style="font-size:13.5px; color:var(--fg); margin:0 0 12px 0;"><strong>Subject:</strong> ${escapeHtml(props.subject)}</p>` : ''}
+            ${qs.length ? `<div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Questions Asked Under Section 6(1)</div><ol style="margin:0; padding-left:20px; font-size:13px; line-height:1.55;">${qs.map((q) => `<li style="margin-bottom:4px;">${escapeHtml(q)}</li>`).join('')}</ol></div>` : ''}
+            <div style="background:var(--surface-soft); border:1px solid var(--border); border-radius:8px; padding:12px 14px;">
+              <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Official CPIO Response Summary</div>
+              <p style="font-size:13.5px; line-height:1.55; margin:0; color:var(--fg);">${escapeHtml(props.response_summary || 'No summary text recorded.')}</p>
+            </div>
+            ${tags.length ? `<div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">${tags.map((tg) => `<span class="pill" style="font-size:11px;">${escapeHtml(tg)}</span>`).join('')}</div>` : ''}
+          </div>`;
+        rtiCard.hidden = false;
+        return;
+      }
+
+      const linkedRtis = (data.nodes || []).filter((n) => (n.labels || []).includes('RTIRecord'));
+      if (!linkedRtis.length) {
+        rtiCard.hidden = true;
+        return;
+      }
+      rtiTitle.textContent = 'Filed Public RTIs & Official CPIO Replies Linked to This Leader';
+      rtiSub.textContent = `${linkedRtis.length} Neo4j (:RTIRecord) node(s) via [:FILED_ABOUT]`;
+      rtiWrap.innerHTML = `<div style="overflow-x:auto;">
+        <table class="clean-table">
+          <thead><tr><th>#</th><th>RTI Title &amp; Subject</th><th>Public Authority</th><th>Status</th><th>Official CPIO Reply Summary</th><th>Source / Inspect</th></tr></thead>
+          <tbody>${linkedRtis.map((rn, idx) => {
+            const rp = rn.properties || {};
+            const sum = String(rp.response_summary || rp.subject || '—');
+            const shortSum = sum.length > 220 ? sum.slice(0, 220) + '...' : sum;
+            const rtiHref = buildNodeHref(rn.id, rn.labels || 'RTIRecord');
+            return `<tr>
+              <td class="mono">${idx + 1}</td>
+              <td><a href="${escapeHtml(rtiHref)}" style="font-weight:600;">${escapeHtml(resolveDisplayName(rn))}</a>${rp.date_filed ? `<div class="mono" style="font-size:11px; color:var(--muted); margin-top:2px;">Filed: ${escapeHtml(rp.date_filed)}</div>` : ''}</td>
+              <td style="font-size:12.5px;">${escapeHtml(rp.department || 'Lok Sabha Secretariat')}</td>
+              <td>${statusBadge(rp.response_status)}</td>
+              <td style="font-size:12.5px; line-height:1.45; max-width:360px;">${escapeHtml(shortSum)}</td>
+              <td style="white-space:nowrap;">
+                ${rp.admin_pdf_url ? `<a href="${escapeHtml(rp.admin_pdf_url)}" target="_blank" rel="noopener" style="margin-right:8px; font-weight:600;">Official PDF ↗</a>` : ''}
+                <a href="${escapeHtml(rtiHref)}">Open →</a>
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>`;
+      rtiCard.hidden = false;
+    }
+
+    function showAuditFeedModal(data) {
+      const flags = data.flags || [];
+      const modal = document.getElementById('auditFeedModal');
+      const list = document.getElementById('auditFeedList');
+      const closeBtn = document.getElementById('auditFeedClose');
+      const subtitle = document.getElementById('auditFeedSubtitle');
+
+      subtitle.textContent = `Audit reports attached to ${resolveDisplayName(data.node)}`;
+
+      if (!flags.length) {
+        list.innerHTML = '<div style="color:var(--muted); font-size:13px;">No community audit notes for this profile.</div>';
+      } else {
+        list.innerHTML = flags.map((f) => `
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <span class="tag-pill" style="font-size:11px; font-weight:700;">${escapeHtml(f.category || 'DISCREPANCY')}</span>
+              <span class="mono" style="font-size:11.5px; color:var(--muted);">${escapeHtml(String(f.created_at || '').slice(0, 10))} · ${escapeHtml(f.status || 'PENDING_REVIEW')}</span>
+            </div>
+            <p style="font-size:13px; color:var(--fg); line-height:1.45; margin:0 0 6px 0;">${escapeHtml(f.claimed_correction || '')}</p>
+            ${f.source_url ? `<div style="font-size:12px;"><a href="${escapeHtml(f.source_url)}" target="_blank" rel="noopener">Evidence Source ↗</a></div>` : ''}
+          </div>
+        `).join('');
+      }
+
+      modal.hidden = false;
+      closeBtn.onclick = () => { modal.hidden = true; };
+    }
+
     async function loadFlows() {
       const wrap = document.getElementById('flowsTableWrap');
       const flowsCard = document.getElementById('flowsCard');
@@ -1625,11 +1767,7 @@
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const res = await resp.json();
         if (!res.paths || !res.paths.length) {
-          if (isCurrentParty) {
-            if (flowsCard) flowsCard.hidden = true;
-          } else {
-            wrap.innerHTML = '<div class="empty">No 1-to-2 hop path to a criminal case node found.</div>';
-          }
+          wrap.innerHTML = '<div class="empty">No 1-to-2 hop path to a criminal case node found.</div>';
           return;
         }
         if (flowsCard) flowsCard.hidden = false;
@@ -1641,7 +1779,8 @@
               const pEdges = p.edges || [];
               const chain = pNodes.map((n, ni) => {
                 const label = resolveDisplayName(n);
-                const link = `<a href="node.html?id=${encodeURIComponent(n.id)}" style="font-weight:600;">${escapeHtml(label)}</a>`;
+                const href = buildNodeHref(n.id, n.labels);
+                const link = `<a href="${escapeHtml(href)}" style="font-weight:600;">${escapeHtml(label)}</a>`;
                 const edge = ni < pEdges.length ? ` <span class="mono" style="color:var(--muted);">—[${escapeHtml(pEdges[ni].type)}]→</span> ` : '';
                 return link + edge;
               }).join('');

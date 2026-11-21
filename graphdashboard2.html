@@ -1237,14 +1237,16 @@
                 const party = p.party_name || p.state || p.district || p.court || p.status || '—';
                 const assets = p.total_assets != null ? formatInrCompact(p.total_assets) : '—';
                 const isRep = /person|mp|mla/i.test((n.labels || []).join(' ')) || Boolean(p.entity_id);
+                const hiddenType = (n.labels || []).find((l) => ['party', 'affidavit', 'affidavitchange', 'constituency', 'assemblyconstituency', 'election', 'electionrecord', 'electionresult', 'rtirecord', 'criminalcase'].includes(String(l).trim().toLowerCase().replace(/[\s_-]+/g, ''))) || '';
+                const nodeHref = `node.html?id=${encodeURIComponent(n.id)}${hiddenType ? `&type=${encodeURIComponent(hiddenType)}` : ''}`;
                 const rtiHref = `rti/rti_page.html?id=${encodeURIComponent(p.entity_id || n.id)}&name=${encodeURIComponent(displayName)}`;
                 return `<tr>
-                  <td><a href="node.html?id=${encodeURIComponent(n.id)}" style="font-weight:600;">${escapeHtml(displayName)}</a></td>
+                  <td><a href="${escapeHtml(nodeHref)}" style="font-weight:600;">${escapeHtml(displayName)}</a></td>
                   <td><span class="tag-pill">${escapeHtml(nodeType)}</span></td>
                   <td>${escapeHtml(party)}</td>
                   <td class="num ${cases > 0 ? 'alert-text' : ''}">${cases > 0 ? cases : '0'}</td>
                   <td class="num">${escapeHtml(assets)}</td>
-                  <td style="white-space:nowrap;">${isRep ? `<a href="${escapeHtml(rtiHref)}" style="margin-right:8px;">Draft RTI →</a><a href="node.html?id=${encodeURIComponent(n.id)}#flag" style="font-size:11.5px; color:var(--muted);" title="Submit an audit annotation or discrepancy report">Flag Discrepancy</a>` : `<a href="node.html?id=${encodeURIComponent(n.id)}">Inspect →</a>`}</td>
+                  <td style="white-space:nowrap;">${isRep ? `<a href="${escapeHtml(rtiHref)}" style="margin-right:8px;">Draft RTI →</a><a href="${escapeHtml(nodeHref)}#flag" style="font-size:11.5px; color:var(--muted);" title="Submit an audit annotation or discrepancy report">Flag Discrepancy</a>` : `<a href="${escapeHtml(nodeHref)}">Inspect →</a>`}</td>
                 </tr>`;
               }).join('')}</tbody>
             </table>
