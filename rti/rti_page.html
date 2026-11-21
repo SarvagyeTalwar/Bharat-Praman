@@ -801,6 +801,8 @@
       border-radius: 10px;
       width: 32px;
       height: 32px;
+      min-width: 32px;
+      flex-shrink: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -809,6 +811,20 @@
       color: var(--fg);
       font-weight: 700;
       transition: all 0.15s ease;
+    }
+    .raw-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 220px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 12px 14px;
+      border: 2px solid var(--border-strong);
+      border-radius: 12px;
+      background: var(--surface-soft);
+      color: var(--fg);
+      resize: vertical;
     }
     .modal-close-btn:hover {
       background: var(--duo-red-soft);
