@@ -2173,6 +2173,7 @@ _ALLOWED_UI_EXTS = {".html", ".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".i
 
 
 @app.get("/rti_scraper/pdfs/{filename}")
+@app.get("/pdfs/{filename}")
 def _serve_pdf_asset(filename: str):
     if "/" in filename or "\\" in filename or filename.startswith("."):
         raise HTTPException(status_code=404, detail="Not found")
