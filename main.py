@@ -3,6 +3,7 @@
 import os
 import uuid
 import datetime
+import difflib
 from typing import Optional
 import logging
 import json
@@ -476,6 +477,15 @@ LIMIT 8
 RETURN elementId(n) AS id, name AS label, labels(n) AS labels
 """
 
+NODE_TOKEN_CANDIDATE_SEARCH = f"""
+MATCH (n)
+WITH n, {display_name('n')} AS name
+WHERE any(tok IN $tokens WHERE toLower(coalesce(name, '')) CONTAINS tok)
+   OR any(key IN keys(n) WHERE any(tok IN $tokens WHERE toLower(toString(n[key])) CONTAINS tok))
+RETURN elementId(n) AS id, name AS label, labels(n) AS labels
+LIMIT 50
+"""
+
 RELATION_SEARCH = f"""
 MATCH (source)-[r]->(target)
 WITH source, r, target,
@@ -870,6 +880,7 @@ def search_graph(request: SearchRequest):
         focus_ids = []
         connection_count = 0
         connection_offset = 0
+        did_you_mean = None
 
         if request.filter in {"all", "nodes"}:
             matches, _, _ = driver.execute_query(
@@ -879,6 +890,37 @@ def search_graph(request: SearchRequest):
                 routing_="r",
             )
             nodes = [record.data() for record in matches]
+
+            # Fuzzy fallback if exact query returned 0 matches
+            if not nodes:
+                tokens = [t.lower() for t in re.findall(r"[A-Za-z0-9]+", query) if len(t) >= 2]
+                prefixes = [t[:4] for t in tokens if len(t) >= 4]
+                search_tokens = list(dict.fromkeys(tokens + prefixes))
+                if search_tokens:
+                    try:
+                        cand_matches, _, _ = driver.execute_query(
+                            NODE_TOKEN_CANDIDATE_SEARCH,
+                            parameters_={"tokens": search_tokens},
+                            database_=NEO4J_DATABASE,
+                            routing_="r",
+                        )
+                        candidates = [record.data() for record in cand_matches]
+                        scored = []
+                        q_lower = query.lower()
+                        for c in candidates:
+                            lbl = str(c.get("label", "")).lower()
+                            ratio = difflib.SequenceMatcher(None, q_lower, lbl).ratio()
+                            tok_sims = [difflib.SequenceMatcher(None, qt, nt).ratio() for qt in q_lower.split() for nt in lbl.split()]
+                            sim_score = max(ratio, max(tok_sims) * 0.9 if tok_sims else 0)
+                            if sim_score >= 0.5:
+                                scored.append((sim_score, c))
+                        scored.sort(key=lambda x: x[0], reverse=True)
+                        nodes = [x[1] for x in scored[:8]]
+                        if nodes:
+                            did_you_mean = nodes[0].get("label")
+                    except Exception as fuzzy_err:
+                        logger.warning("Fuzzy fallback search failed: %s", fuzzy_err)
+
             exact_nodes = [
                 node for node in nodes
                 if str(node.get("label", "")).casefold() == query.casefold()
@@ -965,6 +1007,8 @@ def search_graph(request: SearchRequest):
             "connection_count": connection_count,
             "connection_offset": connection_offset,
             "has_more_connections": connection_offset < connection_count,
+            "did_you_mean": did_you_mean,
+            "is_fuzzy": bool(did_you_mean and did_you_mean.casefold() != query.casefold()),
         }
     except (Neo4jError, DriverError):
         logger.exception("Neo4j graph search failed")

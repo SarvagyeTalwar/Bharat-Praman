@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+  <script src="../fuzzy-utils.js"></script>
   <style>
     :root {
       color-scheme: light;
@@ -966,6 +967,7 @@
         <div class="input-group">
           <label class="input-label" for="customRepInput">Enter Representative, Ministry, or Authority Name:</label>
           <input type="text" id="customRepInput" class="duo-input" placeholder="Type name (e.g. Rahul Gandhi, Shashi Tharoor, Ministry of Railways, Lok Sabha Secretariat)..." />
+          <div id="repFuzzyHint" style="margin-top:8px; font-size:12.5px; color:var(--navy); font-weight:600; display:flex; align-items:center; gap:6px;" hidden></div>
         </div>
 
         <!-- Resolved Authority Snapshot Table -->
@@ -1386,25 +1388,74 @@
       }
     }
 
-    // Step 1: User Text Input for Authority
+    // Step 1: User Text Input for Authority with Fuzzy Typo Resilience
     const repInput = document.getElementById('customRepInput');
-    if (repInput) {
-      repInput.value = repName;
-      repInput.addEventListener('input', (e) => {
-        const val = e.target.value.trim();
-        repName = val || 'Designated Public Authority';
+    const fuzzyHint = document.getElementById('repFuzzyHint');
+
+    window.applyAuthorityCorrection = function (canonicalName) {
+      if (repInput) repInput.value = canonicalName;
+      resolveAndApplyAuthority(canonicalName);
+      if (fuzzyHint) fuzzyHint.hidden = true;
+    };
+
+    function resolveAndApplyAuthority(rawVal) {
+      const val = rawVal.trim();
+      repName = val || 'Designated Public Authority';
+
+      let autoResolved = null;
+      if (window.BP_FUZZY && val.length >= 3) {
+        autoResolved = BP_FUZZY.resolveKnownAuthority(val);
+      }
+
+      let activeTarget = repName;
+      if (autoResolved) {
+        const canonical = autoResolved.matched;
+        activeTarget = canonical;
+        const isMinistry = canonical.toLowerCase().includes('ministry');
+        house = isMinistry ? 'UNION_MINISTRY' : 'LOK_SABHA';
+        constituency = isMinistry ? 'Central Secretariat, New Delhi' : 'Jurisdiction / Parliamentary House';
+        entityId = canonical.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+        if (fuzzyHint) {
+          if (val.toLowerCase() !== canonical.toLowerCase()) {
+            fuzzyHint.hidden = false;
+            fuzzyHint.innerHTML = `Auto-recognized authority: <span style="text-decoration:underline; cursor:pointer;" onclick="applyAuthorityCorrection('${canonical}')"><strong>${canonical}</strong></span> (CPIO details mapped)`;
+          } else {
+            fuzzyHint.hidden = false;
+            fuzzyHint.innerHTML = `Identified: <strong>${canonical}</strong> (Statutory CPIO &amp; address mapped)`;
+          }
+        }
+      } else {
         house = val.toLowerCase().includes('ministry') ? 'UNION_MINISTRY' : 'LOK_SABHA';
         constituency = house === 'UNION_MINISTRY' ? 'Central Secretariat, New Delhi' : 'Jurisdiction / Parliamentary House';
         entityId = val.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        updateAuthorityDisplay();
-        refreshPresetTexts();
+        if (fuzzyHint) fuzzyHint.hidden = true;
+      }
+
+      updateAuthorityDisplay(activeTarget);
+      refreshPresetTexts();
+    }
+
+    if (repInput) {
+      repInput.value = repName;
+      repInput.addEventListener('input', (e) => {
+        resolveAndApplyAuthority(e.target.value);
       });
     }
 
-    function updateAuthorityDisplay() {
-      document.getElementById('dispTargetName').textContent = repName;
-      if (house === 'UNION_MINISTRY') {
-        document.getElementById('dispPioName').textContent = `Central Public Information Officer (CPIO), ${repName}`;
+    function updateAuthorityDisplay(activeTarget) {
+      const displayLabel = activeTarget || repName;
+      document.getElementById('dispTargetName').textContent = displayLabel;
+      const lower = displayLabel.toLowerCase();
+
+      if (lower.includes('election')) {
+        document.getElementById('dispPioName').textContent = 'Central Public Information Officer (CPIO), Election Commission of India';
+        document.getElementById('dispPioAddr').textContent = 'Nirvachan Sadan, Ashoka Road, New Delhi - 110001';
+      } else if (lower.includes('niti')) {
+        document.getElementById('dispPioName').textContent = 'Central Public Information Officer (CPIO), NITI Aayog';
+        document.getElementById('dispPioAddr').textContent = 'NITI Bhawan, Sansad Marg, New Delhi - 110001';
+      } else if (house === 'UNION_MINISTRY' || lower.includes('ministry')) {
+        document.getElementById('dispPioName').textContent = `Central Public Information Officer (CPIO), ${displayLabel}`;
         document.getElementById('dispPioAddr').textContent = 'Central RTI Cell, Concerned Ministry Bhawan, New Delhi - 110001';
       } else {
         document.getElementById('dispPioName').textContent = 'Central Public Information Officer (CPIO), Lok Sabha Secretariat';

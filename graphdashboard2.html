@@ -583,6 +583,7 @@
     }
   </style>
   <script src="bp-config.js"></script>
+  <script src="fuzzy-utils.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -1025,6 +1026,21 @@
     function detectBestScope(q) {
       const t = (q || '').toLowerCase();
       if (!t) return 'all';
+      if (window.BP_FUZZY) {
+        const auth = BP_FUZZY.resolveKnownAuthority(q);
+        if (auth) {
+          const m = auth.matched.toLowerCase();
+          if (m.includes('education')) return 'education';
+          if (m.includes('defence')) return 'defence';
+          if (m.includes('home')) return 'home';
+          if (m.includes('finance')) return 'finance';
+          if (m.includes('health')) return 'health';
+          if (m.includes('road')) return 'road';
+          if (m.includes('agriculture')) return 'agriculture';
+          if (m.includes('rural')) return 'rural';
+          if (m.includes('lok sabha') || m.includes('rajya') || m.includes('election')) return 'graph';
+        }
+      }
       if (/\b(mla|mlas|mp|mps|politician|politicians|party|parties|bjp|inc|dmk|aap|tmc|sp|bsp|constituency|criminal|election|elections|winner|candidate|myneta|affidavit|ipc)\b/.test(t)) return 'graph';
       if (/\b(school|teacher|kvs|nvs|university|college|samagra|pm-shri|pm shri|education|literacy|ncert|ugc|iit|aicte)\b/.test(t)) return 'education';
       if (/\b(police|crpf|bsf|cisf|itbp|ssb|border|fencing|cyber|disaster|ndrf|naxal|lwe|home affairs|mha)\b/.test(t)) return 'home';
@@ -1058,15 +1074,27 @@
     }
 
     function renderSuggestions() {
-      const kw = (searchInput.value || '').trim().toLowerCase();
-      const rows = SUGGESTED_QUESTIONS.filter((item) => {
-        if (kw) {
-          return item.q.toLowerCase().includes(kw) || item.cat.toLowerCase().includes(kw) || (TARGET_LABELS[item.target] || '').toLowerCase().includes(kw);
+      const rawKw = (searchInput.value || '').trim();
+      let rows;
+      if (rawKw) {
+        if (window.BP_FUZZY) {
+          rows = BP_FUZZY.filter(
+            SUGGESTED_QUESTIONS,
+            rawKw,
+            (item) => `${item.q} ${item.cat} ${TARGET_LABELS[item.target] || item.target}`,
+            0.4
+          );
+        } else {
+          const kw = rawKw.toLowerCase();
+          rows = SUGGESTED_QUESTIONS.filter((item) =>
+            item.q.toLowerCase().includes(kw) || item.cat.toLowerCase().includes(kw) || (TARGET_LABELS[item.target] || '').toLowerCase().includes(kw)
+          );
         }
-        return selectedCat === 'ALL' || item.cat === selectedCat;
-      });
-      suggestionsHeading.textContent = kw
-        ? `Matching Suggested Questions for "${searchInput.value.trim()}"`
+      } else {
+        rows = selectedCat === 'ALL' ? SUGGESTED_QUESTIONS : SUGGESTED_QUESTIONS.filter((item) => item.cat === selectedCat);
+      }
+      suggestionsHeading.textContent = rawKw
+        ? `Matching Suggested Questions for "${rawKw}"`
         : `Suggested Questions — ${selectedCat === 'ALL' ? 'All Topics' : selectedCat}`;
       suggestionsCount.textContent = `${rows.length} question${rows.length === 1 ? '' : 's'}`;
 
@@ -1768,19 +1796,32 @@
     const glossaryList = document.getElementById('glossaryList');
 
     function renderGlossary() {
-      const q = (glossarySearch.value || '').trim().toLowerCase();
+      const q = (glossarySearch.value || '').trim();
+      const qLower = q.toLowerCase();
       if (glossaryTab === 'terms') {
-        const items = Object.entries(GLOSSARY)
-          .map(([acronym, v]) => ({ acronym, ...v }))
-          .filter((e) => !q || e.acronym.toLowerCase().includes(q) || (e.expansion || '').toLowerCase().includes(q))
-          .sort((a, b) => (b.count || 0) - (a.count || 0) || a.acronym.localeCompare(b.acronym));
+        let items = Object.entries(GLOSSARY).map(([acronym, v]) => ({ acronym, ...v }));
+        if (q) {
+          if (window.BP_FUZZY) {
+            items = BP_FUZZY.filter(items, q, (e) => `${e.acronym} ${e.expansion} ${e.ministry}`, 0.45);
+          } else {
+            items = items.filter((e) => e.acronym.toLowerCase().includes(qLower) || (e.expansion || '').toLowerCase().includes(qLower));
+          }
+        }
+        items.sort((a, b) => (b.count || 0) - (a.count || 0) || a.acronym.localeCompare(b.acronym));
         glossaryList.innerHTML = items.length
           ? `<table class="clean-table"><thead><tr><th>Acronym</th><th>Full Expansion</th><th>Ministry</th><th style="width:70px;">Count</th></tr></thead><tbody>${
               items.map((e) => `<tr><td class="mono"><strong>${escapeHtml(e.acronym)}</strong></td><td>${escapeHtml(e.expansion || '')}</td><td>${escapeHtml(e.ministry || '—')}</td><td class="num">${e.count || 0}</td></tr>`).join('')
             }</tbody></table>`
           : '<div style="padding:18px; color:var(--muted);">No matching acronyms.</div>';
       } else {
-        const items = IPC_ITEMS.filter((e) => !q || String(e.code || '').toLowerCase().includes(q) || String(e.explanation || '').toLowerCase().includes(q));
+        let items = IPC_ITEMS;
+        if (q) {
+          if (window.BP_FUZZY) {
+            items = BP_FUZZY.filter(items, q, (e) => `${e.code} ${e.explanation}`, 0.45);
+          } else {
+            items = items.filter((e) => String(e.code || '').toLowerCase().includes(qLower) || String(e.explanation || '').toLowerCase().includes(qLower));
+          }
+        }
         glossaryList.innerHTML = items.length
           ? `<table class="clean-table"><thead><tr><th>IPC Code</th><th>Summary</th><th style="width:90px;">MLAs</th></tr></thead><tbody>${
               items.map((e) => `<tr><td class="mono alert-text">IPC ${escapeHtml(e.code)}</td><td>${escapeHtml(e.explanation || '')}</td><td class="num">${e.mla_count || 0}</td></tr>`).join('')
@@ -1793,14 +1834,35 @@
       if (d) (d.items || []).forEach((i) => { GLOSSARY[i.acronym] = i; });
     }).catch(() => {});
 
+    window.applyTypoSuggestion = function (corrected) {
+      searchInput.value = corrected;
+      renderSuggestions();
+      acronymBar.hidden = true;
+      searchInput.focus();
+    };
+
     searchInput.addEventListener('input', () => {
       renderSuggestions();
-      const tokens = (searchInput.value || '').match(/\b[A-Z][A-Z0-9&\-]{1,10}\b/g) || [];
+      const val = (searchInput.value || '').trim();
+      const tokens = val.match(/\b[A-Z][A-Z0-9&\-]{1,10}\b/g) || [];
       const seen = new Set();
       const matches = tokens.filter((t) => !seen.has(t) && seen.add(t)).map((t) => ({ acronym: t, ...(GLOSSARY[t] || {}) })).filter((x) => x.expansion).slice(0, 4);
-      if (!matches.length) { acronymBar.hidden = true; return; }
+
+      let typoChip = '';
+      if (window.BP_FUZZY && val.length >= 4) {
+        const resolved = BP_FUZZY.resolveKnownAuthority(val);
+        if (resolved && resolved.matched.toLowerCase() !== val.toLowerCase()) {
+          typoChip = `<span class="tag-pill tag-accent" style="cursor:pointer;" onclick="applyTypoSuggestion('${escapeHtml(resolved.matched)}')">Did you mean: <strong>${escapeHtml(resolved.matched)}</strong>? ↵</span>`;
+        }
+      }
+
+      if (!matches.length && !typoChip) {
+        acronymBar.hidden = true;
+        return;
+      }
       acronymBar.hidden = false;
-      acronymBar.innerHTML = '<strong>Acronyms:</strong>' + matches.map((m) => `<span class="tag-pill"><strong>${escapeHtml(m.acronym)}</strong> = ${escapeHtml(m.expansion)}</span>`).join('');
+      const acronymHtml = matches.length ? '<strong>Acronyms:</strong> ' + matches.map((m) => `<span class="tag-pill"><strong>${escapeHtml(m.acronym)}</strong> = ${escapeHtml(m.expansion)}</span>`).join('') : '';
+      acronymBar.innerHTML = [typoChip, acronymHtml].filter(Boolean).join(' ');
     });
 
     document.getElementById('tabTerms').addEventListener('click', (e) => {
