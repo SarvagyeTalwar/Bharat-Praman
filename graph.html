@@ -1347,7 +1347,9 @@
       cy.on('mouseover', 'edge', (e) => { if (!showEdgeLabels) e.target.style('label', e.target.data('label')); });
       cy.on('mouseout', 'edge', (e) => { if (!showEdgeLabels) e.target.style('label', ''); });
       cy.on('tap', 'node', (e) => {
-        window.location.href = `node.html?${new URLSearchParams({ id: e.target.id(), from: activeQuery })}`;
+        const queryObj = { id: e.target.id(), from: activeQuery };
+        if (e.target.data('category') === 'party') queryObj.type = 'Party';
+        window.location.href = `node.html?${new URLSearchParams(queryObj)}`;
       });
       cy.on('mouseover', 'node', () => { graphContainer.style.cursor = 'pointer'; });
       cy.on('mouseout', 'node', () => { graphContainer.style.cursor = 'default'; });
@@ -1391,13 +1393,16 @@
       const tb = document.createElement('tbody');
       nodes.slice(0, 120).forEach((n, idx) => {
         const isCrim = (n.labels || []).some((l) => /criminal|section/i.test(l));
+        const isParty = (n.labels || []).some((l) => String(l).trim().toLowerCase() === 'party');
+        const linkParams = new URLSearchParams({ id: n.id, from: activeQuery });
+        if (isParty) linkParams.set('type', 'Party');
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="num">${idx + 1}</td>
           <td><strong>${escapeHtml(n.label || 'NODE')}</strong></td>
           <td class="mono ${isCrim ? 'alert' : ''}">${escapeHtml((n.labels || []).join(' : ') || '—')}</td>
           <td class="mono">${escapeHtml(n.id)}</td>
-          <td class="mono"><a href="node.html?${new URLSearchParams({ id: n.id, from: activeQuery })}">Inspect →</a></td>
+          <td class="mono"><a href="node.html?${linkParams.toString()}">Inspect →</a></td>
         `;
         tb.append(tr);
       });
