@@ -71,7 +71,11 @@
     body.is-summary-hidden #kpiCardLiabilities,
     body.is-summary-hidden #kpiCardNetWorth,
     body.is-summary-hidden #kpiCardCriminalCases,
-    body.is-summary-hidden #wealthTrajectoryCard {
+    body.is-summary-hidden #wealthTrajectoryCard,
+    body.is-summary-hidden #identityFinancialSection,
+    body.is-summary-hidden #identityCard,
+    body.is-summary-hidden #financialCard,
+    body.is-summary-hidden #graphCard {
       display: none !important;
     }
     body {
@@ -1418,14 +1422,18 @@
       isSummaryHidden = hideSummary;
       document.body.classList.toggle('is-summary-hidden', hideSummary);
 
-      // Hide the 4 KPI summary cards and Multi-Election Wealth Trajectory for non-person entity types.
+      // Hide KPI summary cards, Wealth Trajectory, Identity/Financial cards, and Relationship Graph for non-person entity types.
       const summaryHiddenBlocks = [
         document.getElementById('kpiStrip'),
         document.getElementById('kpiCardAssets'),
         document.getElementById('kpiCardLiabilities'),
         document.getElementById('kpiCardNetWorth'),
         document.getElementById('kpiCardCriminalCases'),
-        document.getElementById('wealthTrajectoryCard')
+        document.getElementById('wealthTrajectoryCard'),
+        document.getElementById('identityFinancialSection'),
+        document.getElementById('identityCard'),
+        document.getElementById('financialCard'),
+        document.getElementById('graphCard')
       ];
       summaryHiddenBlocks.forEach((el) => {
         if (el) {
@@ -1520,31 +1528,31 @@
         alertEl.hidden = true;
       }
 
-      const profStr = Array.isArray(props.profession) ? props.profession.join(', ') : (props.profession || '—');
-      document.getElementById('identityTableWrap').replaceChildren(buildKeyValTable([
-        ['Full Name', displayName, ''],
-        ['Party Affiliation', partyStr || '—', ''],
-        ['Constituency / State', [consStr, stateStr].filter(Boolean).join(', ') || '—', ''],
-        ['Ministry Portfolios', ministryNodes.join(', ') || props.ministry || 'None recorded', ''],
-        ['Age / Gender', `${props.age ?? '—'} / ${props.gender || '—'}`, ''],
-        ['Education', props.education || '—', ''],
-        ['Profession', profStr, ''],
-        ['Lok Sabha Terms', props.terms ?? '—', 'mono'],
-        ['Record Reference ID', props.entity_id || props.myneta_id || '—', 'mono'],
-      ]));
-
-      document.getElementById('electionTag').textContent = props.election || props.election_year || 'Affidavit';
-      document.getElementById('financialTableWrap').replaceChildren(buildKeyValTable([
-        ['Total Assets Declared', fmtExact(props.total_assets), 'mono'],
-        ['Movable Assets', fmtExact(props.movable_assets), 'mono'],
-        ['Immovable Assets', fmtExact(props.immovable_assets), 'mono'],
-        ['Total Liabilities', fmtExact(props.liabilities), 'mono'],
-        ['Computed Net Worth', netWorth !== null ? fmtExact(netWorth) : 'Not computed', netNeg ? 'mono alert-text' : 'mono'],
-        ['Declared Criminal Cases', String(props.criminal_case_count ?? 0), caseCount > 0 ? 'mono alert-text' : 'mono'],
-        ['Council / Responsibilities', props.council_section || props.special_responsibilities || '—', ''],
-      ]));
-
       if (!hideSummary) {
+        const profStr = Array.isArray(props.profession) ? props.profession.join(', ') : (props.profession || '—');
+        document.getElementById('identityTableWrap').replaceChildren(buildKeyValTable([
+          ['Full Name', displayName, ''],
+          ['Party Affiliation', partyStr || '—', ''],
+          ['Constituency / State', [consStr, stateStr].filter(Boolean).join(', ') || '—', ''],
+          ['Ministry Portfolios', ministryNodes.join(', ') || props.ministry || 'None recorded', ''],
+          ['Age / Gender', `${props.age ?? '—'} / ${props.gender || '—'}`, ''],
+          ['Education', props.education || '—', ''],
+          ['Profession', profStr, ''],
+          ['Lok Sabha Terms', props.terms ?? '—', 'mono'],
+          ['Record Reference ID', props.entity_id || props.myneta_id || '—', 'mono'],
+        ]));
+
+        document.getElementById('electionTag').textContent = props.election || props.election_year || 'Affidavit';
+        document.getElementById('financialTableWrap').replaceChildren(buildKeyValTable([
+          ['Total Assets Declared', fmtExact(props.total_assets), 'mono'],
+          ['Movable Assets', fmtExact(props.movable_assets), 'mono'],
+          ['Immovable Assets', fmtExact(props.immovable_assets), 'mono'],
+          ['Total Liabilities', fmtExact(props.liabilities), 'mono'],
+          ['Computed Net Worth', netWorth !== null ? fmtExact(netWorth) : 'Not computed', netNeg ? 'mono alert-text' : 'mono'],
+          ['Declared Criminal Cases', String(props.criminal_case_count ?? 0), caseCount > 0 ? 'mono alert-text' : 'mono'],
+          ['Council / Responsibilities', props.council_section || props.special_responsibilities || '—', ''],
+        ]));
+
         renderWealthTrajectory(data, props, displayName, isPolitician);
       }
 
@@ -1608,7 +1616,7 @@
       document.getElementById('graphStatsTag').textContent = `${nodesById.size} nodes · ${dataEdges.length} edges`;
       const graphEl = document.getElementById('graph');
       const graphEmptyEl = document.getElementById('graphEmpty');
-      if (cy && dataEdges.length) {
+      if (cy && dataEdges.length && !hideSummary) {
         graphEl.hidden = false;
         graphEmptyEl.hidden = true;
         const elements = [];
