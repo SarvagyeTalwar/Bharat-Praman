@@ -128,6 +128,41 @@ Each record contains:
 
 ---
 
+## 📑 PDF Document Accessibility & Management
+
+All RTI documents are 100% accessible locally and via HTTP:
+
+### 1. Download & Sync PDFs Locally
+```bash
+# Sync all PDFs with multi-threaded downloads (8 workers) and generate missing dockets
+python3 download_pdfs.py
+
+# Download a quick test batch of 20 PDFs
+python3 download_pdfs.py --limit 20
+
+# Audit and verify integrity of all local PDFs (%PDF magic header check)
+python3 download_pdfs.py --verify
+```
+
+### 2. View / Open PDFs from CLI
+```bash
+# Search and open a PDF by Record ID (or prefix)
+python3 open_pdf.py 7062d4c4
+
+# Search and open a PDF by keyword (e.g. "yamuna", "railway", "health")
+python3 open_pdf.py "yamuna"
+
+# Output direct download URL without opening
+python3 open_pdf.py 7062d4c4 --url-only
+```
+
+### 3. HTTP Server Endpoints (FastAPI)
+The backend (`rti.server`) provides direct PDF endpoints:
+- `GET /rti/documents/{id}/pdf`: Streams local file if cached, or redirects (HTTP 307) to the verified cloud URL.
+- `GET /rti/documents/{id}`: Returns complete RTI metadata with direct PDF download URLs.
+
+---
+
 ## 🔄 Merging & Dataset Analysis
 
 To consolidate multiple partial files:

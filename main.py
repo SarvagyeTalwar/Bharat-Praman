@@ -2148,11 +2148,38 @@ try:
     @app.get("/rti-page")
     def _unified_rti_page():
         return _rti_server.rti_page()
+
+    @app.get("/rti-archive")
+    @app.get("/rti-documents")
+    def _unified_rti_archive():
+        return _rti_server.rti_archive_page()
+
+    @app.get("/rti/curated")
+    def _unified_rti_curated():
+        return _rti_server.get_curated_rtis()
+
+    @app.get("/rti/documents/{rti_id}/pdf")
+    def _unified_rti_pdf(rti_id: str):
+        return _rti_server.get_rti_pdf_endpoint(rti_id)
+
+    @app.get("/rti/documents/{rti_id}")
+    def _unified_rti_meta(rti_id: str):
+        return _rti_server.get_rti_document_meta(rti_id)
 except Exception as _rti_exc:
     logger.warning("Unified RTI routes not mounted: %s", _rti_exc)
 
 
-_ALLOWED_UI_EXTS = {".html", ".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".webp"}
+_ALLOWED_UI_EXTS = {".html", ".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".webp", ".pdf"}
+
+
+@app.get("/rti_scraper/pdfs/{filename}")
+def _serve_pdf_asset(filename: str):
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        raise HTTPException(status_code=404, detail="Not found")
+    target = (BASE_DIR / "rti_scraper" / "pdfs" / filename).resolve()
+    if target.parent != (BASE_DIR / "rti_scraper" / "pdfs").resolve() or target.suffix.lower() != ".pdf" or not target.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(target, media_type="application/pdf")
 
 
 @app.get("/rti/{filename}")

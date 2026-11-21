@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 from . import engine
 
@@ -80,3 +80,95 @@ def suggest(entity_id: str, topic_id: str, q: str = "", district: Optional[str] 
 @app.get("/rti-page")
 def rti_page():
     return FileResponse(Path(__file__).resolve().parent / "rti_page.html")
+
+
+@app.get("/rti-archive")
+@app.get("/rti-documents")
+def rti_archive_page():
+    archive_file = ROOT / "rti_archive.html"
+    if archive_file.exists():
+        return FileResponse(archive_file)
+    raise HTTPException(status_code=404, detail="Archive page not found")
+
+
+@app.get("/rti/curated")
+@app.get("/curated")
+def get_curated_rtis():
+    curated_file = ROOT / "rti" / "data" / "curated_rtis.json"
+    if curated_file.exists():
+        import json
+        with open(curated_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+
+# ---------- RTI Documents & PDF Access ----------
+_rti_records_cache = None
+
+
+def get_rti_records_index():
+    global _rti_records_cache
+    if _rti_records_cache is None:
+        master_path = ROOT / "rti_scraper" / "rtigram_master.json"
+        if master_path.exists():
+            import json
+            try:
+                with open(master_path, "r", encoding="utf-8") as f:
+                    records = json.load(f)
+                _rti_records_cache = {r.get("id"): r for r in records if r.get("id")}
+            except Exception:
+                _rti_records_cache = {}
+        else:
+            _rti_records_cache = {}
+    return _rti_records_cache
+
+
+@app.get("/rti/documents/{rti_id}/pdf")
+@app.get("/documents/{rti_id}/pdf")
+def get_rti_pdf_endpoint(rti_id: str):
+    """Serve the PDF for an RTI: streams local file if downloaded, or redirects to cloud storage."""
+    pdf_dir = ROOT / "rti_scraper" / "pdfs"
+    local_path = pdf_dir / f"{rti_id}.pdf"
+    if local_path.exists() and local_path.stat().st_size > 0:
+        return FileResponse(local_path, media_type="application/pdf", filename=f"{rti_id}.pdf")
+
+    records = get_rti_records_index()
+    record = records.get(rti_id)
+    if record:
+        remote_url = record.get("admin_pdf_url") or record.get("file_url") or record.get("pdf_url")
+        if remote_url:
+            return RedirectResponse(url=remote_url, status_code=307)
+
+    raise HTTPException(status_code=404, detail=f"PDF not available for RTI record '{rti_id}'")
+
+
+@app.get("/rti/documents/{rti_id}")
+@app.get("/documents/{rti_id}")
+def get_rti_document_meta(rti_id: str):
+    """Retrieve full RTI metadata with direct PDF access links."""
+    records = get_rti_records_index()
+    record = records.get(rti_id)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"RTI record '{rti_id}' not found")
+
+    pdf_dir = ROOT / "rti_scraper" / "pdfs"
+    local_path = pdf_dir / f"{rti_id}.pdf"
+    remote_url = record.get("admin_pdf_url") or record.get("file_url") or record.get("pdf_url")
+
+    return {
+        "id": record.get("id"),
+        "title": record.get("title"),
+        "department": record.get("department"),
+        "ministry": record.get("ministry"),
+        "state": record.get("state"),
+        "subject": record.get("subject"),
+        "questions": record.get("questions"),
+        "response_summary": record.get("response_summary"),
+        "response_status": record.get("response_status"),
+        "date_filed": record.get("date_filed"),
+        "tags": record.get("tags"),
+        "has_pdf": bool(remote_url or local_path.exists()),
+        "pdf_url": f"/rti/documents/{rti_id}/pdf",
+        "remote_pdf_url": remote_url,
+        "is_cached_locally": local_path.exists(),
+    }

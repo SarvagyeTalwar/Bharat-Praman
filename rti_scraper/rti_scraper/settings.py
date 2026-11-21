@@ -15,6 +15,9 @@ USER_AGENT = (
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
+# Disable remote control daemon to prevent permission issues on macOS
+REMOTE_CONTROL_ENABLED = False
+
 # Default request headers
 DEFAULT_REQUEST_HEADERS = {
     "Accept": "application/json, text/plain, */*",

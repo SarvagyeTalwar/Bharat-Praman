@@ -42,6 +42,10 @@ class RtigramSpider(scrapy.Spider):
         self.max_pages = max(0, int(max_pages))
         self.enrich = str(enrich).lower() in ("true", "1", "yes")
 
+    async def start(self):
+        for req in self.start_requests():
+            yield req
+
     def start_requests(self):
         params = {
             "q": self.query,
