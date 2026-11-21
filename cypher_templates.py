@@ -62,6 +62,7 @@ EMPTY_OK_TEMPLATES = {
     "mp_mla_counts_by_state", "state_avg_assets", "states_ranked_by_avg_assets",
     "party_sections", "largest_party_section",
     "richest_mps", "multiple_sections", "politicians_by_year_filter",
+    "heinous_crime_politicians", "heinous_vs_non_heinous_by_party",
 }
 
 TEMPLATE_COLUMNS = {
@@ -115,7 +116,7 @@ TEMPLATE_COLUMNS = {
     "mp_party_most_cases": {"party_name", "mp_count"},
     "mp_state_most_cases": {"state_name", "mp_count"},
     "mp_count_with_cases": {"mp_count"},
-    "mp_party_switchers": {"entity_id", "politician_name", "from_party", "from_year", "to_party", "to_year", "from_assets", "to_assets", "wealth_growth", "pct_growth"},
+    "mp_party_switchers": {"entity_id", "politician_name", "role_status", "from_party", "from_year", "to_party", "to_year", "from_assets", "to_assets", "wealth_growth", "pct_growth"},
     "mp_assets_above": {"mp_count"},
     "mp_highest_liabilities": {"mp_name", "constituency", "party", "liabilities", "total_assets"},
     "mla_timeline": {"name", "year", "election", "party", "total_assets", "liabilities", "cases"},
@@ -132,6 +133,8 @@ TEMPLATE_COLUMNS = {
     "states_ranked_by_avg_assets": {"state", "avg_assets", "mlas"},
     "party_sections": {"section", "cases"},
     "largest_party_section": {"party", "seats", "section", "cases"},
+    "heinous_crime_politicians": {"name", "party", "role", "heinous_case_count", "non_heinous_case_count", "heinous_sections", "total_assets"},
+    "heinous_vs_non_heinous_by_party": {"party", "politicians_with_heinous", "politicians_only_non_heinous", "total_heinous_cases", "total_non_heinous_cases"},
 }
 
 
@@ -1475,6 +1478,7 @@ def _mp_party_switchers(q):
                    OR toLower(coalesce(d.to_party, '')) CONTAINS toLower($party))
             RETURN p.entity_id AS entity_id,
                    p.name AS politician_name,
+                   coalesce(d.role_status, 'Politician') AS role_status,
                    d.from_party AS from_party,
                    d.from_year AS from_year,
                    d.to_party AS to_party,
@@ -1487,8 +1491,73 @@ def _mp_party_switchers(q):
             LIMIT 50
         """,
         "parameters": {"party": party},
-        "explanation": "Politicians (Aaya Ram Gaya Ram) with recorded party defections and associated wealth jumps across elections.",
+        "explanation": (
+            "Politicians (Aaya Ram Gaya Ram) with recorded party defections across sitting MPs, "
+            "former/contestant MPs, and State Assembly MLAs, ranked by net asset gain."
+        ),
         "template_id": "mp_party_switchers",
+    }
+
+
+def _heinous_crime_politicians(q):
+    ql = q.lower()
+    state = _state(q)
+    parties = _mp_party_variants(q) if _party(q) else []
+    only_mp = bool(re.search(r"\bmps?\b|\bmembers? of parliament\b|\blok sabha\b", ql)) and "mla" not in ql
+    only_mla = bool(re.search(r"\bmlas?\b|assembly", ql)) and not re.search(r"\bmps?\b", ql)
+    label_clause = "MATCH (p:Person:MP)" if only_mp else ("MATCH (p:Person:MLA)" if only_mla else "MATCH (p:Person)")
+    return {
+        "result_type": "aggregate",
+        "cypher": f"""
+            {label_clause}
+            WHERE coalesce(p.heinous_case_count, 0) > 0
+              AND (size($parties) = 0 OR any(pt IN $parties WHERE toLower(coalesce(p.party_name, '')) = toLower(pt)))
+            OPTIONAL MATCH (p)-[:REPRESENTS]->()-[:IN_STATE]->(s:State)
+            WITH p, collect(DISTINCT s.name) AS states
+            WHERE $state = '' OR any(st IN states WHERE toLower(coalesce(st, '')) = toLower($state))
+            RETURN p.name AS name,
+                   coalesce(p.party_name, 'Independent/Other') AS party,
+                   CASE WHEN p:MP THEN 'MP' WHEN p:MLA THEN 'MLA' ELSE 'Historical MP' END AS role,
+                   coalesce(p.heinous_case_count, 0) AS heinous_case_count,
+                   coalesce(p.non_heinous_case_count, 0) AS non_heinous_case_count,
+                   coalesce(p.heinous_sections, []) AS heinous_sections,
+                   p.total_assets AS total_assets
+            ORDER BY heinous_case_count DESC, non_heinous_case_count DESC, name ASC
+            LIMIT 50
+        """,
+        "parameters": {"state": state, "parties": parties},
+        "explanation": (
+            "Politicians facing heinous criminal cases classified under the 5-pillar statutory rubric "
+            "(punishment >= 5 years, non-bailable violence/threat, crimes against women, extortion/public order, or corruption/electoral integrity)."
+        ),
+        "template_id": "heinous_crime_politicians",
+    }
+
+
+def _heinous_vs_non_heinous_by_party(q):
+    ql = q.lower()
+    only_mp = bool(re.search(r"\bmps?\b|\bmembers? of parliament\b|\blok sabha\b", ql)) and "mla" not in ql
+    only_mla = bool(re.search(r"\bmlas?\b|assembly", ql)) and not re.search(r"\bmps?\b", ql)
+    label_clause = "MATCH (p:Person:MP)" if only_mp else ("MATCH (p:Person:MLA)" if only_mla else "MATCH (p:Person)")
+    return {
+        "result_type": "aggregate",
+        "cypher": f"""
+            {label_clause}
+            WHERE coalesce(p.heinous_case_count, 0) > 0 OR coalesce(p.non_heinous_case_count, 0) > 0
+            RETURN coalesce(p.party_name, 'Independent/Other') AS party,
+                   count(DISTINCT CASE WHEN coalesce(p.heinous_case_count, 0) > 0 THEN p END) AS politicians_with_heinous,
+                   count(DISTINCT CASE WHEN coalesce(p.heinous_case_count, 0) = 0 AND coalesce(p.non_heinous_case_count, 0) > 0 THEN p END) AS politicians_only_non_heinous,
+                   sum(coalesce(p.heinous_case_count, 0)) AS total_heinous_cases,
+                   sum(coalesce(p.non_heinous_case_count, 0)) AS total_non_heinous_cases
+            ORDER BY politicians_with_heinous DESC, total_heinous_cases DESC
+            LIMIT 30
+        """,
+        "parameters": {},
+        "explanation": (
+            "Party-wise comparison separating politicians with heinous statutory charges from those "
+            "facing only non-heinous protest, unlawful assembly, or minor regulatory cases."
+        ),
+        "template_id": "heinous_vs_non_heinous_by_party",
     }
 
 
@@ -2667,6 +2736,12 @@ def plan_from_template(question: str) -> dict | None:
             "template_id": "party_switcher_communities",
         }
 
+    # 5-Pillar Heinous vs. Non-Heinous Statutory Crime Classification
+    if _any(ql, "heinous", "non-heinous", "non heinous", "serious crime", "serious criminal", "violent crime", "punishable with 5"):
+        if _any(ql, "by party", "party wise", "party-wise", "per party", "compare", " vs ", "versus"):
+            return _heinous_vs_non_heinous_by_party(q)
+        return _heinous_crime_politicians(q)
+
     # Constituency or single-MP direct lookup ("Who is the MP of Varanasi?", "Assets of Rahul Gandhi")
     if "mla" not in ql and "assembly" not in ql:
         mp_direct = _mp_constituency_or_person(q)
@@ -2679,7 +2754,7 @@ def plan_from_template(question: str) -> dict | None:
     if is_mp_top and not _any(ql, "prime minister", "chief minister", "president", "capital of", "weather", "corrupt", "acquitted"):
         if _any(ql, "negative net worth", "liabilities exceed", "liabilities greater than", "more liabilities than assets", "shortfall"):
             return _mps_negative_net_worth(q)
-        if _any(ql, "switched part", "switch part", "party switch", "changed part", "change part", "defected", "party hop"):
+        if _any(ql, "switched part", "switch part", "party switch", "changed part", "change part", "defected", "defector", "defectors", "party hop", "aaya ram", "gaya ram"):
             return _mp_party_switchers(q)
         if _any(ql, "affidavit change", "asset change", "assets changed", "wealth change", "wealth grew", "assets grew", "assets increased", "asset increase", "assets increase", "asset growth", "cases increased", "cases grew", "liabilities change", "across affidavits", "re-elected"):
             return _mp_affidavit_changes(q)

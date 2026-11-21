@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from glossary import search as glossary_search, lookup as glossary_lookup
 from cypher_templates import plan_from_template, TEMPLATE_COLUMNS, EMPTY_OK_TEMPLATES, _state as template_state
-from ipc_sections import EXPLANATIONS as IPC_EXPLANATIONS, normalize_code
+from ipc_sections import EXPLANATIONS as IPC_EXPLANATIONS, normalize_code, canonical_ipc_code, classify_section
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -336,8 +336,13 @@ def get_cached_ask_response(question: str):
         if item.get("result_type") == "unsupported":
             return None
         tplan = plan_from_template(question)
-        if tplan and tplan.get("template_id") and item.get("template_id") != tplan.get("template_id"):
-            return None
+        if tplan:
+            if tplan.get("template_id") and item.get("template_id") != tplan.get("template_id"):
+                return None
+            cached_cypher = re.sub(r"\s+", " ", str(item.get("cypher") or "")).strip()
+            current_cypher = re.sub(r"\s+", " ", str(tplan.get("cypher") or "")).strip()
+            if current_cypher and cached_cypher != current_cypher:
+                return None
         return json.loads(json.dumps(item))
 
 
@@ -518,15 +523,18 @@ _IPC_SECTIONS_LOCK = threading.Lock()
 
 @app.get("/api/ipc-sections")
 def ipc_sections_list():
-    """Return major IPC sections with one-line explanations and live MLA charged counts (cached 10m)."""
+    """Return major IPC sections with 5-pillar Heinous classification and live MP/MLA counts (cached 10m)."""
     now = time.monotonic()
     with _IPC_SECTIONS_LOCK:
         if _IPC_SECTIONS_CACHE["value"] and _IPC_SECTIONS_CACHE["expires_at"] > now:
             return _IPC_SECTIONS_CACHE["value"]
 
     query = (
-        "MATCH (p:MLA)-[:FACES]->(:CriminalCase)-[:UNDER]->(s:Section) "
-        "RETURN s.code AS code, count(DISTINCT p) AS mla_count"
+        "MATCH (p:Person)-[:FACES]->(:CriminalCase)-[:UNDER]->(s:Section) "
+        "RETURN s.code AS code, "
+        "count(DISTINCT p) AS politician_count, "
+        "count(DISTINCT CASE WHEN p:MP THEN p END) AS mp_count, "
+        "count(DISTINCT CASE WHEN p:MLA THEN p END) AS mla_count"
     )
     try:
         with driver.session(default_access_mode=READ_ACCESS) as session:
@@ -534,22 +542,49 @@ def ipc_sections_list():
     except (Neo4jError, DriverError):
         raise HTTPException(status_code=503, detail="Could not read IPC sections from Neo4j.")
 
-    # Aggregate counts per normalized (upper-cased) code so case-variant
-    # duplicates like '120b' vs '120B' collapse into one entry.
-    counts: dict[str, int] = {}
+    # Aggregate counts per canonical IPC code so case/parenthesis variants collapse cleanly.
+    counts: dict[str, dict[str, int]] = {}
     for row in rows:
-        code = normalize_code(row["code"])
+        code = canonical_ipc_code(row["code"]) or normalize_code(row["code"])
         if not code:
             continue
-        counts[code] = counts.get(code, 0) + int(row["mla_count"])
+        bucket = counts.setdefault(code, {"politician_count": 0, "mp_count": 0, "mla_count": 0})
+        bucket["politician_count"] += int(row["politician_count"] or 0)
+        bucket["mp_count"] += int(row["mp_count"] or 0)
+        bucket["mla_count"] += int(row["mla_count"] or 0)
 
-    items = [
-        {"code": code, "explanation": explanation, "mla_count": counts.get(code, 0)}
-        for code, explanation in IPC_EXPLANATIONS.items()
-        if counts.get(code, 0) > 0
-    ]
-    items.sort(key=lambda item: (-item["mla_count"], item["code"]))
-    res = {"items": items, "count": len(items)}
+    items = []
+    heinous_section_count = 0
+    non_heinous_section_count = 0
+    for code, explanation in IPC_EXPLANATIONS.items():
+        c = counts.get(code)
+        if not c or c["politician_count"] <= 0:
+            continue
+        cls = classify_section(code)
+        if cls["is_heinous"]:
+            heinous_section_count += 1
+        else:
+            non_heinous_section_count += 1
+        items.append({
+            "code": code,
+            "explanation": explanation,
+            "politician_count": c["politician_count"],
+            "mp_count": c["mp_count"],
+            "mla_count": c["mla_count"],
+            "is_heinous": cls["is_heinous"],
+            "severity": cls["severity"],
+            "pillar": cls["pillar"],
+            "max_punishment": cls["max_punishment"],
+            "bailable": cls["bailable"],
+        })
+
+    items.sort(key=lambda item: (-item["politician_count"], item["code"]))
+    res = {
+        "items": items,
+        "count": len(items),
+        "heinous_section_count": heinous_section_count,
+        "non_heinous_section_count": non_heinous_section_count,
+    }
     with _IPC_SECTIONS_LOCK:
         _IPC_SECTIONS_CACHE["value"] = res
         _IPC_SECTIONS_CACHE["expires_at"] = time.monotonic() + 600
@@ -1237,16 +1272,16 @@ def validate_readonly_cypher(cypher: str, result_type: str = "graph") -> str:
         "SIMILAR_CASE_PROFILE", "UNDER", "WON_ELECTION",
     }
     allowed_properties = {
-        "affidavit_id", "age", "aliases", "asset_jump", "asset_pct_jump", "case_id", "case_no", "case_type", "category", "charges_framed", "claim", "claimed_correction",
+        "affidavit_id", "age", "aliases", "asset_jump", "asset_pct_jump", "bailable", "case_id", "case_no", "case_type", "category", "charges_framed", "claim", "claimed_correction",
         "claimed_value", "code", "council_section", "court", "created_at", "convicted_cases", "criminal_case_count", "criminal_cases_count_from",
         "criminal_cases_count_to", "criminal_cases_count_change", "data", "department", "doc_id", "document_url", "education", "election",
-        "election_id", "election_source", "election_verified", "election_year", "entity_id", "evidence_url", "field_contested", "file", "filing_date", "fir_no",
-        "first_name", "from_assets", "from_constituency", "from_party", "from_year", "gender", "id", "immovable_assets", "in_defections", "ipc_sections",
+        "election_id", "election_source", "election_verified", "election_year", "entity_id", "evidence_url", "explanation", "field_contested", "file", "filing_date", "fir_no",
+        "first_name", "from_assets", "from_constituency", "from_party", "from_year", "gender", "heinous_case_count", "heinous_sections", "id", "immovable_assets", "in_defections", "ipc_sections", "is_heinous",
         "jaccard_score", "last_name", "liabilities", "liabilities_change", "liabilities_from", "liabilities_percent_change", "liabilities_to",
-        "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "nSons", "out_defections",
-        "party", "party_name", "person_entity_id", "person_key", "portfolio_type", "profession", "public_authority", "questions", "rank",
-        "rank_order", "rationale", "received_date", "registration_no", "relationships", "reply_summary", "response_date", "role",
-        "serious_criminal_cases", "shared_count", "shared_sections", "source_date", "source_document", "source_document_date",
+        "max_punishment", "ministry", "movable_assets", "myneta_id", "myneta_name", "name", "nDaughters", "net_defection_gain", "non_heinous_case_count", "nSons", "out_defections",
+        "party", "party_name", "person_entity_id", "person_key", "pillar", "portfolio_type", "profession", "public_authority", "questions", "rank",
+        "rank_order", "rationale", "received_date", "registration_no", "relationships", "reply_summary", "response_date", "role", "role_status",
+        "serious_criminal_cases", "severity", "shared_count", "shared_sections", "source_date", "source_document", "source_document_date",
         "source_url", "special_responsibilities", "state", "status", "style", "summary", "switcher_community", "switcher_pagerank",
         "terms", "title", "to_assets", "to_constituency", "to_party", "to_year", "total_assets", "total_assets_change", "total_assets_from",
         "total_assets_percent_change", "total_assets_to", "type", "visualisation", "nodes", "year",
@@ -1360,8 +1395,6 @@ def schema_unsupported_reason(question: str) -> str | None:
         return "Family members' education and residence details are not stored, so this cannot be answered."
     if re.search(r"(?:assets?|wealth)\s+(?:increased|grew|rose)\s+the\s+most|highest\s+(?:asset\s+)?growth|most\s+(?:asset\s+)?growth", lowered) and not _mp_scoped_question(question):
         return "Full historical coverage is not loaded for every politician, so a 'most increased over time' comparison would be unreliable and is not provided."
-    if "serious" in lowered and re.search(r"punishable|5\+|five years|5 years|\bcriminal\b|\bcharge|\bcase|\bcrime|\boffen[cs]e", lowered) and not _mp_scoped_question(question):
-        return "The graph does not store a seriousness classification for criminal cases, so it cannot answer questions about 'serious' cases."
     if re.search(r"\b(?:women|woman|female|gender|male|men)\b", lowered) and not _mp_scoped_question(question):
         try:
             with driver.session(database=NEO4J_DATABASE, default_access_mode=READ_ACCESS) as session:
