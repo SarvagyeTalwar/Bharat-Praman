@@ -1,5 +1,6 @@
 """RTI endpoints. Run from the repo root:  python3 -m uvicorn rti.server:app --reload --port 8001"""
 import os
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -10,8 +11,24 @@ from fastapi.responses import FileResponse, RedirectResponse
 from . import engine
 
 ROOT = Path(__file__).resolve().parent.parent
-app = FastAPI(title="Bharat-Praman RTI")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"])
+_ENABLE_DOCS = os.getenv("ENABLE_API_DOCS", "false").lower() in ("1", "true", "yes")
+app = FastAPI(
+    title="Bharat-Praman RTI",
+    docs_url="/docs" if _ENABLE_DOCS else None,
+    redoc_url="/redoc" if _ENABLE_DOCS else None,
+    openapi_url="/openapi.json" if _ENABLE_DOCS else None,
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        os.getenv("FRONTEND_ORIGIN", "http://localhost:5500"),
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "https://bharat-praman-production.up.railway.app",
+    ],
+    allow_methods=["GET"],
+    allow_headers=["Content-Type"],
+)
 
 _driver = None
 
@@ -106,20 +123,37 @@ def get_curated_rtis():
 _rti_records_cache = None
 
 
+_RTI_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
+
+
+def _safe_local_pdf_path(rti_id: str) -> Optional[Path]:
+    """Validate rti_id format and resolve strictly inside rti_scraper/pdfs."""
+    if not _RTI_ID_RE.fullmatch(rti_id or ""):
+        return None
+    pdf_dir = (ROOT / "rti_scraper" / "pdfs").resolve()
+    local_path = (pdf_dir / f"{rti_id}.pdf").resolve()
+    if local_path.parent != pdf_dir:
+        return None
+    return local_path
+
+
 def get_rti_records_index():
+    """Build combined index from curated Railway-bundled RTIs and optional local master scrape."""
     global _rti_records_cache
     if _rti_records_cache is None:
-        master_path = ROOT / "rti_scraper" / "rtigram_master.json"
-        if master_path.exists():
-            import json
-            try:
-                with open(master_path, "r", encoding="utf-8") as f:
-                    records = json.load(f)
-                _rti_records_cache = {r.get("id"): r for r in records if r.get("id")}
-            except Exception:
-                _rti_records_cache = {}
-        else:
-            _rti_records_cache = {}
+        import json
+        combined = {}
+        for rel in (ROOT / "rti" / "data" / "curated_rtis.json", ROOT / "rti_scraper" / "rtigram_master.json"):
+            if rel.exists():
+                try:
+                    with open(rel, "r", encoding="utf-8") as f:
+                        records = json.load(f)
+                    for r in records:
+                        if isinstance(r, dict) and r.get("id"):
+                            combined[r["id"]] = r
+                except Exception:
+                    pass
+        _rti_records_cache = combined
     return _rti_records_cache
 
 
@@ -129,8 +163,9 @@ def get_rti_records_index():
 @app.get("/pdfs/{rti_id}")
 def get_rti_pdf_endpoint(rti_id: str):
     """Serve the PDF for an RTI: streams local file if downloaded, or redirects to cloud storage."""
-    pdf_dir = ROOT / "rti_scraper" / "pdfs"
-    local_path = pdf_dir / f"{rti_id}.pdf"
+    local_path = _safe_local_pdf_path(rti_id)
+    if local_path is None:
+        raise HTTPException(status_code=400, detail="Invalid RTI document identifier")
     if local_path.exists() and local_path.stat().st_size > 0:
         return FileResponse(local_path, media_type="application/pdf", filename=f"{rti_id}.pdf")
 
@@ -138,24 +173,27 @@ def get_rti_pdf_endpoint(rti_id: str):
     record = records.get(rti_id)
     if record:
         remote_url = record.get("admin_pdf_url") or record.get("file_url") or record.get("pdf_url")
-        if remote_url:
+        if isinstance(remote_url, str) and remote_url.startswith(("https://", "http://")):
             return RedirectResponse(url=remote_url, status_code=307)
 
-    raise HTTPException(status_code=404, detail=f"PDF not available for RTI record '{rti_id}'")
+    raise HTTPException(status_code=404, detail="PDF not available for requested RTI record")
 
 
 @app.get("/rti/documents/{rti_id}")
 @app.get("/documents/{rti_id}")
 def get_rti_document_meta(rti_id: str):
     """Retrieve full RTI metadata with direct PDF access links."""
+    local_path = _safe_local_pdf_path(rti_id)
+    if local_path is None:
+        raise HTTPException(status_code=400, detail="Invalid RTI document identifier")
+
     records = get_rti_records_index()
     record = records.get(rti_id)
     if not record:
-        raise HTTPException(status_code=404, detail=f"RTI record '{rti_id}' not found")
+        raise HTTPException(status_code=404, detail="RTI record not found")
 
-    pdf_dir = ROOT / "rti_scraper" / "pdfs"
-    local_path = pdf_dir / f"{rti_id}.pdf"
     remote_url = record.get("admin_pdf_url") or record.get("file_url") or record.get("pdf_url")
+    is_local = local_path.exists()
 
     return {
         "id": record.get("id"),
@@ -169,8 +207,8 @@ def get_rti_document_meta(rti_id: str):
         "response_status": record.get("response_status"),
         "date_filed": record.get("date_filed"),
         "tags": record.get("tags"),
-        "has_pdf": bool(remote_url or local_path.exists()),
+        "has_pdf": bool(remote_url or is_local),
         "pdf_url": f"/rti/documents/{rti_id}/pdf",
         "remote_pdf_url": remote_url,
-        "is_cached_locally": local_path.exists(),
+        "is_cached_locally": is_local,
     }

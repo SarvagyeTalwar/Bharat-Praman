@@ -636,7 +636,7 @@
         <a href="rti/rti_page.html">RTI Desk</a>
         <a href="rti_archive.html">RTI Archive</a>
         <a href="graph.html#glossary">Glossary &amp; IPC</a>
-        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">⚡ GraphRAG Benchmark</a>
+        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">Architecture Benchmark</a>
         <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
           <span class="switch-mode-track" aria-hidden="true"></span>
           <span class="switch-mode-knob" aria-hidden="true"></span>
@@ -792,6 +792,14 @@
       <div id="flowsTableWrap"><div class="empty">Querying paths...</div></div>
     </section>
 
+    <section class="card" id="rtiRecordsCard" style="margin-top:18px;" hidden>
+      <div class="card-head">
+        <span id="rtiRecordsHeadTitle">Filed Public RTIs &amp; Official CPIO Replies</span>
+        <span class="card-sub" id="rtiRecordsSubTag">Neo4j (:RTIRecord)</span>
+      </div>
+      <div id="rtiRecordsWrap"><div class="empty">Checking linked RTI records...</div></div>
+    </section>
+
     <section class="card" id="graphCard">
       <div class="card-head">
         <span>Interactive Relationship Graph</span>
@@ -809,11 +817,18 @@
     </section>
   </main>
 
-  <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js" integrity="sha384-IWROdLKRsN1UuJywMlWl7/blXQ8GEooN2n7dzTxfEPd7ybYIKCUJ2Ol/1Gpf3YV4" crossorigin="anonymous"></script>
   <script>
     const API_BASE = (window.BP_CONFIG && typeof window.BP_CONFIG.apiBase === 'string')
       ? window.BP_CONFIG.apiBase
-      : (location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '');
+      : ((location.port === '5500' || location.protocol === 'file:')
+        ? `http://${location.hostname || '127.0.0.1'}:8000`
+        : '');
+
+    function safeHttpUrl(url) {
+      const s = String(url || '').trim();
+      return /^https?:\/\//i.test(s) ? s : '';
+    }
 
     function getCssVar(name, fallback) {
       return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -1031,7 +1046,92 @@
       });
     }
 
-        function setupDiscrepancyHandlers(data) {
+    function renderRtiSection(data) {
+      const focus = data.node || {};
+      const props = focus.properties || {};
+      const labels = (focus.labels || []).map((l) => String(l));
+      const isRtiNode = labels.includes('RTIRecord');
+      const rtiCard = document.getElementById('rtiRecordsCard');
+      const rtiWrap = document.getElementById('rtiRecordsWrap');
+      const rtiTitle = document.getElementById('rtiRecordsHeadTitle');
+      const rtiSub = document.getElementById('rtiRecordsSubTag');
+      if (!rtiCard || !rtiWrap) return;
+
+      const statusBadge = (st) => {
+        const s = String(st || 'partial_response').toLowerCase();
+        const label = s.replace(/_/g, ' ').toUpperCase();
+        if (s.includes('full')) return `<span class="pill pill-accent">${escapeHtml(label)}</span>`;
+        if (s.includes('no')) return `<span class="pill pill-danger">${escapeHtml(label)}</span>`;
+        return `<span class="pill">${escapeHtml(label)}</span>`;
+      };
+
+      if (isRtiNode) {
+        const wtCard = document.getElementById('wealthTrajectoryCard');
+        if (wtCard) wtCard.hidden = true;
+        const safePdf = safeHttpUrl(props.admin_pdf_url);
+        const rtiLink = document.getElementById('rti-link');
+        if (rtiLink && safePdf) {
+          rtiLink.href = safePdf;
+          rtiLink.target = '_blank';
+          rtiLink.rel = 'noopener noreferrer';
+          rtiLink.textContent = 'View Official Reply PDF ↗';
+          rtiLink.hidden = false;
+        }
+        const qs = Array.isArray(props.questions) ? props.questions : (props.questions ? [props.questions] : []);
+        const tags = Array.isArray(props.tags) ? props.tags : [];
+        rtiTitle.textContent = 'Filed RTI Questions & Official CPIO Reply';
+        rtiSub.textContent = `${props.department || 'CPIO'} · ${props.date_filed || 'Filed RTI'}`;
+        rtiWrap.innerHTML = `
+          <div style="padding:16px 18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+              <div>${statusBadge(props.response_status)} <span class="pill">${escapeHtml(props.department || 'Public Authority')}</span> <span class="pill">${escapeHtml(props.state || 'Central Government')}</span></div>
+              ${safePdf ? `<a href="${escapeHtml(safePdf)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Open Official Stamped Reply PDF ↗</a>` : ''}
+            </div>
+            ${props.subject ? `<p style="font-size:13.5px; color:var(--fg); margin:0 0 12px 0;"><strong>Subject:</strong> ${escapeHtml(props.subject)}</p>` : ''}
+            ${qs.length ? `<div style="margin-bottom:14px;"><div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Questions Asked Under Section 6(1)</div><ol style="margin:0; padding-left:20px; font-size:13px; line-height:1.55;">${qs.map((q) => `<li style="margin-bottom:4px;">${escapeHtml(q)}</li>`).join('')}</ol></div>` : ''}
+            <div style="background:var(--surface-soft); border:1px solid var(--border); border-radius:8px; padding:12px 14px;">
+              <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Official CPIO Response Summary</div>
+              <p style="font-size:13.5px; line-height:1.55; margin:0; color:var(--fg);">${escapeHtml(props.response_summary || 'No summary text recorded.')}</p>
+            </div>
+            ${tags.length ? `<div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">${tags.map((tg) => `<span class="pill" style="font-size:11px;">${escapeHtml(tg)}</span>`).join('')}</div>` : ''}
+          </div>`;
+        rtiCard.hidden = false;
+        return;
+      }
+
+      const linkedRtis = (data.nodes || []).filter((n) => (n.labels || []).includes('RTIRecord'));
+      if (!linkedRtis.length) {
+        rtiCard.hidden = true;
+        return;
+      }
+      rtiTitle.textContent = 'Filed Public RTIs & Official CPIO Replies Linked to This Leader';
+      rtiSub.textContent = `${linkedRtis.length} Neo4j (:RTIRecord) node(s) via [:FILED_ABOUT]`;
+      rtiWrap.innerHTML = `<div style="overflow-x:auto;">
+        <table class="clean-table">
+          <thead><tr><th>#</th><th>RTI Title &amp; Subject</th><th>Public Authority</th><th>Status</th><th>Official CPIO Reply Summary</th><th>Source / Inspect</th></tr></thead>
+          <tbody>${linkedRtis.map((rn, idx) => {
+            const rp = rn.properties || {};
+            const sum = String(rp.response_summary || rp.subject || '—');
+            const shortSum = sum.length > 220 ? sum.slice(0, 220) + '...' : sum;
+            const safePdf = safeHttpUrl(rp.admin_pdf_url);
+            return `<tr>
+              <td class="mono">${idx + 1}</td>
+              <td><a href="node.html?id=${encodeURIComponent(rn.id)}" style="font-weight:600;">${escapeHtml(resolveDisplayName(rn))}</a>${rp.date_filed ? `<div class="mono" style="font-size:11px; color:var(--muted); margin-top:2px;">Filed: ${escapeHtml(rp.date_filed)}</div>` : ''}</td>
+              <td style="font-size:12.5px;">${escapeHtml(rp.department || 'Lok Sabha Secretariat')}</td>
+              <td>${statusBadge(rp.response_status)}</td>
+              <td style="font-size:12.5px; line-height:1.45; max-width:360px;">${escapeHtml(shortSum)}</td>
+              <td style="white-space:nowrap;">
+                ${safePdf ? `<a href="${escapeHtml(safePdf)}" target="_blank" rel="noopener noreferrer" style="margin-right:8px; font-weight:600;">Official PDF ↗</a>` : ''}
+                <a href="node.html?id=${encodeURIComponent(rn.id)}">Open →</a>
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>`;
+      rtiCard.hidden = false;
+    }
+
+    function setupDiscrepancyHandlers(data) {
       currentProfileData = data;
       const focus = data.node || {};
       const displayName = resolveDisplayName(focus);
@@ -1122,10 +1222,12 @@
     }
 
     function renderAuditNotesBadge(data) {
+      const heroBadges = document.getElementById('heroBadges');
+      const prevBadge = document.getElementById('auditFeedBadge');
+      if (prevBadge) prevBadge.remove();
       const flags = data.flags || [];
       const count = Number(data.flag_count || flags.length || 0);
       if (count > 0) {
-        const heroBadges = document.getElementById('heroBadges');
         const auditPill = document.createElement('span');
         auditPill.className = 'pill';
         auditPill.id = 'auditFeedBadge';
@@ -1135,6 +1237,37 @@
         auditPill.onclick = () => showAuditFeedModal(data);
         heroBadges.appendChild(auditPill);
       }
+    }
+
+    function showAuditFeedModal(data) {
+      const flags = data.flags || [];
+      const modal = document.getElementById('auditFeedModal');
+      const list = document.getElementById('auditFeedList');
+      const closeBtn = document.getElementById('auditFeedClose');
+      const subtitle = document.getElementById('auditFeedSubtitle');
+
+      subtitle.textContent = `Audit reports attached to ${resolveDisplayName(data.node)}`;
+
+      if (!flags.length) {
+        list.innerHTML = '<div style="color:var(--muted); font-size:13px;">No community audit notes for this profile.</div>';
+      } else {
+        list.innerHTML = flags.map((f) => {
+          const safeSrc = safeHttpUrl(f.source_url);
+          return `
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                <span class="tag-pill" style="font-size:11px; font-weight:700;">${escapeHtml(f.category || 'DISCREPANCY')}</span>
+                <span class="mono" style="font-size:11.5px; color:var(--muted);">${escapeHtml(String(f.created_at || '').slice(0, 10))} · ${escapeHtml(f.status || 'PENDING_REVIEW')}</span>
+              </div>
+              <p style="font-size:13px; color:var(--fg); line-height:1.45; margin:0 0 6px 0;">${escapeHtml(f.claimed_correction || '')}</p>
+              ${safeSrc ? `<div style="font-size:12px;"><a href="${escapeHtml(safeSrc)}" target="_blank" rel="noopener noreferrer">Evidence Source ↗</a></div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      modal.hidden = false;
+      closeBtn.onclick = () => { modal.hidden = true; };
     }
 
     function renderConnectionsTable() {

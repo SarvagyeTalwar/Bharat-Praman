@@ -112,7 +112,14 @@ async def lifespan(_app: FastAPI):
     driver.close()
 
 
-app = FastAPI(title="Bharat Praman API", lifespan=lifespan)
+_ENABLE_API_DOCS = os.getenv("ENABLE_API_DOCS", "false").lower() in ("1", "true", "yes")
+app = FastAPI(
+    title="Bharat Praman API",
+    lifespan=lifespan,
+    docs_url="/docs" if _ENABLE_API_DOCS else None,
+    redoc_url="/redoc" if _ENABLE_API_DOCS else None,
+    openapi_url="/openapi.json" if _ENABLE_API_DOCS else None,
+)
 logger = logging.getLogger("uvicorn.error")
 
 # High-concurrency scalability: compress responses > 1KB (reduces graph payload by 70-80%)
@@ -126,10 +133,27 @@ app.add_middleware(
         "http://127.0.0.1:5500",
         "https://bharat-praman-production.up.railway.app",
     ],
-    allow_origin_regex=os.getenv("FRONTEND_ORIGIN_REGEX", r"https?://[^/]+:(?:5500|8080)"),
+    allow_origin_regex=os.getenv(
+        "FRONTEND_ORIGIN_REGEX",
+        r"^https?://(?:localhost|127\.0\.0\.1)(?::(?:5500|8000|8001|8080))?$",
+    ),
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
+)
+
+
+_CSP_POLICY = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    "font-src 'self' https://fonts.gstatic.com data:; "
+    "img-src 'self' data: https:; "
+    "connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 http://127.0.0.1:8001 http://localhost:8001 https://bharat-praman-production.up.railway.app; "
+    "frame-src 'self' https://uxlqfcmxmusubsuzyfxk.supabase.co; "
+    "object-src 'none'; "
+    "base-uri 'self'; "
+    "frame-ancestors 'self';"
 )
 
 
@@ -137,11 +161,14 @@ app.add_middleware(
 async def _security_headers_middleware(request: Request, call_next):
     """Enforce defense-in-depth security headers on all responses."""
     response = await call_next(request)
+    response.headers["Content-Security-Policy"] = _CSP_POLICY
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
     if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
@@ -162,8 +189,10 @@ async def _rate_limit_middleware(request: Request, call_next):
     if not path.startswith("/api/"):
         return await call_next(request)
 
-    xff = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
-    ip = xff or (request.client.host if request.client else "unknown")
+    # Use rightmost edge-proxy hop from X-Forwarded-For (or X-Real-IP / socket IP) so clients cannot spoof hits[0].
+    x_real_ip = (request.headers.get("x-real-ip") or "").strip()
+    xff_parts = [p.strip() for p in (request.headers.get("x-forwarded-for") or "").split(",") if p.strip()]
+    ip = x_real_ip or (xff_parts[-1] if xff_parts else "") or (request.client.host if request.client else "unknown")
 
     if path == "/api/flags" and request.method == "POST":
         tier = "flag"
@@ -395,10 +424,20 @@ class DiscrepancySubmitRequest(BaseModel):
             raise ValueError("source_url must be a valid HTTP or HTTPS URL.")
         return v
 
+    @field_validator("email", mode="after")
+    @classmethod
+    def validate_email(cls, v: Optional[str]) -> Optional[str]:
+        if not v or not v.strip():
+            return ""
+        v = re.sub(r"<[^>]*?>", "", v).strip()
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v):
+            raise ValueError("email must be a valid email address.")
+        return v
+
     @field_validator("category", mode="after")
     @classmethod
     def validate_category(cls, v: str) -> str:
-        allowed = {"ASSETS", "CRIMINAL_CASES", "EDUCATION", "PARTY_AFFILIATION", "OTHER"}
+        allowed = {"ASSETS", "CRIMINAL_CASES", "EDUCATION", "TERMS", "PARTY_AFFILIATION", "OTHER"}
         cat = (v or "OTHER").strip().upper()
         return cat if cat in allowed else "OTHER"
 
@@ -486,7 +525,7 @@ def home():
     dashboard = BASE_DIR / "graphdashboard2.html"
     if dashboard.is_file():
         return FileResponse(dashboard)
-    return {"message": "Bharat Praman API is running", "docs": "/docs"}
+    return {"message": "Bharat Praman API is running"}
 
 
 @app.get("/health")
