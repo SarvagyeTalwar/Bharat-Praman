@@ -1188,6 +1188,13 @@
     const API_BASE = window.BP_CONFIG.apiBase;
     const API_URL = `${API_BASE}/api/search`;
     const CACHE_PREFIX = 'bp_graph_cache_v1::';
+    const HIDDEN_SUMMARY_TYPES = new Set([
+      'party', 'affidavit', 'affidavitchange', 'constituency', 'assemblyconstituency',
+      'election', 'electionrecord', 'electionresult', 'rtirecord', 'criminalcase',
+    ]);
+    function getHiddenTypeHint(labels) {
+      return (labels || []).find((l) => HIDDEN_SUMMARY_TYPES.has(String(l).trim().toLowerCase().replace(/[\s_-]+/g, ''))) || '';
+    }
 
     const themeBtn = document.getElementById('themeToggle');
     function syncThemeBtn() {
@@ -1348,7 +1355,8 @@
       cy.on('mouseout', 'edge', (e) => { if (!showEdgeLabels) e.target.style('label', ''); });
       cy.on('tap', 'node', (e) => {
         const queryObj = { id: e.target.id(), from: activeQuery };
-        if (e.target.data('category') === 'party') queryObj.type = 'Party';
+        const typeHint = e.target.data('typeHint') || (e.target.data('category') === 'party' ? 'Party' : '');
+        if (typeHint) queryObj.type = typeHint;
         window.location.href = `node.html?${new URLSearchParams(queryObj)}`;
       });
       cy.on('mouseover', 'node', () => { graphContainer.style.cursor = 'pointer'; });
@@ -1393,9 +1401,9 @@
       const tb = document.createElement('tbody');
       nodes.slice(0, 120).forEach((n, idx) => {
         const isCrim = (n.labels || []).some((l) => /criminal|section/i.test(l));
-        const isParty = (n.labels || []).some((l) => String(l).trim().toLowerCase() === 'party');
+        const typeHint = getHiddenTypeHint(n.labels);
         const linkParams = new URLSearchParams({ id: n.id, from: activeQuery });
-        if (isParty) linkParams.set('type', 'Party');
+        if (typeHint) linkParams.set('type', typeHint);
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="num">${idx + 1}</td>
@@ -1509,8 +1517,9 @@
         const category = labels.map((l) => String(l).toLowerCase()).find((l) =>
           ['party', 'state', 'constituency', 'assemblyconstituency', 'person', 'mla', 'mp', 'ministry', 'criminalcase', 'section'].includes(l)
         ) || 'node';
+        const typeHint = getHiddenTypeHint(labels);
         const classes = [...labels.map((l) => String(l).toLowerCase()), category, focusIds.has(node.id) ? 'focus' : ''].filter(Boolean).join(' ');
-        return { group: 'nodes', data: { id: String(node.id), label: node.label || labels[0] || 'NODE', category }, classes };
+        return { group: 'nodes', data: { id: String(node.id), label: node.label || labels[0] || 'NODE', category, typeHint }, classes };
       });
       const edgeElements = edges.map((edge) => ({
         group: 'edges',

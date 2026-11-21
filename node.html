@@ -66,12 +66,12 @@
     }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body.is-party-entity #kpiStrip,
-    body.is-party-entity #kpiCardAssets,
-    body.is-party-entity #kpiCardLiabilities,
-    body.is-party-entity #kpiCardNetWorth,
-    body.is-party-entity #kpiCardCriminalCases,
-    body.is-party-entity #wealthTrajectoryCard {
+    body.is-summary-hidden #kpiStrip,
+    body.is-summary-hidden #kpiCardAssets,
+    body.is-summary-hidden #kpiCardLiabilities,
+    body.is-summary-hidden #kpiCardNetWorth,
+    body.is-summary-hidden #kpiCardCriminalCases,
+    body.is-summary-hidden #wealthTrajectoryCard {
       display: none !important;
     }
     body {
@@ -915,23 +915,47 @@
     const fromQuery = params.get('from') || '';
     const nodeTypeParam = params.get('type') || '';
 
-    function hasPartyLabel(labels) {
-      return (labels || []).some((l) => String(l).trim().toLowerCase() === 'party');
+    const SUMMARY_HIDDEN_TYPES = new Set([
+      'party',
+      'affidavit',
+      'affidavitchange',
+      'constituency',
+      'assemblyconstituency',
+      'election',
+      'electionrecord',
+      'electionresult',
+      'rtirecord',
+      'criminalcase',
+    ]);
+    const PERSON_LABELS = new Set(['person', 'mla', 'mp', 'minister', 'candidate', 'historicalmp']);
+
+    function normalizeTypeName(val) {
+      return String(val || '').trim().toLowerCase().replace(/[\s_-]+/g, '');
     }
 
-    function isPartyEntity(focus, props, focusLabels) {
-      if (hasPartyLabel(focusLabels)) return true;
-      const typeCandidates = [props.type, focus.type, props.entity_type, props.label];
-      if (typeCandidates.some((v) => String(v || '').trim().toLowerCase() === 'party')) return true;
+    function matchedHiddenTypeLabel(labels) {
+      return (labels || []).find((l) => SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(l))) || '';
+    }
+
+    function isPartyLabel(labels) {
+      return (labels || []).some((l) => normalizeTypeName(l) === 'party');
+    }
+
+    function shouldHideSummaryBlocks(focus, props, focusLabels) {
+      if (focusLabels.some((l) => PERSON_LABELS.has(normalizeTypeName(l)))) return false;
+      if (matchedHiddenTypeLabel(focusLabels)) return true;
+      const typeCandidates = [focus.type, props.type, props.entity_type, props.label, nodeTypeParam];
+      if (typeCandidates.some((v) => SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(v)))) return true;
       if (String(props.entity_id || '').trim().toLowerCase().startsWith('party_')) return true;
-      if (/^party$/i.test(nodeTypeParam.trim())) return true;
-      const isPersonLike = focusLabels.some((l) => ['person', 'mla', 'mp', 'minister', 'candidate'].includes(String(l).trim().toLowerCase()));
-      return !isPersonLike && /^party([_:-]|$)/i.test(String(nodeId || '').trim());
+      return /^party([_:-]|$)/i.test(String(nodeId || '').trim());
     }
 
-    function buildNodeHref(id, isParty, extra) {
+    function buildNodeHref(id, labelsOrType, extra) {
       const q = new URLSearchParams({ id: String(id) });
-      if (isParty) q.set('type', 'Party');
+      const typeHint = Array.isArray(labelsOrType)
+        ? matchedHiddenTypeLabel(labelsOrType)
+        : (SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(labelsOrType)) ? String(labelsOrType) : '');
+      if (typeHint) q.set('type', typeHint);
       if (extra) {
         Object.entries(extra).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') q.set(k, String(v));
@@ -940,9 +964,10 @@
       return `node.html?${q.toString()}`;
     }
 
-    let isCurrentParty = /^party$/i.test(nodeTypeParam.trim()) || /^party([_:-]|$)/i.test(String(nodeId || '').trim());
-    if (isCurrentParty) {
-      document.body.classList.add('is-party-entity');
+    let isSummaryHidden = SUMMARY_HIDDEN_TYPES.has(normalizeTypeName(nodeTypeParam))
+      || /^party([_:-]|$)/i.test(String(nodeId || '').trim());
+    if (isSummaryHidden) {
+      document.body.classList.add('is-summary-hidden');
     }
     let currentProfileData = null;
     let allConnections = [];
@@ -997,7 +1022,7 @@
       cy.on('tap', 'node', (e) => {
         const targetId = e.target.id();
         if (targetId && targetId !== nodeId) {
-          location.href = buildNodeHref(targetId, Boolean(e.target.data('isParty')), { from: fromQuery });
+          location.href = buildNodeHref(targetId, e.target.data('typeHint') || '', { from: fromQuery });
         }
       });
     }
@@ -1123,7 +1148,7 @@
         <table class="clean-table">
           <thead><tr><th>Relationship</th><th>Connected Entity</th><th>Type</th><th>Action</th></tr></thead>
           <tbody>${filtered.map((c) => {
-            const href = buildNodeHref(c.id, c.isParty);
+            const href = buildNodeHref(c.id, c.typeHint);
             return `<tr>
               <td class="mono" style="font-size:12px; color:var(--muted);">${escapeHtml(c.relType)}</td>
               <td><a href="${escapeHtml(href)}" style="font-weight:600;">${escapeHtml(c.name)}</a></td>
@@ -1141,7 +1166,7 @@
       const subTagEl = document.getElementById('trajectorySubTag');
       const badgeEl = document.getElementById('trajectoryBadge');
 
-      if (isCurrentParty) {
+      if (isSummaryHidden) {
         if (cardEl) {
           cardEl.hidden = true;
           cardEl.style.display = 'none';
@@ -1388,12 +1413,13 @@
       const dataEdges = data.edges || [];
       const displayName = resolveDisplayName(focus);
 
-      const isParty = isPartyEntity(focus, props, focusLabels);
-      isCurrentParty = isParty;
-      document.body.classList.toggle('is-party-entity', isParty);
+      const hideSummary = shouldHideSummaryBlocks(focus, props, focusLabels);
+      const isParty = isPartyLabel(focusLabels) || String(props.entity_id || '').trim().toLowerCase().startsWith('party_');
+      isSummaryHidden = hideSummary;
+      document.body.classList.toggle('is-summary-hidden', hideSummary);
 
-      // Hide only the 4 KPI summary cards and Multi-Election Wealth Trajectory for every party.
-      const partyHiddenBlocks = [
+      // Hide the 4 KPI summary cards and Multi-Election Wealth Trajectory for non-person entity types.
+      const summaryHiddenBlocks = [
         document.getElementById('kpiStrip'),
         document.getElementById('kpiCardAssets'),
         document.getElementById('kpiCardLiabilities'),
@@ -1401,10 +1427,10 @@
         document.getElementById('kpiCardCriminalCases'),
         document.getElementById('wealthTrajectoryCard')
       ];
-      partyHiddenBlocks.forEach((el) => {
+      summaryHiddenBlocks.forEach((el) => {
         if (el) {
-          el.hidden = isParty;
-          el.style.display = isParty ? 'none' : '';
+          el.hidden = hideSummary;
+          el.style.display = hideSummary ? 'none' : '';
         }
       });
 
@@ -1420,7 +1446,7 @@
       const photoUrl = props.photo_url || props.image_url || props.photo || props.avatar_url;
       const photoEl = document.getElementById('candidatePhoto');
       const initEl = document.getElementById('avatarInitials');
-      if (!isParty && photoUrl && /^https?:\/\//i.test(String(photoUrl))) {
+      if (!hideSummary && photoUrl && /^https?:\/\//i.test(String(photoUrl))) {
         photoEl.onload = () => { photoEl.hidden = false; initEl.hidden = true; };
         photoEl.onerror = () => { photoEl.hidden = true; initEl.hidden = false; };
         photoEl.src = photoUrl;
@@ -1452,7 +1478,7 @@
       if (caseCount > 0) badges.push(`<span class="pill pill-danger">${caseCount} Criminal Case(s)</span>`);
       document.getElementById('heroBadges').innerHTML = badges.join('');
 
-      const isPolitician = !isParty && focusLabels.some((l) => ['person', 'mla', 'mp', 'minister', 'candidate'].includes(String(l).toLowerCase()));
+      const isPolitician = !hideSummary && focusLabels.some((l) => PERSON_LABELS.has(normalizeTypeName(l)));
       const entityId = props.entity_id || props.id || focus.id;
       const rtiLink = document.getElementById('rti-link');
       if (isPolitician) {
@@ -1470,7 +1496,7 @@
       const netWorth = hasAssets && hasLiab ? assets - liab : (hasAssets ? assets : null);
       const netNeg = netWorth !== null && netWorth < 0;
 
-      if (!isParty) {
+      if (!hideSummary) {
         document.getElementById('kpiAssets').textContent = fmtCompact(props.total_assets);
         document.getElementById('kpiAssetsExact').textContent = fmtExact(props.total_assets);
         document.getElementById('kpiLiabilities').textContent = fmtCompact(props.liabilities);
@@ -1518,7 +1544,7 @@
         ['Council / Responsibilities', props.council_section || props.special_responsibilities || '—', ''],
       ]));
 
-      if (!isParty) {
+      if (!hideSummary) {
         renderWealthTrajectory(data, props, displayName, isPolitician);
       }
 
@@ -1535,6 +1561,7 @@
               const cp = cn.properties || {};
               const ipcs = Array.isArray(cp.ipc_sections) ? cp.ipc_sections : (cp.ipc_sections ? [cp.ipc_sections] : []);
               const ipcHtml = ipcs.length ? ipcs.map((s) => `<span class="ipc-badge">IPC ${escapeHtml(s)}</span>`).join('') : '—';
+              const caseHref = buildNodeHref(cn.id, cn.labels || 'CriminalCase');
               return `<tr>
                 <td class="mono">${idx + 1}</td>
                 <td style="font-weight:600;">${escapeHtml(resolveDisplayName(cn))}</td>
@@ -1542,7 +1569,7 @@
                 <td>${escapeHtml(cp.court || '—')}</td>
                 <td>${escapeHtml(cp.status || '—')}</td>
                 <td>${ipcHtml}</td>
-                <td><a href="node.html?id=${encodeURIComponent(cn.id)}">Open →</a></td>
+                <td><a href="${escapeHtml(caseHref)}">Open →</a></td>
               </tr>`;
             }).join('')}</tbody>
           </table>
@@ -1557,7 +1584,7 @@
           relType: e.type,
           name: resolveDisplayName(other),
           type: (other?.labels || [])[0] || 'Entity',
-          isParty: hasPartyLabel(other?.labels),
+          typeHint: matchedHiddenTypeLabel(other?.labels),
         };
       });
       document.getElementById('connCountTag').textContent = `${data.total_edges ?? dataEdges.length} total edge(s)`;
@@ -1588,7 +1615,7 @@
         nodesById.forEach((n, idStr) => {
           elements.push({
             group: 'nodes',
-            data: { id: idStr, label: resolveDisplayName(n), isParty: hasPartyLabel(n.labels) },
+            data: { id: idStr, label: resolveDisplayName(n), typeHint: matchedHiddenTypeLabel(n.labels) },
             classes: [...(n.labels || []).map((x) => String(x).toLowerCase()), ...(idStr === String(focus.id) ? ['focus'] : [])].join(' '),
           });
         });
@@ -1678,15 +1705,16 @@
             const rp = rn.properties || {};
             const sum = String(rp.response_summary || rp.subject || '—');
             const shortSum = sum.length > 220 ? sum.slice(0, 220) + '...' : sum;
+            const rtiHref = buildNodeHref(rn.id, rn.labels || 'RTIRecord');
             return `<tr>
               <td class="mono">${idx + 1}</td>
-              <td><a href="node.html?id=${encodeURIComponent(rn.id)}" style="font-weight:600;">${escapeHtml(resolveDisplayName(rn))}</a>${rp.date_filed ? `<div class="mono" style="font-size:11px; color:var(--muted); margin-top:2px;">Filed: ${escapeHtml(rp.date_filed)}</div>` : ''}</td>
+              <td><a href="${escapeHtml(rtiHref)}" style="font-weight:600;">${escapeHtml(resolveDisplayName(rn))}</a>${rp.date_filed ? `<div class="mono" style="font-size:11px; color:var(--muted); margin-top:2px;">Filed: ${escapeHtml(rp.date_filed)}</div>` : ''}</td>
               <td style="font-size:12.5px;">${escapeHtml(rp.department || 'Lok Sabha Secretariat')}</td>
               <td>${statusBadge(rp.response_status)}</td>
               <td style="font-size:12.5px; line-height:1.45; max-width:360px;">${escapeHtml(shortSum)}</td>
               <td style="white-space:nowrap;">
                 ${rp.admin_pdf_url ? `<a href="${escapeHtml(rp.admin_pdf_url)}" target="_blank" rel="noopener" style="margin-right:8px; font-weight:600;">Official PDF ↗</a>` : ''}
-                <a href="node.html?id=${encodeURIComponent(rn.id)}">Open →</a>
+                <a href="${escapeHtml(rtiHref)}">Open →</a>
               </td>
             </tr>`;
           }).join('')}</tbody>
@@ -1743,7 +1771,7 @@
               const pEdges = p.edges || [];
               const chain = pNodes.map((n, ni) => {
                 const label = resolveDisplayName(n);
-                const href = buildNodeHref(n.id, hasPartyLabel(n.labels));
+                const href = buildNodeHref(n.id, n.labels);
                 const link = `<a href="${escapeHtml(href)}" style="font-weight:600;">${escapeHtml(label)}</a>`;
                 const edge = ni < pEdges.length ? ` <span class="mono" style="color:var(--muted);">—[${escapeHtml(pEdges[ni].type)}]→</span> ` : '';
                 return link + edge;
