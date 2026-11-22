@@ -35,7 +35,7 @@ from dotenv import find_dotenv, load_dotenv
 from neo4j import GraphDatabase
 
 from glossary import annotate_answer, expand_query
-from deepseek_client import call_deepseek_chat, stream_deepseek_chat
+from deepseek_client import call_deepseek_chat, stream_deepseek_chat, answer_from_web_fallback
 
 HERE = Path(__file__).resolve().parent
 load_dotenv(find_dotenv())
@@ -943,6 +943,14 @@ def answer_reports(
                 "score": 1.0,
             }]
         else:
+            web_ans, _ = answer_from_web_fallback(question)
+            if web_ans:
+                return (
+                    f"### 🌐 Live Government Web Fallback (.gov.in / sansad.in)\n\n"
+                    f"*(Note: Not found in indexed Ministry Annual Reports)*\n\n{web_ans}",
+                    [],
+                    "Live Web Retrieval via DeepSeek Search (*.gov.in)",
+                )
             return (
                 "No matching annual-report passages were found in Instance02 for the selected ministry/year filter. "
                 f"Verify that the reports are ingested into `{VECTOR_INDEX}`.",

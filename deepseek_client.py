@@ -159,6 +159,12 @@ def call_deepseek_chat(
                 usage = data.get("usage", {})
                 return content, reasoning if reasoning else None, usage
 
+            # If tools parameter is rejected (e.g. server does not support tools or specific tool format), retry without tools
+            if resp.status_code == 400 and payload.get("tools"):
+                logger.warning("DeepSeek API rejected tools parameter; retrying with plain prompt.")
+                payload.pop("tools", None)
+                continue
+
             # Rate limit or server error - wait with jitter and retry
             if resp.status_code in (429, 500, 502, 503, 504):
                 retry_after = resp.headers.get("Retry-After")
@@ -257,3 +263,41 @@ def stream_deepseek_chat(
                     continue
     except Exception as exc:
         yield {"type": "content", "text": f"DeepSeek stream error: {exc}"}
+
+
+def answer_from_web_fallback(
+    question: str,
+    is_private_byod: bool = False,
+) -> Tuple[Optional[str], Dict[str, Any]]:
+    """Live web fallback when database does not find an accurate answer.
+
+    Queries official government domains (*.gov.in, *.nic.in, *.sansad.in)
+    and returns a factual, non-sensational answer with citations.
+    """
+    if is_private_byod:
+        return (
+            "No matching record in local graph database. External web search is blocked for private BYOD data.",
+            {}
+        )
+
+    system_prompt = (
+        "You are an Indian Public Policy & Governance Intelligence Analyst. "
+        "The user's query could not be fully answered from the local Bharat Praman graph database. "
+        "Provide an accurate, factual, and strictly non-sensational answer based on official Indian Government "
+        "records (*.gov.in, *.nic.in, *.sansad.in, PIB, ECI, Ministry releases). "
+        "Include official titles, dates, scheme names, and citations where applicable. "
+        "Never invent numbers or dates. If official records do not disclose the information, explicitly say so."
+    )
+    user_prompt = f"Question: {question}\n\nProvide an evidence-based factual answer:"
+    content, _, usage = call_deepseek_chat(
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        model=DEEPSEEK_CHAT_MODEL,
+        temperature=0.1,
+        max_tokens=1500,
+        enable_gov_search=True,
+        is_private_byod=False,
+    )
+    return content, usage

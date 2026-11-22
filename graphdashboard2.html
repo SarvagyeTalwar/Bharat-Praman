@@ -1282,6 +1282,15 @@
       answerFullLink.textContent = 'Open Graph Explorer ↗';
 
       const parts = [];
+      if (data.web_answer) {
+        parts.push(`<div class="sub-block" style="border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.06); padding: 16px 20px; border-radius: 8px; margin-bottom: 16px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <span style="background:#10b981; color:#fff; font-size:11px; font-weight:700; padding:3px 8px; border-radius:4px; letter-spacing:0.5px;">🌐 LIVE WEB FALLBACK</span>
+            <span style="font-size:12px; color:var(--muted);">Answer retrieved from official government portals (*.gov.in / *.sansad.in)</span>
+          </div>
+          <div style="line-height:1.7; font-size:14px;">${renderRagMarkdown(data.web_answer)}</div>
+        </div>`);
+      }
       if (data.explanation) {
         parts.push(`<p style="margin:0 0 12px; font-weight:600;">${escapeHtml(data.explanation)}</p>`);
       }

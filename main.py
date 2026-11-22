@@ -31,7 +31,7 @@ from pydantic import BaseModel, Field, field_validator
 from glossary import search as glossary_search, lookup as glossary_lookup
 from cypher_templates import plan_from_template, TEMPLATE_COLUMNS, EMPTY_OK_TEMPLATES, _state as template_state
 from ipc_sections import EXPLANATIONS as IPC_EXPLANATIONS, normalize_code, canonical_ipc_code, classify_section
-from deepseek_client import call_deepseek_chat, check_pre_corpus_guardrail, OFFICIAL_GOV_DOMAINS
+from deepseek_client import call_deepseek_chat, check_pre_corpus_guardrail, OFFICIAL_GOV_DOMAINS, answer_from_web_fallback
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -1940,6 +1940,21 @@ def ask_graph(request: AskRequest):
         },
     }
     if result_type == "unsupported":
+        # Automatic DeepSeek Web Fallback: If not found in graph database, fetch live from official gov portals
+        web_ans, web_usage = answer_from_web_fallback(question)
+        if web_ans:
+            return {
+                "query": question, "filter": "deepseek_web_fallback", "result_type": "web_fallback",
+                "nodes": [], "edges": [], "focus_ids": [],
+                "connection_count": 0, "connection_offset": 0,
+                "has_more_connections": False,
+                "explanation": "No direct match in the graph database. DeepSeek retrieved this live from official portals (*.gov.in / *.sansad.in).",
+                "cypher": "", "row_count": 0, "template_id": plan.get("_template"),
+                "web_answer": web_ans,
+                "plan_cache_hit": False, "prompt_examples_used": int(plan.get("_examples_used", 0)),
+                "gemini_usage_metadata": web_usage or usage_metadata,
+            }
+
         if not plan.get("_cache_hit"):
             cache_cypher_plan(question, {
                 "result_type": "unsupported", "cypher": "", "parameters": {},
@@ -1966,6 +1981,19 @@ def ask_graph(request: AskRequest):
 
     if result_type == "aggregate" and not rows:
         explanation = empty_result_explanation(question, plan, explanation)
+        web_ans, web_usage = answer_from_web_fallback(question)
+        if web_ans:
+            return {
+                "query": question, "filter": "deepseek_web_fallback", "result_type": "web_fallback",
+                "records": [], "nodes": [], "edges": [], "focus_ids": [],
+                "connection_count": 0, "connection_offset": 0,
+                "has_more_connections": False,
+                "explanation": "Zero aggregate rows matched in the graph. DeepSeek retrieved this live from official portals (*.gov.in / *.sansad.in).",
+                "cypher": cypher, "row_count": 0, "template_id": plan.get("_template"),
+                "web_answer": web_ans,
+                "plan_cache_hit": False, "prompt_examples_used": int(plan.get("_examples_used", 0)),
+                "gemini_usage_metadata": web_usage or usage_metadata,
+            }
 
     if result_type == "aggregate":
         records = [json_safe(dict(row)) for row in rows]
@@ -2005,6 +2033,21 @@ def ask_graph(request: AskRequest):
                 "source": payloads[index]["id"],
                 "target": payloads[index + 1]["id"],
                 "properties": json_safe(dict(relationship)),
+            }
+
+    if not graph_nodes:
+        web_ans, web_usage = answer_from_web_fallback(question)
+        if web_ans:
+            return {
+                "query": question, "filter": "deepseek_web_fallback", "result_type": "web_fallback",
+                "nodes": [], "edges": [], "focus_ids": [],
+                "connection_count": 0, "connection_offset": 0,
+                "has_more_connections": False,
+                "explanation": "No graph path matched in the database. DeepSeek retrieved this live from official portals (*.gov.in / *.sansad.in).",
+                "cypher": cypher, "row_count": 0, "template_id": plan.get("_template"),
+                "web_answer": web_ans,
+                "plan_cache_hit": False, "prompt_examples_used": int(plan.get("_examples_used", 0)),
+                "gemini_usage_metadata": web_usage or usage_metadata,
             }
 
     resp = {
