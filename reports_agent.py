@@ -35,6 +35,7 @@ from dotenv import find_dotenv, load_dotenv
 from neo4j import GraphDatabase
 
 from glossary import annotate_answer, expand_query
+from deepseek_client import call_deepseek_chat, stream_deepseek_chat
 
 HERE = Path(__file__).resolve().parent
 load_dotenv(find_dotenv())
@@ -704,32 +705,17 @@ def synthesize_report(
         )
         for ds_model in dict.fromkeys(models_to_try):
             try:
-                body_dict = {
-                    "model": ds_model,
-                    "messages": [
+                content, reasoning, _ = call_deepseek_chat(
+                    messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt},
                     ],
-                    "max_tokens": max_tokens,
-                }
-                if "reasoner" not in ds_model:
-                    body_dict["temperature"] = 0.12
-
-                req = urllib.request.Request(
-                    "https://api.deepseek.com/chat/completions",
-                    data=json.dumps(body_dict).encode("utf-8"),
-                    headers={
-                        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    method="POST",
+                    model=ds_model,
+                    temperature=0.12,
+                    max_tokens=max_tokens,
+                    timeout=75 if "reasoner" in ds_model else 45,
                 )
-                timeout_s = 75 if "reasoner" in ds_model else 45
-                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-                    payload = json.loads(resp.read().decode("utf-8"))
-                    msg = payload["choices"][0]["message"]
-                    content = msg.get("content") or ""
-                    reasoning = (msg.get("reasoning_content") or "").strip()
+                if content:
                     if reasoning and not short_mode:
                         return (
                             f"<details><summary>DeepSeek R1 Audit Reasoning Trace</summary>\n\n"
@@ -978,52 +964,23 @@ def synthesize_report_stream(
         for ds_model in dict.fromkeys(models_to_try):
             emitted = False
             try:
-                body_dict = {
-                    "model": ds_model,
-                    "messages": [
+                for item in stream_deepseek_chat(
+                    messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt},
                     ],
-                    "max_tokens": max_tokens,
-                    "stream": True,
-                }
-                if "reasoner" not in ds_model:
-                    body_dict["temperature"] = 0.12
-                req = urllib.request.Request(
-                    "https://api.deepseek.com/chat/completions",
-                    data=json.dumps(body_dict).encode("utf-8"),
-                    headers={
-                        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                        "Content-Type": "application/json",
-                        "Accept": "text/event-stream",
-                    },
-                    method="POST",
-                )
-                timeout_s = 75 if "reasoner" in ds_model else 45
-                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-                    for raw in resp:
-                        line = raw.decode("utf-8", "ignore").strip()
-                        if not line.startswith("data:"):
-                            continue
-                        data = line[5:].strip()
-                        if data == "[DONE]":
-                            break
-                        try:
-                            obj = json.loads(data)
-                        except ValueError:
-                            continue
-                        choices = obj.get("choices") or []
-                        if not choices:
-                            continue
-                        delta = choices[0].get("delta") or {}
-                        r_txt = delta.get("reasoning_content")
-                        if r_txt and not short_mode:
-                            emitted = True
-                            yield ("reasoning", r_txt)
-                        c_txt = delta.get("content")
-                        if c_txt:
-                            emitted = True
-                            yield ("content", c_txt)
+                    model=ds_model,
+                    temperature=0.12,
+                    max_tokens=max_tokens,
+                    timeout=75 if "reasoner" in ds_model else 45,
+                ):
+                    kind = item.get("type", "content")
+                    txt = item.get("text", "")
+                    if kind == "reasoning" and short_mode:
+                        continue
+                    if txt:
+                        emitted = True
+                        yield (kind, txt)
                 if emitted:
                     return
             except Exception as exc:

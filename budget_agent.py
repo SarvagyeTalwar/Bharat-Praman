@@ -22,6 +22,7 @@ except Exception:
 
 from dotenv import find_dotenv, load_dotenv
 from neo4j import GraphDatabase
+from deepseek_client import call_deepseek_chat, check_pre_corpus_guardrail
 
 HERE = Path(__file__).resolve().parent
 load_dotenv(find_dotenv())
@@ -255,6 +256,16 @@ def ask_budget(
     top_k: int = 8,
 ) -> dict:
     """Run analytical line-item query + table RAG + journalist synthesis."""
+    # Q96 Pre-corpus guardrail check:
+    guardrail_msg = check_pre_corpus_guardrail(question)
+    if guardrail_msg:
+        return {
+            "question": question,
+            "answer": f"# Pre-Corpus Guardrail Notice\n\n{guardrail_msg}",
+            "line_items": [],
+            "sources": [],
+        }
+
     cache_key = ((question or "").strip().lower(), ministry, fy, sort_by, top_k)
     if cache_key in _BUDGET_CACHE:
         return _BUDGET_CACHE[cache_key]
@@ -319,26 +330,18 @@ Rules:
     answer_text = None
     if DEEPSEEK_API_KEY:
         try:
-            req = urllib.request.Request(
-                "https://api.deepseek.com/chat/completions",
-                data=json.dumps({
-                    "model": DEEPSEEK_MODEL,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    "temperature": 0.1,
-                    "max_tokens": 2200,
-                }).encode("utf-8"),
-                headers={
-                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                method="POST",
+            content, _, _ = call_deepseek_chat(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                model=DEEPSEEK_MODEL,
+                temperature=0.1,
+                max_tokens=2200,
+                timeout=55,
             )
-            with urllib.request.urlopen(req, timeout=45) as resp:
-                payload = json.loads(resp.read().decode("utf-8"))
-                answer_text = payload["choices"][0]["message"]["content"]
+            if content:
+                answer_text = content
         except Exception as exc:
             logger.warning("DeepSeek budget synthesis failed, trying Gemini: %s", exc)
 

@@ -31,6 +31,7 @@ from pydantic import BaseModel, Field, field_validator
 from glossary import search as glossary_search, lookup as glossary_lookup
 from cypher_templates import plan_from_template, TEMPLATE_COLUMNS, EMPTY_OK_TEMPLATES, _state as template_state
 from ipc_sections import EXPLANATIONS as IPC_EXPLANATIONS, normalize_code, canonical_ipc_code, classify_section
+from deepseek_client import call_deepseek_chat, check_pre_corpus_guardrail, OFFICIAL_GOV_DOMAINS
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -651,6 +652,20 @@ class RagAskRequest(BaseModel):
     reasoning_mode: str = Field(default="auto", max_length=16)
 
 
+class BudgetAskRequest(BaseModel):
+    question: str = Field(min_length=2, max_length=1000)
+    ministry: Optional[str] = None
+    fy: Optional[str] = None
+    sort_by: Optional[str] = "be_cr"
+    top_k: Optional[int] = 8
+
+
+class DeepSeekLiveSearchRequest(BaseModel):
+    query: str = Field(min_length=2, max_length=1000)
+    domains: Optional[list[str]] = None
+    is_private_byod: Optional[bool] = False
+
+
 @app.get("/api/rag/catalog")
 def rag_catalog():
     """Return supported ministries, fiscal years, and ingested document/chunk counts."""
@@ -816,6 +831,60 @@ def rag_ask(req: RagAskRequest):
         "detail_level": detail_level,
         "reasoning_mode": reasoning_mode,
         "results": results,
+    }
+
+
+@app.post("/api/budget/ask")
+def api_ask_budget(req: BudgetAskRequest):
+    """Multi-year BE vs RE budget comparison, variance calculation, and table synthesis."""
+    from budget_agent import ask_budget
+    return ask_budget(
+        question=req.question,
+        ministry=req.ministry,
+        fy=req.fy,
+        sort_by=req.sort_by or "be_cr",
+        top_k=req.top_k or 8,
+    )
+
+
+@app.post("/api/deepseek/live-search")
+def api_deepseek_live_search(req: DeepSeekLiveSearchRequest):
+    """Live official .gov.in / sansad.in web supplement via DeepSeek Search.
+
+    Guards:
+    - Zero client data leak: strictly blocked if query involves private BYOD context (Q100).
+    - Domain restricted: limited to verified official portals (morth.nic.in, mod.gov.in, pib.gov.in, etc.).
+    """
+    if req.is_private_byod:
+        return {
+            "query": req.query,
+            "blocked": True,
+            "reason": "Zero-leak security policy: external web search is strictly blocked for private client data / local BYOD context (Q100).",
+            "content": None,
+        }
+
+    system_prompt = (
+        "You are an Indian Public Policy & Procurement Intelligence Analyst. "
+        "Retrieve facts strictly from official government portals (*.gov.in, *.nic.in, *.sansad.in). "
+        "Provide factual, non-sensational answers with exact official portal links, dates, and tender/circular numbers."
+    )
+    content, _, usage = call_deepseek_chat(
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": req.query},
+        ],
+        model=DEEPSEEK_MODEL,
+        temperature=0.1,
+        max_tokens=1500,
+        enable_gov_search=True,
+        is_private_byod=False,
+    )
+    return {
+        "query": req.query,
+        "blocked": False,
+        "allowed_domains": req.domains or OFFICIAL_GOV_DOMAINS,
+        "content": content,
+        "usage": usage,
     }
 
 
@@ -1184,51 +1253,42 @@ QUERY GUIDANCE
         )
         system_prompt += example_block
 
-    # 2. PRIORITY 2: DeepSeek API Primary Text-to-Cypher Planner
+    # 2. PRIORITY 2: DeepSeek API Primary Text-to-Cypher Planner (Connection-pooled & retry-optimized)
     if DEEPSEEK_API_KEY:
         try:
-            ds_req = urllib.request.Request(
-                "https://api.deepseek.com/chat/completions",
-                data=json.dumps({
-                    "model": DEEPSEEK_MODEL,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": question},
-                    ],
-                    "temperature": 0,
-                    "max_tokens": 1200,
-                    "response_format": {"type": "json_object"},
-                }).encode("utf-8"),
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                },
-                method="POST",
+            ds_text, _, usage_meta = call_deepseek_chat(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question},
+                ],
+                model=DEEPSEEK_MODEL,
+                temperature=0.0,
+                max_tokens=1200,
+                json_mode=True,
+                timeout=30,
             )
-            with urllib.request.urlopen(ds_req, timeout=25) as ds_resp:
-                ds_payload = json.loads(ds_resp.read().decode("utf-8"))
-            ds_text = ds_payload["choices"][0]["message"]["content"].strip()
-            if ds_text.startswith("```"):
-                ds_text = re.sub(r"^```(?:json)?\s*|\s*```$", "", ds_text, flags=re.I)
-            plan = json.loads(ds_text)
-            if (
-                isinstance(plan, dict)
-                and set(plan) == {"result_type", "cypher", "parameters", "explanation"}
-                and plan.get("result_type") in {"graph", "aggregate", "unsupported"}
-                and isinstance(plan.get("cypher"), str)
-                and isinstance(plan.get("explanation"), str)
-            ):
-                if plan["result_type"] == "unsupported":
-                    plan["cypher"] = ""
-                    plan["parameters"] = {}
-                else:
-                    plan["parameters"] = validate_cypher_parameters(plan["parameters"])
-                plan["_cache_hit"] = False
-                plan["_examples_used"] = len(selected_examples)
-                plan["_usage_metadata"] = ds_payload.get("usage", {})
-                plan["_model_used"] = DEEPSEEK_MODEL
-                cache_cypher_plan(question, plan)
-                return plan
+            if ds_text:
+                if ds_text.startswith("```"):
+                    ds_text = re.sub(r"^```(?:json)?\s*|\s*```$", "", ds_text.strip(), flags=re.I)
+                plan = json.loads(ds_text)
+                if (
+                    isinstance(plan, dict)
+                    and set(plan) == {"result_type", "cypher", "parameters", "explanation"}
+                    and plan.get("result_type") in {"graph", "aggregate", "unsupported"}
+                    and isinstance(plan.get("cypher"), str)
+                    and isinstance(plan.get("explanation"), str)
+                ):
+                    if plan["result_type"] == "unsupported":
+                        plan["cypher"] = ""
+                        plan["parameters"] = {}
+                    else:
+                        plan["parameters"] = validate_cypher_parameters(plan["parameters"])
+                    plan["_cache_hit"] = False
+                    plan["_examples_used"] = len(selected_examples)
+                    plan["_usage_metadata"] = usage_meta
+                    plan["_model_used"] = DEEPSEEK_MODEL
+                    cache_cypher_plan(question, plan)
+                    return plan
         except Exception as ds_exc:
             logger.warning("DeepSeek Cypher planner failed, falling back to Gemini: %s", ds_exc)
             if not GEMINI_API_KEY:
@@ -1454,6 +1514,11 @@ def graph_node_payload(node) -> dict:
 def schema_unsupported_reason(question: str) -> str | None:
     """Avoid spending a model call on facts that the graph cannot represent."""
     lowered = question.casefold()
+    # Non-sensational & security guardrails (priority checks)
+    if re.search(r"\bmost\s+corrupt\b|\bcorrupt\b|\blikely\s+to\s+win\b|\bwho\s+will\s+win\b", lowered):
+        return "The graph records affidavits, declared assets, criminal cases, and portfolios; it refuses subjective rankings of corruption or predictive election speculation."
+    if re.search(r"\b(?:detach\s+delete|delete\s+n|call\s+dbms|load\s+csv|drop\s+database|alter\s+user)\b", lowered):
+        return "Disallowed query syntax or injection detected: write, administrative, and procedure calls are strictly blocked."
     # General-knowledge / live-world questions that the affidavit graph cannot verify.
     # These must be refused rather than mapped onto an unrelated ministry or person.
     if re.search(r"\bprime\s+minister\b|\bpm\s+of\s+india\b|\bwho\s+is\s+the\s+pm\b", lowered):
@@ -1472,10 +1537,12 @@ def schema_unsupported_reason(question: str) -> str | None:
         return "The graph does not store declared income, so it cannot answer income-based questions."
     if re.search(r"\bconvicted\b|\bconviction\b|\bacquitted\b|\bacquittal\b", lowered) and not (_mp_scoped_question(question) and "convict" in lowered):
         return "The graph stores the case status recorded in the affidavit (for example pending or charges framed), not court convictions or acquittals, so it cannot answer that."
-    if re.search(r"\bmost\s+corrupt\b|\bcorrupt\b", lowered):
-        return "The graph records affidavits and declared cases; it cannot rank politicians as 'most corrupt'."
-    if re.search(r"\bwaqf\b|\bvote\s+margin\b|\bvictory\s+margin\b|\bwinning\s+margin\b|\bhow\s+did\s+mps?\s+vote\b|\bwhat\s+did\s+mps?\s+vote\b", lowered):
-        return "The graph records candidate affidavits, declared assets, liabilities, criminal cases, and ministries; it does not store parliamentary division roll-call votes or election vote margins."
+    if re.search(r"\bmost\s+corrupt\b|\bcorrupt\b|\blikely\s+to\s+win\b|\bwho\s+will\s+win\b", lowered):
+        return "The graph records affidavits, declared assets, criminal cases, and portfolios; it refuses subjective rankings of corruption or predictive election speculation."
+    if re.search(r"\bwaqf\b|\bvote\s+margin\b|\bvictory\s+margin\b|\bwinning\s+margin\b|\bhow\s+did\s+mps?\s+vote\b|\bwhat\s+did\s+mps?\s+vote\b|\broll[- ]call\b|\bbank\s+balance\b|\bprivate\s+bank\b", lowered):
+        return "The graph records candidate affidavits, declared assets, liabilities, criminal cases, and ministries; it does not store parliamentary division roll-call votes or private bank balances."
+    if re.search(r"\b(?:detach\s+delete|delete\s+n|call\s+dbms|load\s+csv|drop\s+database|alter\s+user)\b", lowered):
+        return "Disallowed query syntax or injection detected: write, administrative, and procedure calls are strictly blocked."
     if re.search(r"\bchildren\b.*\b(?:abroad|studying|school|college)\b|\bstudying\s+abroad\b", lowered):
         return "Family members' education and residence details are not stored, so this cannot be answered."
     if re.search(r"(?:assets?|wealth)\s+(?:increased|grew|rose)\s+the\s+most|highest\s+(?:asset\s+)?growth|most\s+(?:asset\s+)?growth", lowered) and not _mp_scoped_question(question):
