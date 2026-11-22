@@ -11,50 +11,88 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+  <script src="../bp-config.js"></script>
   <script src="../fuzzy-utils.js"></script>
   <style>
+    /* Clean Soft-Stone & Periwinkle Dashboard Theme */
     :root {
       color-scheme: light;
-      --bg: #FAF6EE;
+      --bg: #EFF0EA;
+      --sheet: #F8F8F4;
       --surface: #FFFFFF;
-      --surface-soft: #FBF4E6;
-      --surface-tint: #F5E8D0;
-      --navy: #B7791F;
-      --fg: #2A1D0F;
-      --muted: #6B5238;
-      --border: #ECDBC0;
-      --border-strong: #D9BD8F;
-      --accent: #B7791F;
-      --accent-hover: #9E6414;
+      --surface-soft: #F2F2EC;
+      --surface-tint: #EAEAE2;
+      --navy: #202124;
+      --fg: #1D1E20;
+      --muted: #6C6E69;
+      --border: #E5E6DD;
+      --border-strong: #D5D6CC;
+      --accent: #6B6FF2;
+      --accent-hover: #565AE0;
       --accent-fg: #FFFFFF;
-      --font-sans: "Plus Jakarta Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
-      --font-retro: "Fraunces", "Cooper Black", "Bookman Old Style", "Georgia", serif;
-      --font-mono: ui-monospace, SFMono-Regular, "Courier New", monospace;
-      --card-radius: 14px;
-      --btn-radius: 8px;
-      --shadow-sm: 0 1px 3px rgba(60, 40, 15, 0.06);
-      --shadow-md: 0 8px 24px -4px rgba(60, 40, 15, 0.09), 0 2px 6px -1px rgba(60, 40, 15, 0.04);
+      --accent-soft: #EEF0FF;
+      --primary-btn: #202124;
+      --primary-btn-hover: #34363A;
+      --primary-btn-fg: #FFFFFF;
+      --success: #16A34A;
+      --success-soft: #EAF8EF;
+      --danger: #D14343;
+      --danger-soft: #FDEEEE;
+      /* Compatibility aliases for RTI Desk elements */
+      --duo-blue: var(--accent);
+      --duo-blue-shadow: var(--accent);
+      --duo-blue-soft: var(--accent-soft);
+      --duo-green-shadow: var(--success);
+      --duo-gold: var(--accent);
+      --duo-gold-soft: var(--accent-soft);
+      --duo-gold-shadow: var(--accent);
+      --duo-red: var(--danger);
+      --duo-red-soft: var(--danger-soft);
+      --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-retro: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      --card-radius: 20px;
+      --btn-radius: 12px;
+      --shadow-sm: 0 1px 3px rgba(20, 22, 18, 0.04);
+      --shadow-md: 0 10px 28px -6px rgba(20, 22, 18, 0.08), 0 2px 6px -1px rgba(20, 22, 18, 0.04);
     }
 
     html.dark {
       color-scheme: dark;
-      --bg: #16120C;
-      --surface: #221A11;
-      --surface-soft: #2D2317;
-      --surface-tint: #3A2C1D;
-      --navy: #19130B;
-      --fg: #FAF5EB;
-      --muted: #BAA993;
-      --border: #3D2E1E;
-      --border-strong: #57412A;
-      --accent: #D8962E;
-      --accent-hover: #E5AA45;
-      --accent-fg: #16120C;
-      --accent-soft: rgba(216, 150, 46, 0.15);
-      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-      --shadow-md: 0 10px 28px -4px rgba(0, 0, 0, 0.6);
+      --bg: #141513;
+      --sheet: #1B1C19;
+      --surface: #232420;
+      --surface-soft: #2C2D28;
+      --surface-tint: #34352F;
+      --navy: #1E1F1C;
+      --fg: #F3F3EE;
+      --muted: #9B9D96;
+      --border: #31322D;
+      --border-strong: #44463F;
+      --accent: #7D80F8;
+      --accent-hover: #9093FA;
+      --accent-fg: #FFFFFF;
+      --accent-soft: rgba(125, 128, 248, 0.16);
+      --primary-btn: #F3F3EE;
+      --primary-btn-hover: #FFFFFF;
+      --primary-btn-fg: #181917;
+      --success: #34D399;
+      --success-soft: rgba(52, 211, 153, 0.15);
+      --danger: #F87171;
+      --danger-soft: rgba(248, 113, 113, 0.16);
+      --duo-blue: var(--accent);
+      --duo-blue-shadow: var(--accent);
+      --duo-blue-soft: var(--accent-soft);
+      --duo-green-shadow: var(--success);
+      --duo-gold: var(--accent);
+      --duo-gold-soft: var(--accent-soft);
+      --duo-gold-shadow: var(--accent);
+      --duo-red: var(--danger);
+      --duo-red-soft: var(--danger-soft);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 12px 30px -6px rgba(0, 0, 0, 0.55);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,11 +100,20 @@
 
     body {
       margin: 0;
-      background: var(--bg);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 92% 8%, rgba(204, 232, 222, 0.55) 0%, transparent 38%),
+        radial-gradient(circle at 8% 92%, rgba(226, 228, 214, 0.55) 0%, transparent 40%),
+        var(--bg);
       color: var(--fg);
-      font: 14.5px/1.6 var(--font-sans);
+      font: 14px/1.6 var(--font-sans);
       -webkit-font-smoothing: antialiased;
-      padding-bottom: 120px; /* Space for sticky bottom bar */
+      padding-bottom: 100px; /* Space for sticky bottom bar */
+    }
+    html.dark body {
+      background:
+        radial-gradient(circle at 92% 8%, rgba(45, 58, 54, 0.35) 0%, transparent 40%),
+        var(--bg);
     }
 
     a { color: var(--accent); text-decoration: none; font-weight: 600; }
@@ -74,126 +121,269 @@
     .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
     .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 
-    /* Topbar */
-    .topbar {
-      background: var(--navy);
-      color: #FFFFFF;
-      border-bottom: 2.5px solid var(--accent-hover);
-      box-shadow: 0 2px 10px rgba(60, 40, 15, 0.1);
+    /* Left Vertical Icon Rail Shell */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+    .side-rail {
+      width: 74px;
+      flex-shrink: 0;
       position: sticky;
       top: 0;
-      z-index: 50;
-    }
-    .topbar-inner {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 12px 20px;
+      height: 100vh;
+      padding: 20px 12px;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       align-items: center;
       justify-content: space-between;
+      z-index: 45;
+    }
+    .rail-top, .rail-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       gap: 12px;
     }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-retro);
-      font-weight: 800;
-      font-size: 21px;
+    .rail-brand {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #1D1E20;
       color: #FFFFFF;
-      text-decoration: none;
-      letter-spacing: -0.02em;
-    }
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.22);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(20, 22, 18, 0.16);
+      transition: transform 0.18s ease;
+      margin-bottom: 12px;
+      text-decoration: none;
     }
-    .nav {
+    html.dark .rail-brand { background: #F3F3EE; color: #181917; }
+    .rail-brand:hover { transform: scale(1.06); text-decoration: none; }
+
+    .rail-nav {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
     }
-    .nav a {
-      color: #FFF2DB;
-      padding: 6px 13px;
+    .rail-btn {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.18s ease;
+      padding: 0;
+    }
+    .rail-btn:hover {
+      color: var(--fg);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      text-decoration: none;
+    }
+    .rail-btn.active {
+      background: var(--primary-btn);
+      color: var(--primary-btn-fg);
+      border-color: var(--primary-btn);
+      box-shadow: 0 4px 12px rgba(29, 30, 32, 0.22);
+    }
+    .rail-btn[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%) translateX(-4px);
+      background: #1D1E20;
+      color: #FFFFFF;
+      font: 600 12px/1.2 var(--font-sans);
+      padding: 6px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+      z-index: 60;
+    }
+    .rail-btn[data-tip]:hover::after {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    /* Vertical Moon / Sun Theme Capsule */
+    .rail-theme-capsule {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
       border-radius: 999px;
+      background: var(--surface-tint);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .rail-theme-capsule:hover { border-color: var(--border-strong); }
+    .rail-theme-slot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: all 0.2s ease;
+    }
+    .rail-theme-capsule:not(.is-dark) .rail-theme-sun {
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+    .rail-theme-capsule.is-dark .rail-theme-moon,
+    html.dark .rail-theme-capsule .rail-theme-moon {
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .app-main-col {
+      flex: 1;
+      min-width: 0;
+      padding: 18px 28px 48px 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Clean Integrated Top Header Bar */
+    .page-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 4px 4px 18px;
+    }
+    .page-topbar-left {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .page-topbar-title {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 25px;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+      color: var(--fg);
+    }
+    .page-topbar-sub {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .page-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .top-icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+      padding: 0;
+    }
+    .top-icon-btn:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-soft);
+      transform: translateY(-1px);
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .top-profile-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 4px 5px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
       font: 600 13px/1.2 var(--font-sans);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
       text-decoration: none;
       transition: all 0.15s ease;
     }
-    .nav a:hover {
-      background: rgba(255, 255, 255, 0.18);
-      color: #FFFFFF;
+    .top-profile-pill:hover {
+      border-color: var(--border-strong);
+      text-decoration: none;
+      color: var(--fg);
     }
-    .nav a.active {
-      background: #FFFFFF;
-      color: var(--navy);
-      font-weight: 700;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-    }
-    html.dark .nav a.active {
-      background: var(--accent);
-      color: #14110D;
-    }
-
-    /* Switch Mode Button */
-    .switch-mode-btn {
-      position: relative;
+    .top-profile-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary-btn);
+      color: var(--primary-btn-fg);
       display: inline-flex;
       align-items: center;
-      width: 54px;
-      height: 28px;
-      border-radius: 999px;
-      border: 2px solid rgba(255, 255, 255, 0.4);
-      background: transparent;
-      padding: 0;
-      cursor: pointer;
-      margin-left: 6px;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
     }
-    .switch-mode-track {
-      position: absolute;
-      inset: 2px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.2);
-    }
-    .switch-mode-knob {
-      position: absolute;
-      left: 3px;
-      top: 3px;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #FFFFFF;
-      transition: transform 0.25s cubic-bezier(0.34, 1.35, 0.64, 1);
-    }
-    .switch-mode-btn.is-dark .switch-mode-knob {
-      transform: translateX(26px);
-      background: var(--duo-gold);
+    .workspace-sheet {
+      background: var(--sheet);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 2;
     }
 
     /* Wizard Container */
     .wizard-wrap {
-      max-width: 860px;
-      margin: 28px auto 140px;
-      padding: 0 20px;
+      max-width: 900px;
+      margin: 0 auto 24px;
+      padding: 0;
     }
 
     /* Stepper & Progress Bar */
     .stepper-header {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 20px;
       padding: 16px 20px;
       margin-bottom: 20px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-sm);
     }
     .progress-bar-track {
       width: 100%;
@@ -215,6 +405,7 @@
       display: flex;
       justify-content: space-between;
       gap: 8px;
+      flex-wrap: wrap;
     }
     .step-pill {
       display: inline-flex;
@@ -224,23 +415,24 @@
       font-weight: 600;
       color: var(--muted);
       cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
       transition: all 0.15s ease;
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
     }
     .step-pill:hover {
       background: var(--surface-soft);
       color: var(--fg);
     }
     .step-pill.active {
-      color: var(--fg);
-      background: var(--surface-tint);
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-color: rgba(107, 111, 242, 0.25);
       font-weight: 700;
     }
     .step-pill.completed {
-      color: var(--accent);
+      color: var(--success);
     }
     .step-badge {
       width: 22px;
@@ -262,14 +454,14 @@
       color: #FFFFFF;
     }
     .step-pill.completed .step-badge {
-      background: var(--surface-tint);
-      border-color: var(--accent);
-      color: var(--accent);
+      background: var(--success-soft);
+      border-color: var(--success);
+      color: var(--success);
     }
 
     /* Professional Page Header */
     .desk-page-head {
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
     .desk-badge {
       font-family: var(--font-mono);
@@ -280,9 +472,9 @@
       margin-bottom: 4px;
     }
     .desk-title {
-      font-family: var(--font-retro);
-      font-size: 24px;
-      font-weight: 800;
+      font-family: var(--font-sans);
+      font-size: 22px;
+      font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--fg);
       margin-bottom: 4px;
@@ -290,7 +482,7 @@
     .desk-desc {
       font-size: 14px;
       color: var(--muted);
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     /* Wizard Content Cards */
@@ -309,15 +501,15 @@
     .duo-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 20px;
       padding: 24px;
       margin-bottom: 20px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-sm);
       transition: all 0.15s ease;
     }
     .duo-card-title {
-      font-family: var(--font-retro);
-      font-size: 18px;
+      font-family: var(--font-sans);
+      font-size: 17px;
       font-weight: 700;
       color: var(--fg);
       margin-bottom: 16px;
@@ -335,45 +527,42 @@
     }
     .leader-chip {
       background: var(--surface-soft);
-      border: 2px solid var(--border-strong);
+      border: 1px solid var(--border-strong);
       border-radius: 999px;
       padding: 8px 16px;
       font-size: 13.5px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--fg);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       transition: all 0.15s ease;
-      box-shadow: 0 2px 0 var(--border);
     }
     .leader-chip:hover {
       border-color: var(--accent);
       background: var(--surface-tint);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 0 var(--border-strong);
+      transform: translateY(-1px);
     }
     .leader-chip.active {
-      background: var(--duo-gold-soft);
-      border-color: var(--duo-gold-shadow);
-      color: #2C2013;
-      box-shadow: 0 2px 0 var(--duo-gold-shadow);
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     /* Authority Summary Card */
     .authority-preview {
       background: var(--surface-soft);
-      border: 1px solid var(--border-strong);
-      border-radius: 10px;
-      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
       margin-top: 16px;
     }
     .auth-row {
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      padding: 8px 0;
+      padding: 9px 0;
       border-bottom: 1px dashed var(--border);
       font-size: 13.5px;
     }
@@ -402,10 +591,10 @@
     .duo-input {
       width: 100%;
       border: 1px solid var(--border-strong);
-      border-radius: 8px;
+      border-radius: 12px;
       background: var(--surface);
       color: var(--fg);
-      padding: 10px 14px;
+      padding: 11px 14px;
       font-size: 14px;
       font-family: var(--font-sans);
       outline: none;
@@ -413,7 +602,7 @@
     }
     .duo-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.15);
+      box-shadow: 0 0 0 3px var(--accent-soft);
     }
 
     /* Topic Buttons (Pills) */
@@ -425,35 +614,37 @@
     }
     .topic-filter-btn {
       border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--fg);
-      padding: 6px 14px;
-      border-radius: 6px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      padding: 7px 14px;
+      border-radius: 999px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
     }
     .topic-filter-btn:hover {
-      background: var(--surface-soft);
+      background: var(--surface);
+      color: var(--fg);
       border-color: var(--border-strong);
     }
     .topic-filter-btn.active {
-      background: var(--accent);
+      background: var(--accent-soft);
       border-color: var(--accent);
-      color: #FFFFFF;
+      color: var(--accent);
+      font-weight: 700;
     }
 
     /* Preset Question Cards */
     .preset-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 16px;
       padding: 16px;
       margin-bottom: 12px;
       transition: all 0.15s ease;
       position: relative;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-sm);
     }
     .preset-card:hover {
       border-color: var(--border-strong);
@@ -461,7 +652,7 @@
     .preset-card.selected {
       border-color: var(--accent);
       background: var(--surface-soft);
-      box-shadow: 0 2px 8px rgba(183, 121, 31, 0.1);
+      box-shadow: 0 4px 14px rgba(107, 111, 242, 0.12);
     }
     .preset-card-top {
       display: flex;
@@ -469,9 +660,9 @@
       gap: 12px;
     }
     .preset-checkbox {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
       border: 1.5px solid var(--border-strong);
       background: var(--surface);
       display: inline-flex;
@@ -482,6 +673,7 @@
       margin-top: 2px;
       transition: all 0.15s ease;
       font-size: 12px;
+      font-weight: 700;
     }
     .preset-card.selected .preset-checkbox {
       background: var(--accent);
@@ -508,16 +700,16 @@
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--surface-tint);
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
       color: var(--accent);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(107, 111, 242, 0.25);
     }
     .preset-text-display {
       font-size: 13.5px;
       color: var(--muted);
-      line-height: 1.45;
+      line-height: 1.5;
       margin-bottom: 8px;
     }
     .preset-card.selected .preset-text-display {
@@ -526,10 +718,10 @@
 
     /* Editable Preset Area */
     .preset-edit-toggle {
-      background: transparent;
+      background: var(--surface);
       border: 1px solid var(--border-strong);
-      border-radius: 6px;
-      padding: 3px 8px;
+      border-radius: 999px;
+      padding: 4px 11px;
       font-size: 11.5px;
       font-weight: 600;
       color: var(--accent);
@@ -540,7 +732,8 @@
       transition: all 0.15s ease;
     }
     .preset-edit-toggle:hover {
-      background: var(--surface-tint);
+      background: var(--accent-soft);
+      border-color: var(--accent);
     }
     .preset-edit-drawer {
       margin-top: 10px;
@@ -553,9 +746,9 @@
     }
     .preset-textarea {
       width: 100%;
-      min-height: 80px;
+      min-height: 84px;
       border: 1px solid var(--border-strong);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 10px 12px;
       font-family: var(--font-sans);
       font-size: 13px;
@@ -567,14 +760,15 @@
     }
     .preset-textarea:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.15);
+      box-shadow: 0 0 0 3px var(--accent-soft);
     }
     .preset-drawer-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 6px;
+      margin-top: 8px;
       gap: 8px;
+      flex-wrap: wrap;
     }
     .preset-hint-tag {
       font-size: 11.5px;
@@ -585,7 +779,7 @@
     .custom-q-box {
       background: var(--surface-soft);
       border: 1px dashed var(--border-strong);
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 18px;
       margin-top: 18px;
     }
@@ -595,38 +789,38 @@
       gap: 6px;
       font-size: 12px;
       font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
       margin-top: 8px;
     }
     .validator-ok {
-      background: rgba(15, 118, 110, 0.12);
-      color: #0F766E;
-      border: 1px solid rgba(15, 118, 110, 0.3);
+      background: var(--success-soft);
+      color: var(--success);
+      border: 1px solid rgba(22, 163, 74, 0.25);
     }
     .validator-warn {
-      background: rgba(183, 121, 31, 0.12);
+      background: var(--accent-soft);
       color: var(--accent);
-      border: 1px solid rgba(183, 121, 31, 0.3);
+      border: 1px solid rgba(107, 111, 242, 0.28);
     }
     .validator-block {
-      background: rgba(220, 38, 38, 0.12);
-      color: #DC2626;
-      border: 1px solid rgba(220, 38, 38, 0.3);
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid rgba(209, 67, 67, 0.28);
     }
 
     /* Final Actions (Step 4) */
     .celebrate-banner {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 20px;
       padding: 22px;
       text-align: center;
       margin-bottom: 20px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-sm);
     }
     .celebrate-title {
-      font-family: var(--font-retro);
+      font-family: var(--font-sans);
       font-size: 20px;
       font-weight: 700;
       color: var(--fg);
@@ -648,7 +842,7 @@
     .action-card-btn {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 16px;
       padding: 16px;
       text-align: center;
       cursor: pointer;
@@ -657,27 +851,33 @@
       align-items: center;
       gap: 4px;
       transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-sm);
       text-decoration: none;
       color: var(--fg);
     }
     .action-card-btn:hover {
       border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
       text-decoration: none;
     }
     .action-card-btn.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #FFFFFF;
-      box-shadow: 0 2px 8px rgba(183, 121, 31, 0.2);
+      background: var(--primary-btn);
+      border-color: var(--primary-btn);
+      color: var(--primary-btn-fg);
+      box-shadow: 0 4px 14px rgba(20, 22, 18, 0.14);
     }
     .action-card-btn.primary:hover {
-      background: var(--accent-hover);
+      background: var(--primary-btn-hover);
+      color: var(--primary-btn-fg);
     }
     .action-card-btn.accent {
-      background: var(--surface-tint);
-      border-color: var(--border-strong);
+      background: var(--accent-soft);
+      border-color: rgba(107, 111, 242, 0.35);
       color: var(--accent);
+    }
+    .action-card-btn.accent:hover {
+      border-color: var(--accent);
     }
     .action-btn-label {
       font-weight: 700;
@@ -688,20 +888,57 @@
       opacity: 0.85;
     }
 
+    /* Raw Draft Accordion */
+    .draft-accordion {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .draft-accordion-header {
+      padding: 14px 18px;
+      background: var(--surface-soft);
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--fg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .draft-accordion-header:hover {
+      background: var(--surface-tint);
+    }
+    .draft-accordion-body {
+      display: none;
+      padding: 16px 18px;
+      border-top: 1px solid var(--border);
+    }
+    .draft-accordion-body.open {
+      display: block;
+    }
+
     /* Sticky Bottom Nav Bar */
     .duo-bottom-bar {
       position: fixed;
       bottom: 0;
-      left: 0;
+      left: 74px;
       right: 0;
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
       border-top: 1px solid var(--border);
-      padding: 12px 20px;
-      z-index: 45;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+      padding: 12px 24px;
+      z-index: 44;
+      box-shadow: 0 -4px 16px rgba(20, 22, 18, 0.05);
+    }
+    html.dark .duo-bottom-bar {
+      background: rgba(35, 36, 32, 0.92);
+      box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.35);
     }
     .bottom-bar-inner {
-      max-width: 860px;
+      max-width: 900px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -714,39 +951,41 @@
       justify-content: center;
       gap: 8px;
       padding: 10px 22px;
-      border-radius: 8px;
-      font-size: 14px;
+      border-radius: 999px;
+      font-size: 13.5px;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
       border: 1px solid transparent;
       transition: all 0.15s ease;
       user-select: none;
+      font-family: var(--font-sans);
     }
     .duo-btn-secondary {
       background: var(--surface);
       border-color: var(--border-strong);
       color: var(--fg);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-sm);
     }
     .duo-btn-secondary:hover {
       background: var(--surface-soft);
       border-color: var(--fg);
     }
     .duo-btn-primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #FFFFFF;
-      box-shadow: 0 2px 6px rgba(183, 121, 31, 0.2);
-      min-width: 160px;
+      background: var(--primary-btn);
+      border-color: var(--primary-btn);
+      color: var(--primary-btn-fg);
+      box-shadow: 0 3px 10px rgba(20, 22, 18, 0.15);
+      min-width: 168px;
     }
     .duo-btn-primary:hover {
-      background: var(--accent-hover);
-      box-shadow: 0 4px 12px rgba(183, 121, 31, 0.3);
+      background: var(--primary-btn-hover);
+      transform: translateY(-1px);
     }
     .duo-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
+      transform: none !important;
       box-shadow: none !important;
     }
 
@@ -754,7 +993,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(10, 8, 6, 0.75);
+      background: rgba(20, 22, 18, 0.65);
       backdrop-filter: blur(4px);
       z-index: 100;
       display: flex;
@@ -769,19 +1008,19 @@
     }
     .modal-dialog {
       background: var(--surface);
-      border: 2px solid var(--border-strong);
-      border-radius: 20px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
       width: 100%;
       max-width: 900px;
       height: 90vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     }
     .modal-header {
       padding: 14px 20px;
-      border-bottom: 2px solid var(--border);
+      border-bottom: 1px solid var(--border);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -790,24 +1029,25 @@
       background: var(--surface-soft);
     }
     .modal-title {
-      font-weight: 800;
-      font-size: 16px;
+      font-weight: 700;
+      font-size: 15.5px;
       display: flex;
       align-items: center;
       gap: 8px;
+      color: var(--fg);
     }
     .modal-close-btn {
       background: var(--surface);
-      border: 2px solid var(--border-strong);
-      border-radius: 10px;
-      width: 32px;
-      height: 32px;
-      min-width: 32px;
+      border: 1px solid var(--border-strong);
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
       flex-shrink: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
       color: var(--fg);
       font-weight: 700;
@@ -821,20 +1061,25 @@
       font-size: 13px;
       line-height: 1.5;
       padding: 12px 14px;
-      border: 2px solid var(--border-strong);
+      border: 1px solid var(--border-strong);
       border-radius: 12px;
       background: var(--surface-soft);
       color: var(--fg);
       resize: vertical;
+      outline: none;
+    }
+    .raw-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
     }
     .modal-close-btn:hover {
-      background: var(--duo-red-soft);
-      border-color: var(--duo-red);
-      color: var(--duo-red);
+      background: var(--danger-soft);
+      border-color: var(--danger);
+      color: var(--danger);
     }
     .modal-body {
       flex: 1;
-      background: #3A3228;
+      background: #232420;
       position: relative;
       overflow-y: auto;
       padding: 24px 16px;
@@ -842,19 +1087,19 @@
     /* Official Legal Paper Sheet Styling */
     .legal-sheet {
       background: #FFFFFF;
-      color: #1A140E;
+      color: #1D1E20;
       max-width: 760px;
       margin: 0 auto;
       padding: 38px 46px;
-      border-radius: 6px;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
-      border: 1px solid #C4B298;
+      border-radius: 10px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.42);
+      border: 1px solid #D5D6CC;
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.6;
     }
     .legal-sheet-header {
-      border-bottom: 2.5px solid #1A140E;
+      border-bottom: 2px solid #1D1E20;
       padding-bottom: 12px;
       margin-bottom: 20px;
       text-align: center;
@@ -864,17 +1109,17 @@
       margin-bottom: 4px;
     }
     .legal-sheet-title {
-      font-family: var(--font-retro);
+      font-family: var(--font-sans);
       font-size: 17px;
-      font-weight: 800;
+      font-weight: 700;
       letter-spacing: 0.04em;
-      color: #1A140E;
+      color: #1D1E20;
       text-transform: uppercase;
     }
     .legal-sheet-sub {
       font-size: 11px;
       font-weight: 600;
-      color: #554332;
+      color: #6C6E69;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -882,6 +1127,28 @@
       white-space: pre-wrap;
       word-break: break-word;
       font-size: 12.5px;
+    }
+
+    @media (max-width: 860px) {
+      .app-shell { flex-direction: column; }
+      .side-rail {
+        width: 100%;
+        height: auto;
+        position: sticky;
+        top: 0;
+        flex-direction: row;
+        padding: 10px 14px;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+      }
+      .rail-top, .rail-bottom, .rail-nav { flex-direction: row; gap: 8px; }
+      .rail-brand { margin-bottom: 0; width: 36px; height: 36px; }
+      .rail-btn { width: 36px; height: 36px; }
+      .rail-btn[data-tip]::after { display: none; }
+      .rail-theme-capsule { flex-direction: row; }
+      .app-main-col { padding: 14px 14px 40px; }
+      .workspace-sheet { padding: 16px; border-radius: 18px; }
+      .duo-bottom-bar { left: 0; padding: 10px 14px; }
     }
 
     @media (max-width: 720px) {
@@ -895,35 +1162,70 @@
 </head>
 <body>
 
-  <!-- Topbar -->
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a href="../graphdashboard2.html" class="brand" id="navBrand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <div class="app-shell">
+    <aside class="side-rail" aria-label="Primary Navigation">
+      <div class="rail-top">
+        <a id="navBrand" href="../graphdashboard2.html" class="rail-brand" title="Bharat Praman" aria-label="Bharat Praman">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/>
             <path d="M8.7 10.7l6.6-3.4"/><path d="M8.7 13.3l6.6 3.4"/>
           </svg>
-        </span>
-        <span>Bharat Praman</span>
-      </a>
-      <nav class="nav" aria-label="Primary">
-        <a id="navHome" href="../graphdashboard2.html">Search</a>
-        <a id="navGraph" href="../graph.html">Graph Explorer</a>
-        <a id="navAsk" href="../ask.html">Budget Dossier</a>
-        <a href="#" class="active">RTI Desk</a>
-        <a id="navRtiArchive" href="../rti_archive.html">RTI Archive</a>
-        <a id="navGlossary" href="../graph.html#glossary">Glossary &amp; IPC</a>
-        <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
-          <span class="switch-mode-track"></span>
-          <span class="switch-mode-knob"></span>
+        </a>
+        <nav class="rail-nav" aria-label="Primary">
+          <a id="navHome" href="../graphdashboard2.html" class="rail-btn" data-tip="Search &amp; Audit" aria-label="Search &amp; Audit">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </a>
+          <a id="navGraph" href="../graph.html" class="rail-btn" data-tip="Graph Explorer" aria-label="Graph Explorer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </a>
+          <a id="navAsk" href="../ask.html" class="rail-btn" data-tip="Fiscal Intelligence" aria-label="Fiscal Intelligence">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </a>
+          <a href="#" class="rail-btn active" data-tip="RTI Desk" aria-label="RTI Desk">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
+          <a id="navRtiArchive" href="../rti_archive.html" class="rail-btn" data-tip="RTI Archive" aria-label="RTI Archive">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          </a>
+        </nav>
+      </div>
+      <div class="rail-bottom">
+        <button id="themeToggle" class="rail-theme-capsule" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <span class="rail-theme-slot rail-theme-moon" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+          <span class="rail-theme-slot rail-theme-sun" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </span>
         </button>
-      </nav>
-    </div>
-  </header>
+        <a id="navGlossary" href="../graph.html#glossary" class="rail-btn" data-tip="Glossary &amp; IPC" aria-label="Glossary &amp; IPC">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </a>
+      </div>
+    </aside>
 
-  <!-- Main Duolingo-Style Wizard -->
-  <main class="wizard-wrap">
+    <div class="app-main-col">
+      <header class="page-topbar">
+        <div class="page-topbar-left">
+          <h1 class="page-topbar-title">RTI Desk</h1>
+          <span class="page-topbar-sub">Section 6(1) Form A Statutory Drafting Workbench</span>
+        </div>
+        <div class="page-topbar-right">
+          <a id="topGlossary" href="../graph.html#glossary" class="top-icon-btn" title="Glossary &amp; IPC Reference" aria-label="Glossary &amp; IPC Reference">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </a>
+          <a id="topBench" href="../graphdashboard2.html#benchmark" class="top-icon-btn" title="GraphRAG Benchmark" aria-label="GraphRAG Benchmark">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </a>
+          <a id="topHome" href="../graphdashboard2.html" class="top-profile-pill">
+            <span class="top-profile-avatar">BP</span>
+            <span>Bharat Praman</span>
+          </a>
+        </div>
+      </header>
+
+      <div class="workspace-sheet">
+        <main class="wizard-wrap">
 
     <!-- Stepper & Progress Tracker -->
     <div class="stepper-header">
@@ -967,7 +1269,7 @@
         <div class="input-group">
           <label class="input-label" for="customRepInput">Enter Representative, Ministry, or Authority Name:</label>
           <input type="text" id="customRepInput" class="duo-input" placeholder="Type name (e.g. Rahul Gandhi, Shashi Tharoor, Ministry of Railways, Lok Sabha Secretariat)..." />
-          <div id="repFuzzyHint" style="margin-top:8px; font-size:12.5px; color:var(--navy); font-weight:600; display:flex; align-items:center; gap:6px;" hidden></div>
+          <div id="repFuzzyHint" style="margin-top:8px; font-size:12.5px; color:var(--accent); font-weight:600; display:flex; align-items:center; gap:6px;" hidden></div>
         </div>
 
         <!-- Resolved Authority Snapshot Table -->
@@ -1156,10 +1458,14 @@
         </div>
       </div>
     </div>
+  </div>
 
   </main>
+  </div> <!-- /.workspace-sheet -->
+  </div> <!-- /.app-main-col -->
+  </div> <!-- /.app-shell -->
 
-  <!-- Sticky Bottom Navigation Bar (Duolingo Style) -->
+  <!-- Sticky Bottom Navigation Bar -->
   <footer class="duo-bottom-bar">
     <div class="bottom-bar-inner">
       <button type="button" class="duo-btn duo-btn-secondary" id="backStepBtn" onclick="prevStep()">
@@ -1204,15 +1510,46 @@
   </div>
 
   <script>
+    // UI link prefix when served directly from :8001 vs :5500 / :8000 / static
+    const isFile = window.location.protocol === 'file:';
+    const host = window.location.hostname || '127.0.0.1';
+    const UI_PREFIX = window.location.pathname.includes('/rti/')
+      ? '../'
+      : (window.location.port === '8001' ? `http://${host}:5500/` : '');
+    const RTI_BASE = (window.BP_CONFIG && typeof window.BP_CONFIG.rtiBase === 'string')
+      ? window.BP_CONFIG.rtiBase
+      : (window.location.port === '8001' ? '' : ((isFile || window.location.port === '5500') ? `http://${host}:8001` : ''));
+
+    [
+      ['navBrand', 'graphdashboard2.html'],
+      ['navHome', 'graphdashboard2.html'],
+      ['navGraph', 'graph.html'],
+      ['navAsk', 'ask.html'],
+      ['navRtiArchive', 'rti_archive.html'],
+      ['navGlossary', 'graph.html#glossary'],
+      ['topGlossary', 'graph.html#glossary'],
+      ['topBench', 'graphdashboard2.html#benchmark'],
+      ['topHome', 'graphdashboard2.html'],
+    ].forEach(([id, page]) => {
+      const el = document.getElementById(id);
+      if (el) el.href = UI_PREFIX + page;
+    });
+
     // State Management
     let currentStep = 1;
     const TOTAL_STEPS = 4;
 
     const params = new URLSearchParams(location.search);
     let entityId = params.get('id') || 'demo-mp';
-    let repName = params.get('name') || 'Narendra Modi';
-    let constituency = params.get('constituency') || 'Varanasi (Uttar Pradesh)';
-    let house = 'LOK_SABHA';
+    const hasParamId = params.has('id') && params.get('id').trim() !== '';
+    const hasParamName = params.has('name') && params.get('name').trim() !== '';
+    const hasParamConst = params.has('constituency') && params.get('constituency').trim() !== '';
+    let repName = (params.get('name') || '').trim() || 'Narendra Modi';
+    let constituency = (params.get('constituency') || '').trim()
+      || (hasParamName
+        ? (repName.toLowerCase().includes('ministry') ? 'Central Secretariat, New Delhi' : 'Parliamentary Constituency')
+        : 'Varanasi (Uttar Pradesh)');
+    let house = repName.toLowerCase().includes('ministry') ? 'UNION_MINISTRY' : 'LOK_SABHA';
 
     // Preset Questions Data
     const PRESETS = [
@@ -1698,8 +2035,8 @@ Signature / Name of Applicant: ${appName}`;
       const doc = new jsPDF({ unit: 'mm', format: 'a4' });
       const content = document.getElementById('finalDraftTextarea').value;
 
-      // Header Banner
-      doc.setFillColor(183, 121, 31);
+      // Header Banner (Soft-Stone & Periwinkle Indigo)
+      doc.setFillColor(107, 111, 242);
       doc.rect(0, 0, 210, 14, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('courier', 'bold');
@@ -1707,23 +2044,23 @@ Signature / Name of Applicant: ${appName}`;
       doc.text('FORM A - STATUTORY APPLICATION UNDER SECTION 6(1) RTI ACT, 2005', 15, 9.5);
 
       // Subheader
-      doc.setTextColor(60, 40, 15);
+      doc.setTextColor(29, 30, 32);
       doc.setFontSize(8);
       doc.setFont('courier', 'normal');
       doc.text('Generated via Bharat Praman RTI Filing Desk | Compliant with Right to Information Rules, 2012', 15, 19);
-      doc.setDrawColor(200, 180, 150);
+      doc.setDrawColor(213, 214, 204);
       doc.line(15, 22, 195, 22);
 
       // Body Text
       doc.setFont('courier', 'normal');
       doc.setFontSize(8.8);
-      doc.setTextColor(30, 20, 10);
+      doc.setTextColor(29, 30, 32);
       const lines = doc.splitTextToSize(content, 180);
       let y = 28;
       lines.forEach(line => {
         if (y > 282) {
           doc.addPage();
-          doc.setDrawColor(200, 180, 150);
+          doc.setDrawColor(213, 214, 204);
           doc.line(15, 15, 195, 15);
           y = 20;
         }
@@ -1801,10 +2138,33 @@ Signature / Name of Applicant: ${appName}`;
       }[c]));
     }
 
+    // Optional enrichment from RTI API when opened with ?id=<politician_id>
+    async function hydrateEntityFromApi() {
+      if (!hasParamId || !entityId || entityId === 'demo-mp' || entityId.toLowerCase().startsWith('ministry-')) return;
+      try {
+        const res = await fetch(`${RTI_BASE}/politicians/${encodeURIComponent(entityId)}/rti-details`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.name && !hasParamName) {
+          repName = data.name;
+          if (repInput) repInput.value = repName;
+        }
+        if (data && (data.constituency || data.state) && !hasParamConst) {
+          constituency = data.constituency && data.state
+            ? `${data.constituency} (${data.state})`
+            : (data.constituency || data.state);
+        }
+        if (data && data.house) house = data.house;
+        updateAuthorityDisplay();
+        refreshPresetTexts();
+      } catch (_) {}
+    }
+
     // Initialize UI
     updateAuthorityDisplay();
     renderPresets();
     updateWizardUI();
+    hydrateEntityFromApi();
   </script>
 </body>
 </html>

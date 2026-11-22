@@ -9,753 +9,844 @@
       if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
     })();
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* 60-30-10 Color System
-       60% Dominant Canvas:  #F8FAFC (light) / #0B1120 (dark) + #FFFFFF / #111827 cards
-       30% Secondary Struct: #0F172A Deep Civic Navy (header/primary dark text) & #F1F5F9 / #EFF6FF soft surfaces
-       10% Primary Accent:   #1D4ED8 Civic Blue (links, primary CTAs, active tabs, focus rings)
-       Semantic Alert:       #DC2626 (used sparingly for criminal record flags / errors only)
-    */
+    /* Clean Soft-Stone & Periwinkle Dashboard Theme */
     :root {
       color-scheme: light;
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --surface-soft: #f1f5f9;
-      --surface-tint: #eff6ff;
-      --navy: #0f172a;
-      --fg: #0f172a;
-      --muted: #475569;
-      --border: #e2e8f0;
-      --border-strong: #cbd5e1;
-      --accent: #1d4ed8;
-      --accent-hover: #1e40af;
-      --accent-fg: #ffffff;
-      --danger: #dc2626;
-      --danger-soft: #fef2f2;
-      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-      --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #EFF0EA;
+      --sheet: #F8F8F4;
+      --surface: #FFFFFF;
+      --surface-soft: #F2F2EC;
+      --surface-tint: #EAEAE2;
+      --navy: #202124;
+      --fg: #1D1E20;
+      --muted: #6C6E69;
+      --border: #E5E6DD;
+      --border-strong: #D5D6CC;
+      --accent: #6B6FF2;
+      --accent-hover: #565AE0;
+      --accent-fg: #FFFFFF;
+      --accent-soft: #EEF0FF;
+      --primary-btn: #202124;
+      --primary-btn-hover: #34363A;
+      --primary-btn-fg: #FFFFFF;
+      --success: #16A34A;
+      --success-soft: #EAF8EF;
+      --danger: #D14343;
+      --danger-soft: #FDEEEE;
+      --shadow-sm: 0 1px 3px rgba(20, 22, 18, 0.04);
+      --shadow-md: 0 10px 28px -6px rgba(20, 22, 18, 0.08), 0 2px 6px -1px rgba(20, 22, 18, 0.04);
+      --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-retro: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      --card-radius: 20px;
+      --btn-radius: 12px;
     }
+
     html.dark {
       color-scheme: dark;
-      --bg: #0b1120;
-      --surface: #111827;
-      --surface-soft: #1e293b;
-      --surface-tint: #172554;
-      --navy: #020617;
-      --fg: #f8fafc;
-      --muted: #94a3b8;
-      --border: #1e293b;
-      --border-strong: #334155;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --accent-fg: #ffffff;
-      --danger: #f87171;
-      --danger-soft: #450a0a;
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
-      --shadow-md: 0 10px 28px -4px rgba(0, 0, 0, 0.5);
+      --bg: #141513;
+      --sheet: #1B1C19;
+      --surface: #232420;
+      --surface-soft: #2C2D28;
+      --surface-tint: #34352F;
+      --navy: #1E1F1C;
+      --fg: #F3F3EE;
+      --muted: #9B9D96;
+      --border: #31322D;
+      --border-strong: #44463F;
+      --accent: #7D80F8;
+      --accent-hover: #9093FA;
+      --accent-fg: #FFFFFF;
+      --accent-soft: rgba(125, 128, 248, 0.16);
+      --primary-btn: #F3F3EE;
+      --primary-btn-hover: #FFFFFF;
+      --primary-btn-fg: #181917;
+      --success: #34D399;
+      --success-soft: rgba(52, 211, 153, 0.15);
+      --danger: #F87171;
+      --danger-soft: rgba(248, 113, 113, 0.16);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 12px 30px -6px rgba(0, 0, 0, 0.55);
     }
 
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
+
     body {
       margin: 0;
-      background: var(--bg);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 92% 8%, rgba(204, 232, 222, 0.55) 0%, transparent 38%),
+        radial-gradient(circle at 8% 92%, rgba(226, 228, 214, 0.55) 0%, transparent 40%),
+        var(--bg);
       color: var(--fg);
       font: 14px/1.55 var(--font-sans);
       -webkit-font-smoothing: antialiased;
     }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    html.dark body {
+      background:
+        radial-gradient(circle at 92% 8%, rgba(45, 58, 54, 0.35) 0%, transparent 40%),
+        var(--bg);
+    }
+
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; color: var(--accent-hover); }
     .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
     .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+    .alert, .alert-text { color: var(--danger); font-weight: 700; }
+    .growth-positive { color: var(--success); font-weight: 700; }
+    .growth-negative { color: var(--danger); font-weight: 700; }
 
-    /* 30% Secondary Structural Topbar */
-    .topbar {
-      background: var(--navy);
-      color: #f8fafc;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Left Vertical Icon Rail Shell */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+    .side-rail {
+      width: 74px;
+      flex-shrink: 0;
       position: sticky;
       top: 0;
-      z-index: 40;
-    }
-    .topbar-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 12px 20px;
+      height: 100vh;
+      padding: 20px 12px;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       align-items: center;
       justify-content: space-between;
+      z-index: 45;
+    }
+    .rail-top, .rail-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       gap: 12px;
     }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font: 700 15px/1.2 var(--font-sans);
-      color: #ffffff;
-      text-decoration: none;
-      letter-spacing: -0.01em;
-    }
-    .brand:hover { text-decoration: none; }
-    .brand-mark {
-      width: 28px;
-      height: 28px;
-      border-radius: 7px;
-      background: var(--accent);
+    .rail-brand {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #1D1E20;
+      color: #FFFFFF;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 4px 12px rgba(20, 22, 18, 0.16);
+      transition: transform 0.18s ease;
+      margin-bottom: 12px;
+      text-decoration: none;
     }
-    .nav {
+    html.dark .rail-brand { background: #F3F3EE; color: #181917; }
+    .rail-brand:hover { transform: scale(1.06); text-decoration: none; }
+
+    .rail-nav {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
     }
-    .nav a, .nav button {
-      border: 1px solid transparent;
-      background: transparent;
-      color: #cbd5e1;
-      padding: 6px 11px;
-      border-radius: 7px;
-      font: 600 13px/1.2 var(--font-sans);
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .nav a:hover, .nav button:hover {
-      background: rgba(255, 255, 255, 0.09);
-      color: #ffffff;
-      text-decoration: none;
-    }
-    .nav a.active {
-      background: var(--accent);
-      color: #ffffff;
-    }
-
-    main {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 44px 20px 64px;
-    }
-
-    /* Clean Centered Hero */
-    .hero {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    .hero-badge {
+    .rail-btn {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.18s ease;
+      padding: 0;
+    }
+    .rail-btn:hover {
+      color: var(--fg);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      text-decoration: none;
+    }
+    .rail-btn.active {
+      background: var(--primary-btn);
+      color: var(--primary-btn-fg);
+      border-color: var(--primary-btn);
+      box-shadow: 0 4px 12px rgba(29, 30, 32, 0.22);
+    }
+    .rail-btn[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%) translateX(-4px);
+      background: #1D1E20;
+      color: #FFFFFF;
+      font: 600 12px/1.2 var(--font-sans);
+      padding: 6px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+      z-index: 60;
+    }
+    .rail-btn[data-tip]:hover::after {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    /* Vertical Moon / Sun Theme Capsule */
+    .rail-theme-capsule {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
       border-radius: 999px;
       background: var(--surface-tint);
-      color: var(--accent);
-      font: 600 12px/1.3 var(--font-sans);
-      margin-bottom: 14px;
       border: 1px solid var(--border);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s ease;
     }
-    h1 {
-      margin: 0 0 10px;
-      font: 700 clamp(26px, 4vw, 38px)/1.15 var(--font-sans);
+    .rail-theme-capsule:hover { border-color: var(--border-strong); }
+    .rail-theme-slot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: all 0.2s ease;
+    }
+    .rail-theme-capsule:not(.is-dark) .rail-theme-sun {
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+    .rail-theme-capsule.is-dark .rail-theme-moon,
+    html.dark .rail-theme-capsule .rail-theme-moon {
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .app-main-col {
+      flex: 1;
+      min-width: 0;
+      padding: 18px 28px 48px 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Clean Integrated Top Header Bar */
+    .page-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 4px 4px 18px;
+    }
+    .page-topbar-left {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .page-topbar-title {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 25px;
+      line-height: 1.2;
       letter-spacing: -0.025em;
       color: var(--fg);
     }
-    .hero-sub {
-      margin: 0 auto;
-      max-width: 600px;
+    .page-topbar-sub {
+      font-size: 12.5px;
       color: var(--muted);
-      font-size: 15px;
-      line-height: 1.55;
+      font-weight: 500;
+    }
+    .page-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .top-icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+      padding: 0;
+    }
+    .top-icon-btn:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-soft);
+      transform: translateY(-1px);
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .top-profile-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 4px 5px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
+      font: 600 13px/1.2 var(--font-sans);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .top-profile-pill:hover {
+      border-color: var(--border-strong);
+      text-decoration: none;
+      color: var(--fg);
+    }
+    .top-profile-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary-btn);
+      color: var(--primary-btn-fg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .workspace-sheet {
+      background: var(--sheet);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 2;
+    }
+    main {
+      width: 100%;
+      max-width: 1300px;
+      margin: 0;
+      padding: 0;
     }
 
-    /* Primary 60% White Search Card */
+    @media (max-width: 860px) {
+      .app-shell { flex-direction: column; }
+      .side-rail {
+        width: 100%;
+        height: auto;
+        position: sticky;
+        top: 0;
+        flex-direction: row;
+        padding: 10px 14px;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+      }
+      .rail-top, .rail-bottom, .rail-nav { flex-direction: row; gap: 8px; }
+      .rail-brand { margin-bottom: 0; width: 36px; height: 36px; }
+      .rail-btn { width: 36px; height: 36px; }
+      .rail-btn[data-tip]::after { display: none; }
+      .rail-theme-capsule { flex-direction: row; }
+      .app-main-col { padding: 14px 14px 40px; }
+      .workspace-sheet { padding: 16px; border-radius: 18px; }
+    }
+
+    /* Home Page Specific Styles */
     .search-card {
       background: var(--surface);
-      border: 1px solid var(--border-strong);
-      border-radius: 14px;
-      box-shadow: var(--shadow-md);
-      padding: 16px;
-      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow-sm);
+      padding: 18px 20px;
+      margin-bottom: 22px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .search-card.focused {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.14), var(--shadow-md);
+      box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-md);
     }
-    .search-row {
-      display: flex;
-      gap: 10px;
-      align-items: stretch;
-    }
+    .search-headline-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .search-headline-text { font-size: 14px; font-weight: 600; color: var(--fg); }
+    .search-headline-sub { font-size: 12.5px; color: var(--muted); }
+    .search-row { display: flex; gap: 10px; align-items: stretch; }
     .search-input {
-      flex: 1;
-      min-width: 0;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--fg);
-      border-radius: 10px;
-      padding: 12px 14px;
-      font: 15px/1.4 var(--font-sans);
-      outline: none;
+      flex: 1; min-width: 0; border: 1px solid var(--border); background: var(--surface-soft);
+      color: var(--fg); border-radius: 999px; padding: 12px 18px; font: 14px/1.4 var(--font-sans); outline: none; transition: all 0.2s ease;
     }
-    .search-input:focus {
-      border-color: var(--accent);
-      background: var(--surface);
-    }
+    .search-input:focus { border-color: var(--accent); background: var(--surface); }
     .btn-primary {
-      border: 0;
-      border-radius: 10px;
-      background: var(--accent);
-      color: var(--accent-fg);
-      padding: 0 22px;
-      font: 600 14px/1 var(--font-sans);
-      cursor: pointer;
-      white-space: nowrap;
+      border: 0; border-radius: 999px; background: var(--primary-btn); color: var(--primary-btn-fg);
+      padding: 0 22px; font: 600 13.5px/1 var(--font-sans); cursor: pointer; white-space: nowrap;
+      transition: background 0.15s ease, transform 0.15s ease; box-shadow: 0 2px 6px rgba(20, 22, 18, 0.14);
     }
-    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:hover { background: var(--primary-btn-hover); transform: translateY(-1px); }
     .btn-primary:disabled { opacity: 0.55; cursor: default; }
-
     .btn-ghost {
-      border: 1px solid var(--border-strong);
-      background: var(--surface);
-      color: var(--fg);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font: 600 12.5px/1.2 var(--font-sans);
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
+      border: 1px solid var(--border); background: var(--surface-soft); color: var(--fg);
+      border-radius: 999px; padding: 6px 14px; font: 600 12.5px/1.2 var(--font-sans); cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s ease;
     }
-    .btn-ghost:hover { background: var(--surface-soft); text-decoration: none; }
+    .btn-ghost:hover { background: var(--surface-tint); border-color: var(--border-strong); color: var(--fg); text-decoration: none; }
+    .btn-accent-pill {
+      border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-fg);
+      padding: 7px 16px; font: 600 12.5px/1.2 var(--font-sans); cursor: pointer; white-space: nowrap;
+      transition: background 0.15s ease, transform 0.15s ease; box-shadow: 0 2px 6px rgba(107, 111, 242, 0.25);
+    }
+    .btn-accent-pill:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-accent-pill:disabled { opacity: 0.6; cursor: default; }
 
-    .controls-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-    }
-    .segmented {
-      display: inline-flex;
-      background: var(--surface-soft);
-      padding: 3px;
-      border-radius: 9px;
-      gap: 2px;
-    }
-    .seg-btn {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      padding: 5px 11px;
-      border-radius: 7px;
-      font: 600 12px/1.2 var(--font-sans);
-      cursor: pointer;
-    }
-    .seg-btn.active {
-      background: var(--surface);
-      color: var(--fg);
-      box-shadow: var(--shadow-sm);
-    }
-    .scope-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12.5px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-    select.scope-select {
-      border: 1px solid var(--border-strong);
-      background: var(--surface);
-      color: var(--fg);
-      border-radius: 8px;
-      padding: 5px 10px;
-      font: 600 12.5px/1.3 var(--font-sans);
-      outline: none;
-      cursor: pointer;
-    }
-    select.scope-select:focus { border-color: var(--accent); }
+    .controls-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .segmented { display: inline-flex; background: var(--surface-soft); padding: 3px; border-radius: 999px; gap: 2px; border: 1px solid var(--border); }
+    .seg-btn { border: 0; background: transparent; color: var(--muted); padding: 6px 13px; border-radius: 999px; font: 600 12px/1.2 var(--font-sans); cursor: pointer; transition: all 0.15s ease; }
+    .seg-btn.active { background: var(--surface); color: var(--fg); font-weight: 700; box-shadow: var(--shadow-sm); }
+    .scope-wrap { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+    .scope-label { color: var(--muted); font-weight: 600; font-size: 12.5px; user-select: none; }
+    .scope-select-hidden { position: absolute !important; opacity: 0 !important; pointer-events: none !important; width: 1px !important; height: 1px !important; margin: -1px !important; clip: rect(0,0,0,0) !important; overflow: hidden !important; }
 
-    .acronym-bar {
-      margin-top: 10px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: var(--surface-tint);
-      font-size: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .tag-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      font: 600 11px/1.3 var(--font-sans);
-      color: var(--fg);
-    }
-    .tag-accent {
-      background: var(--surface-tint);
-      color: var(--accent);
-      border-color: transparent;
-    }
-    .tag-danger {
-      background: var(--danger-soft);
-      color: var(--danger);
-      border-color: transparent;
-    }
+    .invite-disclosure-wrap { position: relative; display: inline-flex; align-items: center; }
+    .disclosure-trigger { display: inline-flex; align-items: center; gap: 8px; background: var(--surface-soft); border: 1px solid var(--border); color: var(--fg); border-radius: 999px; padding: 6px 14px; font: 600 12.5px/1.3 var(--font-sans); cursor: pointer; outline: none; transition: all 0.2s ease; user-select: none; }
+    .disclosure-trigger:hover { background: var(--surface); border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+    .disclosure-trigger.is-open { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .disclosure-trigger-icon { font-size: 14px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+    .disclosure-trigger-title { max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+    .disclosure-trigger-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: #FFFFFF; font-size: 11px; font-weight: 700; line-height: 1; }
+    .disclosure-trigger-chevron { color: var(--muted); transition: transform 0.25s ease, color 0.2s ease; }
+    .disclosure-trigger.is-open .disclosure-trigger-chevron { transform: rotate(180deg); color: var(--accent); }
+    .disclosure-backdrop { position: fixed; inset: 0; z-index: 130; background: rgba(20, 22, 18, 0.14); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 0.22s ease; }
+    .disclosure-backdrop.is-open { opacity: 1; pointer-events: auto; }
+    .disclosure-card { position: absolute; top: calc(100% + 8px); right: 0; width: 375px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--border-strong); border-radius: 24px; padding: 16px; box-shadow: var(--shadow-md); z-index: 140; transform-origin: top right; opacity: 0; transform: scale(0.94) translateY(-6px); pointer-events: none; transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.35, 0.64, 1); }
+    .disclosure-card.is-open { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
+    .disclosure-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .disclosure-head-left { display: flex; align-items: center; gap: 10px; }
+    .disclosure-head-title { font-size: 15.5px; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; }
+    .disclosure-head-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--accent); color: #FFFFFF; font-size: 11px; font-weight: 700; }
+    .disclosure-close-btn { background: transparent; border: none; cursor: pointer; color: var(--muted); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .disclosure-close-btn:hover { background: var(--surface-soft); color: var(--fg); }
+    .disclosure-list { display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+    .disclosure-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 14px; background: var(--surface-soft); border: 1px solid transparent; cursor: pointer; transition: all 0.15s ease; }
+    .disclosure-item:hover { background: var(--surface); border-color: var(--border-strong); }
+    .disclosure-item.is-selected { border-color: var(--accent); background: var(--accent-soft); }
+    .disclosure-item-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .disclosure-item-icon-wrap { position: relative; width: 34px; height: 34px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .disclosure-item-dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); }
+    .disclosure-item-info { flex: 1; min-width: 0; }
+    .disclosure-item-title { margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .disclosure-item-desc { margin: 0; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .disclosure-item-check { display: none; width: 18px; height: 18px; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; }
+    .disclosure-item.is-selected .disclosure-item-check { display: flex; }
 
-    /* Suggested Questions (Clean Pills + Progressive Disclosure) */
-    .cat-pills {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+    .acronym-bar { margin-top: 12px; padding: 8px 14px; border-radius: 12px; background: var(--accent-soft); font-size: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border: 1px solid var(--border); }
+    .tag-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--surface-soft); border: 1px solid transparent; font: 600 11.5px/1.2 var(--font-sans); color: var(--muted); }
+    .tag-accent { background: var(--accent-soft); color: var(--accent); }
+    .tag-success { background: var(--success-soft); color: var(--success); }
+    .tag-danger { background: var(--danger-soft); color: var(--danger); }
+
+    /* Connected Folder Tabs + Floating Status Toast */
+    .tabs-toast-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 0 4px; margin-bottom: -1px; position: relative; z-index: 4; }
+    .continuous-tabs-wrap { display: flex; align-items: flex-end; flex: 1; min-width: 0; }
+    .continuous-tabs-nav { position: relative; display: flex; align-items: flex-end; gap: 6px; max-width: 100%; overflow-x: auto; scrollbar-width: none; padding-top: 4px; }
+    .continuous-tabs-nav::-webkit-scrollbar { display: none; }
+    .continuous-indicator { display: none !important; }
+
     .cat-pill {
-      border: 1px solid var(--border-strong);
-      background: var(--surface);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 6px 14px;
-      font: 600 12.5px/1.2 var(--font-sans);
-      cursor: pointer;
+      position: relative; border: 1px solid var(--border); background: var(--surface); padding: 6px 10px 6px 7px;
+      border-radius: 999px; margin-bottom: 10px; outline: none; cursor: pointer; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px; user-select: none; color: var(--muted);
+      font: 500 12.5px/1.2 var(--font-sans); box-shadow: var(--shadow-sm); transition: all 0.18s ease;
     }
-    .cat-pill:hover { border-color: var(--accent); color: var(--fg); }
+    .cat-pill:hover { color: var(--fg); border-color: var(--border-strong); }
+    .cat-pill-icon { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-soft); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; transition: all 0.18s ease; }
+    .cat-pill-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 999px; background: var(--surface-soft); color: var(--muted); font: 600 10.5px/1 var(--font-sans); transition: all 0.18s ease; }
     .cat-pill.active {
-      background: var(--navy);
-      color: #ffffff;
-      border-color: var(--navy);
+      background: var(--sheet); border-color: var(--border); border-bottom-color: var(--sheet);
+      border-radius: 18px 18px 0 0; margin-bottom: 0; padding: 9px 12px 14px 8px; color: var(--fg); font-weight: 600; box-shadow: none; z-index: 5;
     }
-    html.dark .cat-pill.active {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
+    .cat-pill.active .cat-pill-icon { background: var(--accent); color: #FFFFFF; }
+    .cat-pill.active .cat-pill-count { background: var(--accent); color: #FFFFFF; }
 
-    .suggestions-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-      margin-bottom: 28px;
-    }
-    .suggestions-head {
-      padding: 10px 16px;
-      background: var(--surface-soft);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font: 600 12px/1.2 var(--font-sans);
-      color: var(--muted);
-    }
-    .q-list {
-      display: flex;
-      flex-direction: column;
-    }
+    .sync-toast { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 6px 12px 6px 8px; margin-bottom: 10px; box-shadow: var(--shadow-sm); flex-shrink: 0; }
+    .sync-toast-icon { width: 26px; height: 26px; border-radius: 50%; background: var(--success); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sync-toast-title { font-size: 12px; font-weight: 600; color: var(--fg); line-height: 1.25; }
+    .sync-toast-sub { font-size: 10.5px; color: var(--muted); line-height: 1.25; }
+
+    /* Suggestions Panel & 3-Col Offer-Style Card Grid */
+    .suggestions-panel { background: transparent; border: 0; margin-bottom: 0; }
+    .suggestions-head { padding: 0 2px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    #suggestionsHeading { font-size: 17px; font-weight: 600; color: var(--fg); letter-spacing: -0.015em; }
+    #suggestionsCount { font-size: 12px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 3px 10px; border-radius: 999px; }
+
+    .q-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
     .q-item {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      cursor: pointer;
-      background: var(--surface);
-      text-align: left;
-      width: 100%;
-      border-left: 0;
-      border-right: 0;
-      border-top: 0;
-      color: var(--fg);
-      font-family: inherit;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 14px; cursor: pointer;
+      text-align: left; color: var(--fg); font-family: inherit; box-shadow: var(--shadow-sm);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
-    .q-item:last-child { border-bottom: 0; }
-    .q-item:hover { background: var(--surface-tint); }
-    .q-title { font: 600 13.5px/1.4 var(--font-sans); color: var(--fg); }
-    .q-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-      flex-shrink: 0;
-    }
+    .q-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+    .q-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .q-card-entity { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+    .q-card-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--primary-btn); color: var(--primary-btn-fg); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .q-card-entity-name { font-size: 13px; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-card-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .q-tile { background: var(--surface-soft); border-radius: 12px; padding: 9px 11px; min-width: 0; }
+    .q-tile-label { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 3px; }
+    .q-tile-val { font-size: 12.5px; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-title { font: 600 14.5px/1.4 var(--font-sans); color: var(--fg); letter-spacing: -0.01em; }
+    .q-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; padding-top: 2px; }
+    .q-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 999px; background: var(--surface-soft); color: var(--fg); font: 600 12px/1.2 var(--font-sans); text-decoration: none; transition: background 0.15s ease; }
+    .q-btn-secondary:hover { background: var(--surface-tint); color: var(--fg); text-decoration: none; }
+    .q-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 999px; background: var(--primary-btn); color: var(--primary-btn-fg); font: 600 12px/1.2 var(--font-sans); transition: background 0.15s ease; }
+    .q-item:hover .q-btn-primary { background: var(--primary-btn-hover); }
 
-    /* Status Line */
-    .status-line {
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .status-line.error { color: var(--danger); font-weight: 600; }
+    .status-line { margin-top: 10px; font-size: 12.5px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .status-line.error { color: var(--danger); font-weight: 700; }
 
-    /* In-Page Result Card */
-    .answer-card {
-      background: var(--surface);
-      border: 1px solid var(--border-strong);
-      border-radius: 14px;
-      box-shadow: var(--shadow-md);
-      margin-bottom: 28px;
-      overflow: hidden;
-    }
-    .answer-head {
-      padding: 12px 18px;
-      background: var(--surface-soft);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-    .answer-body { padding: 18px 20px; }
-    .sub-block {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 14px;
-      overflow: hidden;
-      background: var(--surface);
-    }
-    .sub-block-head {
-      padding: 8px 14px;
-      background: var(--surface-soft);
-      border-bottom: 1px solid var(--border);
-      font: 600 12px/1.3 var(--font-sans);
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    .cypher-pre {
-      margin: 0;
-      padding: 12px 14px;
-      background: var(--bg);
-      font: 12px/1.5 var(--font-mono);
-      white-space: pre-wrap;
-      overflow-x: auto;
-    }
+    .answer-card { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow-md); margin-bottom: 24px; overflow: hidden; }
+    .answer-head { padding: 14px 20px; background: var(--sheet); border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+    .answer-body { padding: 20px 22px; }
+    .sub-block { border: 1px solid var(--border); border-radius: 16px; margin-bottom: 16px; overflow: hidden; background: var(--surface); }
+    .sub-block-head { padding: 10px 16px; background: var(--surface-soft); border-bottom: 1px solid var(--border); font: 600 12px/1.3 var(--font-sans); color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .cypher-pre { margin: 0; padding: 14px 16px; background: var(--sheet); font: 12px/1.55 var(--font-mono); white-space: pre-wrap; overflow-x: auto; }
+    .web-fallback-card { border: 1px solid var(--success); border-left: 4px solid var(--success); background: var(--success-soft); border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; }
+    .excerpt-card { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; background: var(--surface-soft); }
 
-    table.clean-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-    table.clean-table th, table.clean-table td {
-      border-bottom: 1px solid var(--border);
-      padding: 9px 12px;
-      text-align: left;
-      vertical-align: top;
-      overflow-wrap: anywhere;
-    }
-    table.clean-table thead th {
-      background: var(--surface-soft);
-      color: var(--muted);
-      font: 600 11.5px/1.3 var(--font-sans);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
+    table.clean-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.5; }
+    table.clean-table th, table.clean-table td { border-bottom: 1px solid var(--border); padding: 10px 14px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    table.clean-table thead th { background: var(--surface-soft); color: var(--muted); font: 600 11.5px/1.3 var(--font-sans); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border-strong); }
     table.clean-table tbody tr:last-child td { border-bottom: 0; }
     table.clean-table tbody tr:hover td { background: var(--surface-soft); }
 
-    .audit-h2 {
-      margin: 16px 0 6px;
-      font: 700 16px/1.3 var(--font-sans);
-      color: var(--fg);
-    }
-    .audit-h3 {
-      margin: 12px 0 4px;
-      font: 600 13.5px/1.3 var(--font-sans);
-      color: var(--fg);
-    }
-    .cite-pill {
-      display: inline-block;
-      padding: 0 6px;
-      border-radius: 5px;
-      background: var(--surface-soft);
-      border: 1px solid var(--border);
-      font: 600 11px/1.4 var(--font-mono);
-      color: var(--muted);
-    }
-    .num-hi { font-weight: 700; font-family: var(--font-mono); }
-    .alert-text { color: var(--danger); font-weight: 700; }
+    .audit-h2 { margin: 18px 0 8px; font-weight: 700; font-size: 17px; line-height: 1.3; color: var(--fg); }
+    .audit-h3 { margin: 14px 0 6px; font-weight: 600; font-size: 14px; line-height: 1.3; color: var(--fg); }
+    .cite-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); font: 600 11px/1.4 var(--font-mono); color: var(--accent); }
+    .num-hi { font-weight: 700; font-family: var(--font-mono); color: var(--accent); }
 
-    /* Compact 3-Card Summary Row */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
-    }
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .stat-label { font: 600 12px/1.2 var(--font-sans); color: var(--muted); }
-    .stat-val { font: 700 24px/1.15 var(--font-sans); color: var(--fg); font-variant-numeric: tabular-nums; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between; gap: 10px; transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+    .stat-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .stat-label { font: 600 11.5px/1.2 var(--font-sans); color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-val { font-weight: 700; font-size: 23px; line-height: 1.2; color: var(--fg); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
     .stat-foot { font-size: 12.5px; color: var(--muted); }
+    .svg-preview { width: 100%; height: 210px; display: block; background: var(--sheet); }
 
-    .svg-preview {
-      width: 100%;
-      height: 210px;
-      display: block;
-      background: var(--bg);
-    }
-
-    /* Glossary Modal */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(2px);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal-box {
-      width: 100%;
-      max-width: 860px;
-      max-height: 84vh;
-      border: 1px solid var(--border-strong);
-      border-radius: 14px;
-      background: var(--surface);
-      box-shadow: var(--shadow-md);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .modal-head {
-      padding: 12px 18px;
-      background: var(--navy);
-      color: #ffffff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font: 600 14px/1.2 var(--font-sans);
-    }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(20, 22, 18, 0.55); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { width: 100%; max-width: 860px; max-height: 84vh; border: 1px solid var(--border-strong); border-radius: 22px; background: var(--surface); box-shadow: var(--shadow-md); display: flex; flex-direction: column; overflow: hidden; }
+    .modal-head { padding: 15px 20px; background: #202124; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 15px; }
     .modal-body { overflow: auto; flex: 1; }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 10px;
-    }
+    footer { border-top: 1px solid var(--border); padding-top: 18px; font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
 
-    @media (max-width: 760px) {
-      main { padding-top: 28px; }
+    @media (max-width: 860px) {
       .search-row { flex-direction: column; }
-      .btn-primary { padding: 12px 18px; }
+      .btn-primary { padding: 13px 20px; }
       .summary-grid { grid-template-columns: 1fr; }
-      .q-item { flex-direction: column; align-items: flex-start; }
+      .q-list { grid-template-columns: 1fr; }
     }
   </style>
   <script src="bp-config.js"></script>
   <script src="fuzzy-utils.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a href="graphdashboard2.html" class="brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <line x1="3.5" y1="8" x2="12" y2="3.5" stroke="#ffffff" stroke-width="1.6"/>
-            <line x1="3.5" y1="8" x2="12" y2="12.5" stroke="#ffffff" stroke-width="1.6"/>
-            <circle cx="3.5" cy="8" r="2.2" fill="#ffffff"/>
-            <circle cx="12" cy="3.5" r="2.2" fill="#ffffff"/>
-            <circle cx="12" cy="12.5" r="2.2" fill="#93c5fd"/>
+  <div class="app-shell">
+    <aside class="side-rail" aria-label="Primary Navigation">
+      <div class="rail-top">
+        <a href="graphdashboard2.html" class="rail-brand" title="Bharat Praman" aria-label="Bharat Praman">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/>
+            <path d="M8.7 10.7l6.6-3.4"/><path d="M8.7 13.3l6.6 3.4"/>
           </svg>
-        </span>
-        <span>Bharat Praman</span>
-      </a>
-      <nav class="nav" aria-label="Primary">
-        <a href="graphdashboard2.html" class="active">Search</a>
-        <a href="graph.html">Graph Explorer</a>
-        <a href="ask.html">Fiscal Intelligence</a>
-        <a href="rti/rti_page.html">RTI Desk</a>
-        <a href="rti_archive.html">RTI Archive</a>
-        <button id="glossaryOpen" type="button">Glossary &amp; IPC</button>
-        <button id="benchmarkOpen" type="button" class="btn-ghost" style="cursor:pointer; font-weight:700; color:var(--accent); border-color:var(--accent);">Architecture Benchmark</button>
-        <button id="themeToggle" type="button">Dark Mode</button>
-      </nav>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero">
-      <div style="display:flex; justify-content:center; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
-        <div class="hero-badge" id="syncBadge">Election Affidavits &amp; Union Ministry Budgets</div>
-        <button id="benchmarkHeroBtn" type="button" class="hero-badge" style="background:rgba(37,99,235,0.1); color:var(--accent); border-color:rgba(37,99,235,0.3); cursor:pointer; font-weight:700;">
-          Benchmark: GraphRAG vs. Vector RAG
+        </a>
+        <nav class="rail-nav" aria-label="Primary">
+          <a href="graphdashboard2.html" class="rail-btn active" data-tip="Search &amp; Audit" aria-label="Search &amp; Audit">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </a>
+          <a href="graph.html" class="rail-btn" data-tip="Graph Explorer" aria-label="Graph Explorer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </a>
+          <a href="ask.html" class="rail-btn" data-tip="Fiscal Intelligence" aria-label="Fiscal Intelligence">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </a>
+          <a href="rti/rti_page.html" class="rail-btn" data-tip="RTI Desk" aria-label="RTI Desk">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
+          <a href="rti_archive.html" class="rail-btn" data-tip="RTI Archive" aria-label="RTI Archive">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          </a>
+        </nav>
+      </div>
+      <div class="rail-bottom">
+        <button id="themeToggle" class="rail-theme-capsule" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <span class="rail-theme-slot rail-theme-moon" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+          <span class="rail-theme-slot rail-theme-sun" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </span>
+        </button>
+        <button id="railGlossaryOpen" type="button" class="rail-btn" data-tip="Glossary &amp; IPC" aria-label="Glossary &amp; IPC">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         </button>
       </div>
-      <h1>Verify Elected Leaders &amp; Public Spending</h1>
-      <p class="hero-sub">
-        Ask a question in plain English across <span id="heroNodeCount">38,679</span> electoral graph nodes and 8 Union Ministries with page-cited answers.
-      </p>
-    </section>
+    </aside>
 
-    <!-- Primary Search Card -->
-    <section class="search-card" id="searchCard" aria-label="Search and query">
-      <div class="search-row">
-        <input
-          id="searchInput"
-          class="search-input"
-          type="text"
-          autocomplete="off"
-          placeholder="Ask about an MP, MLA, criminal record, or ministry budget (e.g. PM-SHRI 2023-24)..."
-        />
-        <button id="runQueryBtn" class="btn-primary" type="button">Run Audit</button>
-      </div>
+    <div class="app-main-col">
+      <header class="page-topbar">
+        <div class="page-topbar-left">
+          <h1 class="page-topbar-title">Search &amp; Audit</h1>
+          <span class="page-topbar-sub">Verify Elected Leaders &amp; Public Spending across <span id="heroNodeCount">38,679</span> nodes</span>
+        </div>
+        <div class="page-topbar-right">
+          <button id="glossaryOpen" type="button" class="top-icon-btn" title="Glossary &amp; IPC Reference" aria-label="Glossary &amp; IPC Reference">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+          <button id="benchmarkOpen" type="button" class="top-icon-btn" title="Architecture Benchmark: GraphRAG vs. Vector RAG" aria-label="Architecture Benchmark">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </button>
+          <button id="benchmarkHeroBtn" type="button" class="top-profile-pill" title="Compare GraphRAG vs Vector RAG">
+            <span class="top-profile-avatar">BP</span>
+            <span>Bharat Praman</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+      </header>
 
-      <div id="acronymBar" class="acronym-bar" hidden></div>
+      <main>
+        <section class="search-card" id="searchCard" aria-label="Search and query">
+          <div class="search-headline-row">
+            <span class="search-headline-text">Ask a question in plain English across election affidavits &amp; 8 Union Ministries</span>
+            <span class="search-headline-sub">Page-cited answers · Zero hallucination GraphRAG</span>
+          </div>
+          <div class="search-row">
+            <input
+              id="searchInput"
+              class="search-input"
+              type="text"
+              autocomplete="off"
+              placeholder="Ask about an MP, MLA, criminal record, or ministry budget (e.g. PM-SHRI 2023-24)..."
+            />
+            <button id="runQueryBtn" class="btn-primary" type="button">Ask Bharat Praman</button>
+          </div>
 
-      <div class="controls-row">
-        <div class="segmented" id="styleRow" role="group" aria-label="Answer depth">
-          <button type="button" class="seg-btn active" data-style="audit">Audit + Tables</button>
-          <button type="button" class="seg-btn" data-style="plain">Quick Summary</button>
-          <button type="button" class="seg-btn" data-style="deep">Exhaustive Audit</button>
+          <div id="acronymBar" class="acronym-bar" hidden></div>
+
+          <div class="controls-row">
+            <div class="segmented" id="styleRow" role="group" aria-label="Answer depth">
+              <button type="button" class="seg-btn active" data-style="audit">Audit + Tables</button>
+              <button type="button" class="seg-btn" data-style="plain">Quick Summary</button>
+              <button type="button" class="seg-btn" data-style="deep">Exhaustive Audit</button>
+            </div>
+
+            <div class="scope-wrap" id="scopeWrap">
+              <label for="scopeSelect" class="scope-label">Source:</label>
+              <select id="scopeSelect" class="scope-select-hidden" tabindex="-1" aria-hidden="true">
+                <option value="auto" selected>Auto-detect (Recommended)</option>
+                <option value="graph">Politician Graph (MPs &amp; MLAs)</option>
+                <option value="all">All 8 Union Ministries</option>
+                <option value="education">Ministry of Education</option>
+                <option value="home">Ministry of Home Affairs</option>
+                <option value="defence">Ministry of Defence</option>
+                <option value="finance">Ministry of Finance</option>
+                <option value="health">Ministry of Health</option>
+                <option value="rural">Ministry of Rural Development</option>
+                <option value="road">Road Transport &amp; Highways</option>
+                <option value="agriculture">Ministry of Agriculture</option>
+              </select>
+
+              <div class="invite-disclosure-wrap" id="inviteDisclosureWrap">
+                <button type="button" id="disclosureTrigger" class="disclosure-trigger" aria-haspopup="dialog" aria-expanded="false" title="Click to view knowledge resources">
+                  <span class="disclosure-trigger-icon" id="triggerIcon">⚡</span>
+                  <span class="disclosure-trigger-title" id="triggerTitle">Auto-detect (Recommended)</span>
+                  <span class="disclosure-trigger-badge" id="triggerBadge">11</span>
+                  <svg class="disclosure-trigger-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+                <div class="disclosure-backdrop" id="disclosureBackdrop" hidden></div>
+                <div id="disclosureCard" class="disclosure-card" role="dialog" aria-modal="true" aria-label="Select Knowledge Resource" hidden>
+                  <div class="disclosure-head">
+                    <div class="disclosure-head-left">
+                      <span class="disclosure-head-title">Knowledge Resources</span>
+                      <span class="disclosure-head-badge" id="disclosureHeadBadge">11</span>
+                    </div>
+                    <button type="button" class="disclosure-close-btn" id="disclosureCloseBtn" aria-label="Close resource selector">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                  <div class="disclosure-list" id="disclosureList"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="statusLine" class="status-line" role="status">
+            <span id="statusText">Click a suggested card below or enter a custom question to explore.</span>
+            <span id="perfTag" class="mono"></span>
+          </div>
+        </section>
+
+        <!-- Connected Folder Tabs + Floating Status Toast -->
+        <div class="tabs-toast-row">
+          <div class="continuous-tabs-wrap">
+            <nav class="continuous-tabs-nav" id="catPills" role="tablist" aria-label="Question categories">
+              <div class="continuous-indicator" id="continuousIndicator" aria-hidden="true"></div>
+              <button type="button" class="cat-pill active" data-cat="Politicians">
+                <span class="cat-pill-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+                <span class="tab-text">Politicians</span>
+                <span class="cat-pill-count">6</span>
+              </button>
+              <button type="button" class="cat-pill" data-cat="Budget Audit">
+                <span class="cat-pill-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </span>
+                <span class="tab-text">Budget Audits</span>
+                <span class="cat-pill-count">6</span>
+              </button>
+              <button type="button" class="cat-pill" data-cat="Schemes">
+                <span class="cat-pill-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </span>
+                <span class="tab-text">Schemes</span>
+                <span class="cat-pill-count">6</span>
+              </button>
+              <button type="button" class="cat-pill" data-cat="Hold Accountable">
+                <span class="cat-pill-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </span>
+                <span class="tab-text">Accountability</span>
+                <span class="cat-pill-count">3</span>
+              </button>
+              <button type="button" class="cat-pill" data-cat="Budget Basics">
+                <span class="cat-pill-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </span>
+                <span class="tab-text">Basics</span>
+                <span class="cat-pill-count">2</span>
+              </button>
+              <button type="button" class="cat-pill" data-cat="ALL">
+                <span class="cat-pill-icon" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </span>
+                <span class="tab-text">All Topics</span>
+                <span class="cat-pill-count">23</span>
+              </button>
+            </nav>
+          </div>
+
+          <div class="sync-toast" aria-live="polite">
+            <span class="sync-toast-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <div>
+              <div class="sync-toast-title" id="syncBadge">Election Affidavits &amp; Union Budgets</div>
+              <div class="sync-toast-sub">Neo4j GraphRAG · 8 Ministries Indexed</div>
+            </div>
+          </div>
         </div>
 
-        <div class="scope-wrap">
-          <label for="scopeSelect">Source:</label>
-          <select id="scopeSelect" class="scope-select">
-            <option value="auto">Auto-detect (Recommended)</option>
-            <option value="graph">Politician Graph (MPs &amp; MLAs)</option>
-            <option value="all">All 8 Union Ministries</option>
-            <option value="education">Ministry of Education</option>
-            <option value="home">Ministry of Home Affairs</option>
-            <option value="defence">Ministry of Defence</option>
-            <option value="finance">Ministry of Finance</option>
-            <option value="health">Ministry of Health</option>
-            <option value="rural">Ministry of Rural Development</option>
-            <option value="road">Road Transport &amp; Highways</option>
-            <option value="agriculture">Ministry of Agriculture</option>
-          </select>
+        <div class="workspace-sheet">
+          <section id="answerPanel" class="answer-card" aria-live="polite" hidden>
+            <div class="answer-head">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <strong id="answerHeaderTitle">Audit Result</strong>
+                <span id="cacheBadge" class="tag-pill tag-accent" hidden>0ms Cached</span>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <a id="answerFullLink" href="#" class="btn-ghost">Open Full View ↗</a>
+                <button id="closeAnswerBtn" type="button" class="btn-ghost">Close</button>
+              </div>
+            </div>
+            <div id="answerBody" class="answer-body"></div>
+          </section>
+
+          <section class="suggestions-panel" id="suggestionsPanel" aria-label="Suggested questions">
+            <div class="suggestions-head">
+              <span id="suggestionsHeading">Suggested Questions — Politicians</span>
+              <span id="suggestionsCount" class="mono">6 questions</span>
+            </div>
+            <div class="q-list" id="suggestionsList"></div>
+          </section>
         </div>
-      </div>
 
-      <div id="statusLine" class="status-line" role="status">
-        <span id="statusText">Click the search bar or pick a topic below to explore suggested questions.</span>
-        <span id="perfTag" class="mono"></span>
-      </div>
-    </section>
+        <section class="summary-grid" aria-label="Platform coverage">
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Electoral Affidavit Graph</div>
+              <div class="stat-val" id="kpiNodes">38,679</div>
+            </div>
+            <div class="stat-foot">
+              MPs, MLAs, assets, parties &amp; IPC criminal records.
+              <div style="margin-top:8px;"><a href="graph.html">Open Graph Explorer →</a></div>
+            </div>
+          </div>
 
-    <!-- Category Pills -->
-    <div class="cat-pills" id="catPills" role="tablist" aria-label="Question categories">
-      <button type="button" class="cat-pill active" data-cat="Politicians">Politicians &amp; Criminal Cases</button>
-      <button type="button" class="cat-pill" data-cat="Budget Audit">Budget Audits (BE vs RE)</button>
-      <button type="button" class="cat-pill" data-cat="Schemes">Government Schemes</button>
-      <button type="button" class="cat-pill" data-cat="Hold Accountable">Accountability &amp; Gaps</button>
-      <button type="button" class="cat-pill" data-cat="Budget Basics">Budget Basics</button>
-      <button type="button" class="cat-pill" data-cat="ALL">All (20)</button>
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Union Ministry Corpus</div>
+              <div class="stat-val"><span id="kpiDocs">49</span> docs · <span id="kpiChunks">44,453</span> chunks</div>
+            </div>
+            <div class="stat-foot">
+              8 Ministries (2021-22 to 2025-26) with BE vs RE citations.
+              <div style="margin-top:8px;"><a href="ask.html">Open Fiscal Intelligence →</a></div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div>
+              <div class="stat-label">Statutory Action &amp; Archive</div>
+              <div class="stat-val">Section 6(1) RTI</div>
+            </div>
+            <div class="stat-foot">
+              Generate Form A drafts or inspect 50 disclosed official RTIs.
+              <div style="margin-top:8px; display:flex; gap:14px; flex-wrap:wrap;">
+                <a href="rti/rti_page.html">Open RTI Desk →</a>
+                <a href="rti_archive.html">RTI Archive →</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer>
+          <div>
+            <strong>Bharat Praman</strong> · ECI / MyNeta Affidavits &amp; Union Budget Records
+          </div>
+          <div>
+            Contributors:
+            <a href="https://www.linkedin.com/in/sarvagye-talwar-361b10354/" target="_blank" rel="noopener">Sarvagye Talwar</a> ·
+            <a href="https://www.linkedin.com/in/aaishni-shukla-35991543a/" target="_blank" rel="noopener">Aaishni Shukla</a> ·
+            <a href="https://www.linkedin.com/in/subham-ranjan-dhal-669183403/" target="_blank" rel="noopener">Subham Ranjan Dhal</a> ·
+            <a href="https://github.com/SarvagyeTalwar" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </footer>
+      </main>
     </div>
-
-    <!-- Clean Suggested Questions Card (Filtered to active category or search input) -->
-    <section class="suggestions-panel" id="suggestionsPanel" aria-label="Suggested questions">
-      <div class="suggestions-head">
-        <span id="suggestionsHeading">Suggested Questions — Politicians &amp; Criminal Cases</span>
-        <span id="suggestionsCount" class="mono">3 questions</span>
-      </div>
-      <div class="q-list" id="suggestionsList"></div>
-    </section>
-
-    <!-- In-Page Answer Output (Hidden until query runs) -->
-    <section id="answerPanel" class="answer-card" aria-live="polite" hidden>
-      <div class="answer-head">
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <strong id="answerHeaderTitle">Audit Result</strong>
-          <span id="cacheBadge" class="tag-pill tag-accent" hidden>0ms Cached</span>
-        </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <a id="answerFullLink" href="#" class="btn-ghost">Open Full View ↗</a>
-          <button id="closeAnswerBtn" type="button" class="btn-ghost">Close</button>
-        </div>
-      </div>
-      <div id="answerBody" class="answer-body"></div>
-    </section>
-
-    <!-- Clean 3-Card Platform Overview -->
-    <section class="summary-grid" aria-label="Platform coverage">
-      <div class="stat-card">
-        <div>
-          <div class="stat-label">Electoral Affidavit Graph</div>
-          <div class="stat-val" id="kpiNodes">38,679</div>
-        </div>
-        <div class="stat-foot">
-          MPs, MLAs, assets, parties &amp; IPC criminal records.
-          <div style="margin-top:6px;"><a href="graph.html">Open Graph Explorer →</a></div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div>
-          <div class="stat-label">Union Ministry Corpus</div>
-          <div class="stat-val"><span id="kpiDocs">49</span> docs · <span id="kpiChunks">44,453</span> chunks</div>
-        </div>
-        <div class="stat-foot">
-          8 Ministries (2021-22 to 2025-26) with BE vs RE citations.
-          <div style="margin-top:6px;"><a href="ask.html">Open Fiscal Intelligence →</a></div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div>
-          <div class="stat-label">Statutory Action</div>
-          <div class="stat-val">Section 6(1) RTI</div>
-        </div>
-        <div class="stat-foot">
-          Generate Form A drafts when official disclosures fall short.
-          <div style="margin-top:6px;"><a href="rti/rti_page.html">Open RTI Desk →</a></div>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      <div>
-        <strong>Bharat Praman</strong> · ECI / MyNeta Affidavits &amp; Union Budget Records
-      </div>
-      <div>
-        Contributors:
-        <a href="https://www.linkedin.com/in/sarvagye-talwar-361b10354/" target="_blank" rel="noopener">Sarvagye Talwar</a> ·
-        <a href="https://www.linkedin.com/in/aaishni-shukla-35991543a/" target="_blank" rel="noopener">Aaishni Shukla</a> ·
-        <a href="https://www.linkedin.com/in/subham-ranjan-dhal-669183403/" target="_blank" rel="noopener">Subham Ranjan Dhal</a> ·
-        <a href="https://github.com/SarvagyeTalwar" target="_blank" rel="noopener">GitHub</a>
-      </div>
-    </footer>
-  </main>
+  </div>
 
   <!-- Glossary & IPC Modal -->
   <div id="glossaryModal" class="modal-backdrop" hidden>
@@ -764,12 +855,12 @@
         <span>Ministry Acronyms &amp; IPC Penal Code Reference</span>
         <button id="glossaryClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">Close</button>
       </div>
-      <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--surface-soft);">
+      <div style="padding:14px 18px; border-bottom:1.5px solid var(--border); display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface-soft);">
         <div class="segmented">
           <button id="tabTerms" type="button" class="seg-btn active">Acronyms</button>
           <button id="tabIpc" type="button" class="seg-btn">IPC Sections</button>
         </div>
-        <input id="glossarySearch" type="text" placeholder="Filter acronym, term, or IPC code..." style="flex:1; min-width:200px; border:1px solid var(--border-strong); background:var(--surface); color:var(--fg); border-radius:8px; padding:6px 10px; font-size:13px;" />
+        <input id="glossarySearch" type="text" placeholder="Filter acronym, term, or IPC code (e.g. 420, PM-SHRI, CRPF)..." style="flex:1; min-width:220px; border:1.5px solid var(--border); background:var(--bg); color:var(--fg); border-radius:12px; padding:9px 14px; font-size:13.5px; font-family:var(--font-sans); outline:none; transition:all 0.2s ease;" />
       </div>
       <div id="glossaryList" class="modal-body">
         <div style="padding:18px; color:var(--muted);">Loading...</div>
@@ -780,16 +871,15 @@
   <!-- Benchmark Comparison Modal (GraphRAG vs Naive Vector RAG) -->
   <div id="benchmarkModal" class="modal-backdrop" hidden>
     <div class="modal-box" style="max-width:920px;" role="dialog" aria-modal="true" aria-label="GraphRAG vs Naive Vector Search Benchmark">
-      <div class="modal-head" style="background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <div class="modal-head" style="background: #202124; color: #FFFFFF;">
         <div style="display:flex; align-items:center; gap:8px;">
-          
+          <span style="font-size:16px;">⚡</span>
           <span>Architecture Benchmark: GraphRAG vs. Naive Vector RAG</span>
         </div>
-        <button id="benchmarkClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">Close</button>
+        <button id="benchmarkClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.18); color:#fff; border-color:rgba(255,255,255,0.35);">Close</button>
       </div>
       <div class="modal-body" style="padding:20px 24px;">
-        <!-- Executive Pitch Banner -->
-        <div style="background:var(--surface-soft); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-bottom:20px;">
+        <div style="background:var(--surface-soft); border:1.5px solid var(--border); border-radius:14px; padding:16px 20px; margin-bottom:20px;">
           <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:var(--fg);">
             Why Neo4j GraphRAG beats standard Vector RAG (ChromaDB / LangChain)
           </div>
@@ -798,15 +888,13 @@
           </div>
         </div>
 
-        <!-- Live Scenario Comparison (Interactive Cards) -->
         <div style="margin-bottom:20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
             <strong style="font-size:13.5px;">Scenario Comparison: "Who is responsible for the Defence capital outlay?"</strong>
-            <button id="btnTryDefenceDemo" type="button" class="btn-primary" style="padding:6px 14px; font-size:12px; border-radius:6px; cursor:pointer;">Run Live Query →</button>
+            <button id="btnTryDefenceDemo" type="button" class="btn-primary" style="padding:8px 18px; font-size:12.5px; cursor:pointer;">Run Live Query →</button>
           </div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
-            <!-- Naive Vector RAG Column -->
-            <div style="background:rgba(220, 38, 38, 0.04); border:1px solid rgba(220, 38, 38, 0.25); border-radius:10px; padding:16px;">
+            <div style="background:var(--surface-soft); border:1.5px solid var(--border-strong); border-radius:14px; padding:16px;">
               <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                 <span style="font-weight:700; color:var(--danger); font-size:13px;">[Baseline] Naive Vector RAG (ChromaDB)</span>
                 <span class="tag-pill tag-danger">Disconnected Chunks</span>
@@ -821,15 +909,14 @@
               </div>
             </div>
 
-            <!-- Bharat Praman GraphRAG Column -->
-            <div style="background:rgba(37, 99, 235, 0.04); border:1px solid rgba(37, 99, 235, 0.35); border-radius:10px; padding:16px;">
+            <div style="background:var(--accent-soft); border:1.5px solid var(--accent); border-radius:14px; padding:16px;">
               <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                 <span style="font-weight:700; color:var(--accent); font-size:13px;">[Knowledge Graph] Bharat Praman GraphRAG (Neo4j)</span>
                 <span class="tag-pill tag-accent">Grounded Graph Path</span>
               </div>
               <p style="font-size:12.5px; color:var(--fg); line-height:1.45; margin-bottom:12px;">
                 <strong>What it returns:</strong> Exact PDF page citation <strong>+ 1-hop Graph Traversal:</strong>
-                <code style="display:block; padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:6px; font-size:11px; margin-top:4px; color:var(--fg); overflow-x:auto;">
+                <code style="display:block; padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:8px; font-size:11px; margin-top:4px; color:var(--fg); overflow-x:auto;">
                   (:MP {name: 'Rajnath Singh'})-[:HOLDS_PORTFOLIO]-&gt;(:Ministry {name: 'Defence'})&lt;-[:ISSUED_BY]-(:Document)&lt;-[:FROM]-(:Chunk)
                 </code>
               </p>
@@ -842,7 +929,6 @@
           </div>
         </div>
 
-        <!-- Hard Benchmark Metrics Table -->
         <div style="margin-bottom:12px;">
           <strong style="font-size:13.5px; display:block; margin-bottom:10px;">Technical Benchmark Matrix</strong>
           <div style="overflow-x:auto;">
@@ -901,14 +987,15 @@
 
     const themeToggle = document.getElementById('themeToggle');
     function syncThemeBtn() {
-      themeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
+      const isDark = document.documentElement.classList.contains('dark');
+      if (themeToggle) {
+        themeToggle.classList.toggle('is-dark', isDark);
+        themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
+        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        themeToggle.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+      }
     }
     syncThemeBtn();
-    themeToggle.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('bp_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-      syncThemeBtn();
-    });
 
     function escapeHtml(v) {
       return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1019,6 +1106,17 @@
     const answerBody = document.getElementById('answerBody');
     const acronymBar = document.getElementById('acronymBar');
 
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('bp_theme', isDark ? 'dark' : 'light');
+        syncThemeBtn();
+        const curTab = catPills && catPills.querySelector('.cat-pill.active');
+        if (curTab) repositionContinuousIndicator(curTab, false);
+      });
+    }
+
     function isAnalyticalGraphQuestion(q) {
       return /\b(which|who|how many|top\s+\d+|richest|wealthiest|most|highest|lowest|list|show|find|all|compare|count|percentage|average|under ipc|section\s+\d+|above|over|more than|less than|below|under|after|before|since|between|from|in|with|without|elected|won|winner|winners|mla|mlas|mp|mps|minister|ministers|party|parties|state|states|negative net worth|(?:19|20)\d{2})\b/i.test(q || '');
     }
@@ -1101,19 +1199,41 @@
       suggestionsCount.textContent = `${rows.length} question${rows.length === 1 ? '' : 's'}`;
 
       if (!rows.length) {
-        suggestionsList.innerHTML = `<div style="padding:14px 16px; font-size:13px; color:var(--muted);">No preset match — press <strong>Run Audit</strong> to query the live database directly.</div>`;
+        suggestionsList.innerHTML = `<div style="padding:14px 16px; font-size:13px; color:var(--muted);">No preset match — press <strong>Ask Bharat Praman</strong> to query the live database directly.</div>`;
         return;
       }
 
       suggestionsList.innerHTML = rows.map((item) => {
         const idx = SUGGESTED_QUESTIONS.indexOf(item);
-        return `<button type="button" class="q-item" data-idx="${idx}">
-          <span class="q-title">${escapeHtml(item.q)}</span>
-          <span class="q-badges">
-            <span class="tag-pill">${escapeHtml(TARGET_LABELS[item.target] || item.target)}</span>
-            <span class="tag-pill tag-accent">${escapeHtml(item.format)}</span>
-          </span>
-        </button>`;
+        const targetLabel = TARGET_LABELS[item.target] || item.target;
+        const initials = targetLabel.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+        const styleCfg = ANSWER_STYLES[item.style] || ANSWER_STYLES.audit;
+        const badgeClass = item.style === 'deep' ? 'tag-danger' : (item.style === 'plain' ? 'tag-success' : 'tag-accent');
+        const fullHref = buildDedicatedUrl(item.q, item.target, item.style);
+        return `<div class="q-item" data-idx="${idx}" role="button" tabindex="0">
+          <div class="q-card-top">
+            <span class="q-card-entity">
+              <span class="q-card-avatar">${escapeHtml(initials)}</span>
+              <span class="q-card-entity-name">${escapeHtml(targetLabel)}</span>
+            </span>
+            <span class="tag-pill ${badgeClass}">${escapeHtml(item.format)}</span>
+          </div>
+          <div class="q-card-tiles">
+            <div class="q-tile">
+              <div class="q-tile-label">Type</div>
+              <div class="q-tile-val">${escapeHtml(styleCfg.label)}</div>
+            </div>
+            <div class="q-tile">
+              <div class="q-tile-label">Category</div>
+              <div class="q-tile-val">${escapeHtml(item.cat)}</div>
+            </div>
+          </div>
+          <div class="q-title">${escapeHtml(item.q)}</div>
+          <div class="q-card-actions">
+            <a class="q-btn-secondary" href="${escapeHtml(fullHref)}" onclick="event.stopPropagation()">View details</a>
+            <span class="q-btn-primary">Run query</span>
+          </div>
+        </div>`;
       }).join('');
     }
 
@@ -1237,9 +1357,11 @@
         }
       });
       const isDark = document.documentElement.classList.contains('dark');
-      const strokeLine = isDark ? '#475569' : '#94a3b8';
-      const labelColor = isDark ? '#e2e8f0' : '#0f172a';
-      const fillNormal = isDark ? '#1e293b' : '#ffffff';
+      const strokeLine = isDark ? '#44463F' : '#D5D6CC';
+      const labelColor = isDark ? '#F3F3EE' : '#1D1E20';
+      const fillNormal = isDark ? '#2C2D28' : '#FFFFFF';
+      const accentColor = isDark ? '#7D80F8' : '#6B6FF2';
+      const dangerColor = isDark ? '#F87171' : '#D14343';
 
       const edgeSvg = cappedEdges.map((e) => {
         const s = pos.get(e.source), t = pos.get(e.target);
@@ -1251,8 +1373,8 @@
         const p = pos.get(n.id);
         const nodeType = (n.labels && n.labels[0]) || 'Entity';
         const isCrim = /criminal/i.test(nodeType) || ((n.properties?.criminal_case_count || 0) > 0);
-        const stroke = isCrim ? '#dc2626' : (n.is_focus ? '#1d4ed8' : '#0f172a');
-        const fill = isCrim ? '#dc2626' : (n.is_focus ? '#1d4ed8' : fillNormal);
+        const stroke = isCrim ? dangerColor : (n.is_focus ? accentColor : (isDark ? '#9B9D96' : '#202124'));
+        const fill = isCrim ? dangerColor : (n.is_focus ? accentColor : fillNormal);
         const r = n.is_focus ? 8 : 6;
         const title = String(n.display_name || n.properties?.name || n.label || n.id).slice(0, 22);
         const nodeHref = buildDashboardNodeHref(n, queryText);
@@ -1261,7 +1383,7 @@
             <title>Click to open ${escapeHtml(title)} profile</title>
             <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r + 12}" fill="transparent" />
             <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.8" />
-            <text x="${p.x.toFixed(1)}" y="${(p.y + r + 12).toFixed(1)}" fill="${isCrim ? '#dc2626' : labelColor}" font-family="system-ui,sans-serif" font-size="10.5" font-weight="${n.is_focus ? '700' : '500'}" text-anchor="middle">${escapeHtml(title)}</text>
+            <text x="${p.x.toFixed(1)}" y="${(p.y + r + 12).toFixed(1)}" fill="${isCrim ? dangerColor : labelColor}" font-family="var(--font-sans)" font-size="11" font-weight="${n.is_focus ? '700' : '600'}" text-anchor="middle">${escapeHtml(title)}</text>
           </g>
         </a>`;
       }).join('');
@@ -1283,9 +1405,9 @@
 
       const parts = [];
       if (data.web_answer) {
-        parts.push(`<div class="sub-block" style="border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.06); padding: 16px 20px; border-radius: 8px; margin-bottom: 16px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-            <span style="background:#10b981; color:#fff; font-size:11px; font-weight:700; padding:3px 8px; border-radius:4px; letter-spacing:0.5px;">🌐 LIVE WEB FALLBACK</span>
+        parts.push(`<div class="web-fallback-card">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+            <span class="tag-pill tag-success" style="font-weight:700;">LIVE WEB FALLBACK</span>
             <span style="font-size:12px; color:var(--muted);">Answer retrieved from official government portals (*.gov.in / *.sansad.in)</span>
           </div>
           <div style="line-height:1.7; font-size:14px;">${renderRagMarkdown(data.web_answer)}</div>
@@ -1298,7 +1420,7 @@
         const focusNode = data.nodes.find((n) => n.is_focus) || data.nodes[0];
         if (focusNode) {
           const focusName = String(focusNode.display_name || focusNode.properties?.name || focusNode.label || 'Entity').slice(0, 40);
-          parts.push(`<div style="margin-bottom:12px;"><a href="${escapeHtml(buildDashboardNodeHref(focusNode, q))}" class="btn-primary" style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; border-radius:8px; text-decoration:none;">Open ${escapeHtml(focusName)} Profile &amp; Graph →</a></div>`);
+          parts.push(`<div style="margin-bottom:14px;"><a href="${escapeHtml(buildDashboardNodeHref(focusNode, q))}" class="btn-primary" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; font-size:13px; text-decoration:none;">Open ${escapeHtml(focusName)} Profile &amp; Graph →</a></div>`);
         }
         parts.push(renderBarebonesSvg(data.nodes, data.edges || [], q));
       }
@@ -1318,11 +1440,15 @@
                   const v = row[c];
                   const cl = c.toLowerCase();
                   if (nameCol && c === nameCol && rowId && v) {
-                    return `<td><a href="node.html?id=${encodeURIComponent(rowId)}" style="font-weight:600;">${escapeHtml(v)}</a></td>`;
+                    const rowType = String(row.type || row.entity_type || (row.labels && row.labels[0]) || '');
+                    const typeParam = /party/i.test(rowType) ? '&type=Party' : '';
+                    return `<td><a href="node.html?id=${encodeURIComponent(rowId)}${typeParam}" style="font-weight:600;">${escapeHtml(v)}</a></td>`;
                   }
                   if (/(entity_id|person_id|node_id|^id)$/.test(cl) && v) {
+                    const rowType = String(row.type || row.entity_type || (row.labels && row.labels[0]) || '');
+                    const typeParam = /party/i.test(rowType) ? '&type=Party' : '';
                     const fallbackLabel = (row.name || row.mp_name || row.mla_name || row.politician || row.candidate || 'View Profile →');
-                    return `<td><a href="node.html?id=${encodeURIComponent(v)}" style="font-weight:600;">${escapeHtml(fallbackLabel)}</a></td>`;
+                    return `<td><a href="node.html?id=${encodeURIComponent(v)}${typeParam}" style="font-weight:600;">${escapeHtml(fallbackLabel)}</a></td>`;
                   }
                   if (/criminal|case/.test(cl) && Number(v) > 0) {
                     return `<td class="num alert-text">${escapeHtml(v)}</td>`;
@@ -1361,7 +1487,7 @@
                   <td>${escapeHtml(party)}</td>
                   <td class="num ${cases > 0 ? 'alert-text' : ''}">${cases > 0 ? cases : '0'}</td>
                   <td class="num">${escapeHtml(assets)}</td>
-                  <td style="white-space:nowrap;">${isRep ? `<a href="${escapeHtml(rtiHref)}" style="margin-right:8px;">Draft RTI →</a><a href="${escapeHtml(nodeHref)}#flag" style="font-size:11.5px; color:var(--muted);" title="Submit an audit annotation or discrepancy report">Flag Discrepancy</a>` : `<a href="${escapeHtml(nodeHref)}">Inspect →</a>`}</td>
+                  <td style="white-space:nowrap;">${isRep ? `<a href="${escapeHtml(rtiHref)}" style="margin-right:10px;">Draft RTI →</a><a href="${escapeHtml(nodeHref)}#flag" style="font-size:11.5px; color:var(--muted);" title="Submit an audit annotation or discrepancy report">Flag Discrepancy</a>` : `<a href="${escapeHtml(nodeHref)}">Inspect →</a>`}</td>
                 </tr>`;
               }).join('')}</tbody>
             </table>
@@ -1393,7 +1519,7 @@
       let r1Block = '';
       const detailsMatch = text.match(/<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/i);
       if (detailsMatch) {
-        r1Block = `<div class="sub-block"><div class="sub-block-head"><span>DeepSeek R1 Reasoning — ${escapeHtml(detailsMatch[1].trim())}</span></div><pre class="cypher-pre">${escapeHtml(detailsMatch[2].trim())}</pre></div>`;
+        r1Block = `<div class="sub-block"><div class="sub-block-head"><span>Reasoning Trace — ${escapeHtml(detailsMatch[1].trim())}</span></div><pre class="cypher-pre">${escapeHtml(detailsMatch[2].trim())}</pre></div>`;
         text = text.replace(detailsMatch[0], '').trim();
       }
       const lines = text.split(/\r?\n/);
@@ -1475,7 +1601,7 @@
                   <td class="mono">${escapeHtml(s.year || '—')}</td>
                   <td class="num">${escapeHtml(s.page ?? '—')}</td>
                   <td style="font-size:12px; color:var(--muted);">${escapeHtml(s.breadcrumb || s.section || '—')}</td>
-                  <td>${s.source_url ? `<a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener" class="btn-ghost" style="padding:3px 8px; font-size:12px;">Official Portal ↗</a>` : '—'}</td>
+                  <td>${s.source_url ? `<a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener" class="btn-ghost" style="padding:3px 10px; font-size:12px;">Official Portal ↗</a>` : '—'}</td>
                 </tr>`).join('')}</tbody>
               </table>
             </div>
@@ -1484,8 +1610,6 @@
       }).join('');
     }
 
-    // Streams /api/rag/ask/stream (SSE over fetch) and renders tokens live into the summary slot.
-    // Resolves with a payload shaped like /api/rag/ask so caching/rendering stays unchanged.
     async function streamRagAnswer(reqBody, tStart) {
       const slot = document.getElementById('deepSeekSummarySlot');
       const resp = await fetch(`${API_BASE}/api/rag/ask/stream`, {
@@ -1513,10 +1637,10 @@
         slot.innerHTML = `
           <div class="sub-block" style="margin-bottom:16px; border-left:3px solid var(--accent);">
             <div class="sub-block-head">
-              <span>DeepSeek Synthesis (${escapeHtml((meta.reasoning_mode || 'chat').toUpperCase())}) · streaming</span>
+              <span>AI Synthesis (${escapeHtml((meta.reasoning_mode || 'chat').toUpperCase())}) · streaming</span>
               <span class="mono" style="font-size:11px; color:var(--muted);">${ttft}</span>
             </div>
-            <div style="padding:12px 14px;">${thinking}${content ? renderRagMarkdown(content) : ''}</div>
+            <div style="padding:14px 16px;">${thinking}${content ? renderRagMarkdown(content) : ''}</div>
           </div>`;
       };
       paint(true);
@@ -1574,16 +1698,16 @@
       if (!slot) return;
       const results = (askData && askData.results) || [];
       if (!results.length) {
-        slot.innerHTML = '<div class="sub-block" style="margin-bottom:14px;"><p class="alert-text">No summary returned by DeepSeek.</p></div>';
+        slot.innerHTML = '<div class="sub-block" style="margin-bottom:14px; padding:12px 16px;"><p class="alert-text" style="margin:0;">No summary returned.</p></div>';
         return;
       }
       slot.innerHTML = results.map((res) => `
         <div class="sub-block" style="margin-bottom:16px; border-left:3px solid var(--accent);">
           <div class="sub-block-head">
-            <span>DeepSeek AI Synthesis (${escapeHtml((res.reasoning_mode || 'chat').toUpperCase())})</span>
+            <span>AI Synthesis (${escapeHtml((res.reasoning_mode || 'chat').toUpperCase())})</span>
             ${elapsedMs !== null ? `<span class="mono" style="font-size:11px; color:var(--muted);">${elapsedMs} ms</span>` : ''}
           </div>
-          <div style="padding:12px 14px;">${renderRagMarkdown(res.answer || '')}</div>
+          <div style="padding:14px 16px;">${renderRagMarkdown(res.answer || '')}</div>
         </div>
       `).join('');
       if (btn) {
@@ -1619,14 +1743,14 @@
             ${data.glossary_note ? `<span style="font-size:12px; color:var(--muted);">· ${escapeHtml(data.glossary_note)}</span>` : ''}
           </div>
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <button type="button" id="generateDeepSeekBtn" style="background:var(--accent); color:#fff; border:none; border-radius:6px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer;">Generate AI Summary with DeepSeek →</button>
+            <button type="button" id="generateDeepSeekBtn" class="btn-accent-pill">Generate AI Summary →</button>
             <a href="${escapeHtml(rtiUrl)}" class="btn-ghost">Draft Section 6(1) RTI →</a>
           </div>
         </div>
         <div id="deepSeekSummarySlot"></div>
         <div class="sub-block">
           <div class="sub-block-head"><span>Direct Source Excerpts &amp; Page Citations (${hits.length})</span></div>
-          <div style="display:flex; flex-direction:column; gap:10px; padding:10px 12px;">
+          <div style="display:flex; flex-direction:column; gap:10px; padding:12px 14px;">
             ${hits.map((h) => {
               const pageLabel = h.page ? (h.page_end && h.page_end !== h.page ? `pp. ${h.page}–${h.page_end}` : `p. ${h.page}`) : '—';
               const docTitle = h.title || h.file || 'Official Report';
@@ -1634,9 +1758,9 @@
               const hitDossierUrl = buildDedicatedUrl(q, hitMin, styleKey);
               const hitRtiUrl = `rti/rti_page.html?id=${encodeURIComponent('ministry-' + hitMin)}&name=${encodeURIComponent('CPIO, ' + docTitle)}`;
               const ministersHtml = Array.isArray(h.ministers) && h.ministers.length
-                ? `<div style="font-size:12px; color:var(--muted); margin-bottom:8px;"><strong>GraphRAG Portfolio Link:</strong> ${h.ministers.map(m => `<a href="node.html?id=${encodeURIComponent(m.entity_id || '')}" style="color:var(--accent); text-decoration:none; font-weight:600;">${escapeHtml(m.name)}</a> <span style="font-size:11px;">(${escapeHtml(m.rank || 'Minister')} · ${escapeHtml(m.party || 'BJP')})</span>`).join(' · ')}</div>`
+                ? `<div style="font-size:12px; color:var(--muted); margin-bottom:8px;"><strong>Portfolio Link:</strong> ${h.ministers.map((m) => `<a href="node.html?id=${encodeURIComponent(m.entity_id || '')}" style="font-weight:600;">${escapeHtml(m.name)}</a> <span style="font-size:11px;">(${escapeHtml(m.rank || 'Minister')} · ${escapeHtml(m.party || 'BJP')})</span>`).join(' · ')}</div>`
                 : '';
-              return `<div style="border:1px solid var(--border); border-radius:6px; padding:12px; background:var(--surface);">
+              return `<div class="excerpt-card">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
                   <div>
                     <strong style="font-size:14px;">${escapeHtml(docTitle)}</strong>
@@ -1646,7 +1770,7 @@
                 </div>
                 ${(h.breadcrumb || h.section) ? `<div style="font-size:12px; color:var(--muted); margin-bottom:6px;">${escapeHtml(h.breadcrumb || h.section)}</div>` : ''}
                 ${ministersHtml}
-                <p style="font-size:13px; line-height:1.55; margin:0 0 10px 0; color:var(--ink);">${escapeHtml(h.excerpt || '')}</p>
+                <p style="font-size:13px; line-height:1.55; margin:0 0 10px 0; color:var(--fg);">${escapeHtml(h.excerpt || '')}</p>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                   ${h.source_url ? `<a href="${escapeHtml(h.source_url)}" target="_blank" rel="noopener" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Official Source ↗</a>` : ''}
                   <a href="${escapeHtml(hitDossierUrl)}" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Open Full Briefing ↗</a>
@@ -1663,9 +1787,9 @@
         dsBtn.addEventListener('click', async () => {
           const cfg = ANSWER_STYLES[styleKey] || ANSWER_STYLES.audit;
           dsBtn.disabled = true;
-          dsBtn.textContent = 'Generating DeepSeek Summary...';
+          dsBtn.textContent = 'Generating AI Summary...';
           statusLine.classList.remove('error');
-          statusText.textContent = 'Synthesizing BE vs RE summary with DeepSeek...';
+          statusText.textContent = 'Synthesizing BE vs RE summary...';
           const tDs = performance.now();
           const reqBody = {
             question: q,
@@ -1679,7 +1803,6 @@
             try {
               askPayload = await streamRagAnswer(reqBody, tDs);
             } catch (streamErr) {
-              // Fallback: non-streaming endpoint
               const resp = await fetch(`${API_BASE}/api/rag/ask`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1693,13 +1816,13 @@
             try {
               sessionStorage.setItem(cacheKey, JSON.stringify({ kind: 'rag_with_search', searchData: data, askData: askPayload }));
             } catch (_) {}
-            statusText.textContent = 'DeepSeek summary complete.';
-            perfTag.textContent = `${elapsed} ms (DeepSeek)`;
+            statusText.textContent = 'AI summary complete.';
+            perfTag.textContent = `${elapsed} ms`;
           } catch (err) {
             dsBtn.disabled = false;
-            dsBtn.textContent = 'Retry DeepSeek Summary →';
+            dsBtn.textContent = 'Retry AI Summary →';
             statusLine.classList.add('error');
-            statusText.textContent = `DeepSeek synthesis failed (${err.message}).`;
+            statusText.textContent = `AI synthesis failed (${err.message}).`;
           }
         });
       }
@@ -1713,7 +1836,7 @@
         statusText.textContent = 'Please enter a question or click one of the suggestions below.';
         return;
       }
-      if (overrideTarget) scopeSelect.value = overrideTarget;
+      if (overrideTarget) setScopeValue(overrideTarget);
       if (overrideStyle) setStyle(overrideStyle);
       searchInput.value = q;
 
@@ -1739,11 +1862,14 @@
               return;
             }
             renderGraphResult(cached.data, q);
-          } else if (cached.kind === 'rag_search') renderRagSearchResult(cached.data, q, effTarget, styleKey, cacheKey);
-          else if (cached.kind === 'rag_with_search') {
+          } else if (cached.kind === 'rag_search') {
+            renderRagSearchResult(cached.data, q, effTarget, styleKey, cacheKey);
+          } else if (cached.kind === 'rag_with_search') {
             renderRagSearchResult(cached.searchData, q, effTarget, styleKey, cacheKey);
             renderDeepSeekIntoSlot(cached.askData);
-          } else renderRagResult(cached.data, q, effTarget, styleKey);
+          } else {
+            renderRagResult(cached.data, q, effTarget, styleKey);
+          }
           statusText.textContent = `Loaded from cache (${TARGET_LABELS[effTarget] || effTarget}).`;
           perfTag.textContent = `${Math.max(0, Math.round(performance.now() - t0))} ms (cache)`;
           answerPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1822,7 +1948,7 @@
           answerPanel.hidden = false;
           renderRagSearchResult(payload, q, effTarget, styleKey, cacheKey);
           try { sessionStorage.setItem(cacheKey, JSON.stringify({ kind: 'rag_search', data: payload })); } catch (_) {}
-          statusText.textContent = 'Primary excerpts loaded. Click "Generate AI Summary with DeepSeek →" for synthesis.';
+          statusText.textContent = 'Primary excerpts loaded. Click "Generate AI Summary →" for synthesis.';
           perfTag.textContent = `${Math.round(performance.now() - t0)} ms`;
         }
         answerPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1845,16 +1971,41 @@
       const b = e.target.closest('[data-style]');
       if (b) setStyle(b.dataset.style);
     });
+
+    function repositionContinuousIndicator(activeBtn, animate = true) {
+      const indicator = document.getElementById('continuousIndicator');
+      if (!indicator || !activeBtn) return;
+      if (!animate) indicator.style.transition = 'none';
+      indicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+      indicator.style.width = `${activeBtn.offsetWidth}px`;
+      indicator.style.opacity = '1';
+      if (!animate) {
+        indicator.offsetHeight;
+        indicator.style.transition = '';
+      }
+      activeBtn.setAttribute('data-mounted', 'true');
+    }
+
     catPills.addEventListener('click', (e) => {
       const b = e.target.closest('[data-cat]');
       if (!b) return;
       selectedCat = b.dataset.cat;
       [...catPills.querySelectorAll('.cat-pill')].forEach((p) => p.classList.toggle('active', p === b));
+      repositionContinuousIndicator(b, true);
+      b.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       renderSuggestions();
     });
     suggestionsList.addEventListener('click', (e) => {
       const btn = e.target.closest('.q-item');
       if (!btn) return;
+      const item = SUGGESTED_QUESTIONS[Number(btn.dataset.idx)];
+      if (item) executeQuery(item.q, item.target, item.style);
+    });
+    suggestionsList.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const btn = e.target.closest('.q-item');
+      if (!btn || e.target.closest('a')) return;
+      e.preventDefault();
       const item = SUGGESTED_QUESTIONS[Number(btn.dataset.idx)];
       if (item) executeQuery(item.q, item.target, item.style);
     });
@@ -1864,7 +2015,7 @@
       if (e.key === 'Enter') { e.preventDefault(); executeQuery(); }
     });
 
-    // Glossary & IPC Modal + Live Acronym Detection
+    // Glossary & IPC Modal + Live Acronym Detection + Fuzzy Typo Resilience
     let GLOSSARY = {};
     let IPC_ITEMS = [];
     let glossaryTab = 'terms';
@@ -1959,6 +2110,8 @@
       }
       renderGlossary();
     });
+    const railGloss = document.getElementById('railGlossaryOpen');
+    if (railGloss) railGloss.addEventListener('click', () => { document.getElementById('glossaryOpen').click(); });
     document.getElementById('glossaryOpen').addEventListener('click', () => {
       glossaryModal.hidden = false;
       renderGlossary();
@@ -1994,6 +2147,7 @@
       if (e.key === 'Escape') {
         if (glossaryModal && !glossaryModal.hidden) glossaryModal.hidden = true;
         if (benchmarkModal && !benchmarkModal.hidden) closeBenchmark();
+        closeDisclosure();
       }
     });
 
@@ -2001,13 +2155,172 @@
       btnTryDefenceDemo.addEventListener('click', () => {
         closeBenchmark();
         searchInput.value = 'Who is the Minister of Defence?';
-        scopeSelect.value = 'auto';
+        setScopeValue('auto');
         setStyle('audit');
         executeQuery('Who is the Minister of Defence?', 'auto', 'audit');
       });
     }
 
+    // Knowledge Resource Selector Popover
+    const KNOWLEDGE_RESOURCES = [
+      { id: 'auto', title: 'Auto-detect (Recommended)', desc: 'Hybrid routing across GraphRAG & all Union Ministries', icon: '⚡', hasUpdate: true },
+      { id: 'graph', title: 'Politician Graph (MPs & MLAs)', desc: '38,679 electoral nodes, affidavits, assets & cases', icon: '🏛️', hasUpdate: false },
+      { id: 'all', title: 'All 8 Union Ministries', desc: '44,453 PDF chunks with BE vs RE budget citations', icon: '📑', hasUpdate: false },
+      { id: 'education', title: 'Ministry of Education', desc: 'PM-SHRI, Samagra Shiksha & Higher Education outlays', icon: '🎓', hasUpdate: false },
+      { id: 'home', title: 'Ministry of Home Affairs', desc: 'CRPF, BSF, CISF modernisation & disaster relief', icon: '🛡️', hasUpdate: false },
+      { id: 'defence', title: 'Ministry of Defence', desc: 'Capital outlay, Tri-Services, DRDO & ordnance funds', icon: '⚔️', hasUpdate: false },
+      { id: 'finance', title: 'Ministry of Finance', desc: 'Economic Affairs, Revenue, Expenditure & C&AG reports', icon: '💰', hasUpdate: false },
+      { id: 'health', title: 'Ministry of Health', desc: 'NHM, PM-ABHIM, AIIMS expansions & family welfare', icon: '🏥', hasUpdate: false },
+      { id: 'rural', title: 'Ministry of Rural Development', desc: 'MGNREGS, PMGSY rural connectivity & PMAY-G', icon: '🌾', hasUpdate: false },
+      { id: 'road', title: 'Road Transport & Highways', desc: 'NHAI, Bharatmala expressways & road capital investments', icon: '🛣️', hasUpdate: false },
+      { id: 'agriculture', title: 'Ministry of Agriculture', desc: 'PM-KISAN, crop insurance (PMFBY) & agri-credit', icon: '🚜', hasUpdate: false },
+    ];
+
+    const disclosureTrigger = document.getElementById('disclosureTrigger');
+    const disclosureCard = document.getElementById('disclosureCard');
+    const disclosureBackdrop = document.getElementById('disclosureBackdrop');
+    const disclosureCloseBtn = document.getElementById('disclosureCloseBtn');
+    const triggerIcon = document.getElementById('triggerIcon');
+    const triggerTitle = document.getElementById('triggerTitle');
+    const triggerBadge = document.getElementById('triggerBadge');
+    const disclosureHeadBadge = document.getElementById('disclosureHeadBadge');
+    const disclosureList = document.getElementById('disclosureList');
+
+    function renderDisclosureItems() {
+      if (!disclosureList) return;
+      const cur = scopeSelect ? scopeSelect.value : 'auto';
+      disclosureList.innerHTML = KNOWLEDGE_RESOURCES.map((r) => {
+        const isSel = r.id === cur;
+        return `
+          <div class="disclosure-item ${isSel ? 'is-selected' : ''}" data-value="${r.id}" role="button" tabindex="0" aria-selected="${isSel}">
+            <div class="disclosure-item-left">
+              <div class="disclosure-item-icon-wrap">
+                <span class="disclosure-item-icon">${r.icon}</span>
+                ${r.hasUpdate ? '<span class="disclosure-item-dot" title="Active recommendation"></span>' : ''}
+              </div>
+              <div class="disclosure-item-info">
+                <h4 class="disclosure-item-title">${r.title}</h4>
+                <p class="disclosure-item-desc">${r.desc}</p>
+              </div>
+            </div>
+            <div class="disclosure-item-check" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      disclosureList.querySelectorAll('.disclosure-item').forEach((item) => {
+        item.addEventListener('click', () => selectResource(item.dataset.value));
+        item.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectResource(item.dataset.value);
+          }
+        });
+      });
+    }
+
+    function updateDisclosureTriggerUI(val) {
+      const match = KNOWLEDGE_RESOURCES.find((r) => r.id === val) || KNOWLEDGE_RESOURCES[0];
+      if (triggerIcon) triggerIcon.textContent = match.icon;
+      if (triggerTitle) triggerTitle.textContent = match.title;
+      if (triggerBadge) triggerBadge.textContent = KNOWLEDGE_RESOURCES.length;
+      if (disclosureHeadBadge) disclosureHeadBadge.textContent = KNOWLEDGE_RESOURCES.length;
+      if (disclosureList) {
+        disclosureList.querySelectorAll('.disclosure-item').forEach((item) => {
+          const isMatch = item.dataset.value === match.id;
+          item.classList.toggle('is-selected', isMatch);
+          item.setAttribute('aria-selected', isMatch);
+        });
+      }
+    }
+
+    function setScopeValue(val) {
+      if (scopeSelect) scopeSelect.value = val;
+      updateDisclosureTriggerUI(val);
+    }
+
+    function openDisclosure() {
+      if (!disclosureCard) return;
+      renderDisclosureItems();
+      disclosureCard.hidden = false;
+      if (disclosureBackdrop) disclosureBackdrop.hidden = false;
+      requestAnimationFrame(() => {
+        disclosureCard.classList.add('is-open');
+        if (disclosureBackdrop) disclosureBackdrop.classList.add('is-open');
+        if (disclosureTrigger) {
+          disclosureTrigger.classList.add('is-open');
+          disclosureTrigger.setAttribute('aria-expanded', 'true');
+        }
+      });
+    }
+
+    function closeDisclosure() {
+      if (!disclosureCard) return;
+      disclosureCard.classList.remove('is-open');
+      if (disclosureBackdrop) disclosureBackdrop.classList.remove('is-open');
+      if (disclosureTrigger) {
+        disclosureTrigger.classList.remove('is-open');
+        disclosureTrigger.setAttribute('aria-expanded', 'false');
+      }
+      setTimeout(() => {
+        if (!disclosureCard.classList.contains('is-open')) {
+          disclosureCard.hidden = true;
+          if (disclosureBackdrop) disclosureBackdrop.hidden = true;
+        }
+      }, 230);
+    }
+
+    function selectResource(id) {
+      setScopeValue(id);
+      if (scopeSelect) scopeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      closeDisclosure();
+    }
+
+    if (disclosureTrigger) {
+      disclosureTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (disclosureCard && disclosureCard.classList.contains('is-open')) closeDisclosure();
+        else openDisclosure();
+      });
+    }
+    if (disclosureCloseBtn) disclosureCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); closeDisclosure(); });
+    if (disclosureBackdrop) disclosureBackdrop.addEventListener('click', closeDisclosure);
+
+    document.addEventListener('pointerdown', (e) => {
+      if (disclosureCard && disclosureCard.classList.contains('is-open')) {
+        const wrap = document.getElementById('inviteDisclosureWrap');
+        if (wrap && !wrap.contains(e.target)) closeDisclosure();
+      }
+    });
+
+    if (scopeSelect) {
+      scopeSelect.addEventListener('change', () => updateDisclosureTriggerUI(scopeSelect.value));
+    }
+
+    renderDisclosureItems();
+    updateDisclosureTriggerUI(scopeSelect ? scopeSelect.value : 'auto');
     renderSuggestions();
+
+    const initContinuousTabs = () => {
+      const activeTab = catPills.querySelector('.cat-pill.active') || catPills.querySelector('.cat-pill');
+      if (activeTab) repositionContinuousIndicator(activeTab, false);
+    };
+    requestAnimationFrame(initContinuousTabs);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(initContinuousTabs);
+    }
+    window.addEventListener('resize', () => {
+      const curTab = catPills.querySelector('.cat-pill.active');
+      if (curTab) repositionContinuousIndicator(curTab, false);
+    });
+
+    if (window.location.hash === '#benchmark') {
+      openBenchmark();
+    }
   </script>
 </body>
 </html>
