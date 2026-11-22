@@ -468,8 +468,8 @@
 
     /* Connected Folder Tabs + Floating Status Toast */
     .tabs-toast-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 0 4px; margin-bottom: -1px; position: relative; z-index: 4; }
-    .continuous-tabs-wrap { display: flex; align-items: flex-end; flex: 1; min-width: 0; }
-    .continuous-tabs-nav { position: relative; display: flex; align-items: flex-end; gap: 6px; max-width: 100%; overflow-x: auto; scrollbar-width: none; padding-top: 4px; }
+    .continuous-tabs-wrap { display: flex; align-items: flex-end; flex: 1 1 auto; min-width: 0; }
+    .continuous-tabs-nav { position: relative; display: flex; align-items: flex-end; gap: 6px; max-width: 100%; flex-wrap: wrap; padding-top: 4px; }
     .continuous-tabs-nav::-webkit-scrollbar { display: none; }
     .continuous-indicator { display: none !important; }
 
@@ -764,8 +764,8 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </span>
             <div>
-              <div class="sync-toast-title" id="syncBadge">Election Affidavits &amp; Union Budgets</div>
-              <div class="sync-toast-sub">Neo4j GraphRAG · 8 Ministries Indexed</div>
+              <div class="sync-toast-title" id="syncBadge">GraphRAG Ready</div>
+              <div class="sync-toast-sub">Neo4j · 8 Ministries Indexed</div>
             </div>
           </div>
         </div>
@@ -1264,7 +1264,7 @@
       ]).then(([meta, catalog]) => {
         if (meta || catalog) {
           applyTelemetry(meta, catalog);
-          document.getElementById('syncBadge').textContent = 'Live API Connected · Election Affidavits & Union Budgets';
+          document.getElementById('syncBadge').textContent = 'Live API Connected';
           try { localStorage.setItem(TELEMETRY_CACHE_KEY, JSON.stringify({ meta, catalog, ts: Date.now() })); } catch (_) {}
         }
       });
