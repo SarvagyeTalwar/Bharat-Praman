@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bharat Praman | Sovereign Policy & Ministry Knowledge Graph</title>
+  <meta name="description" content="Enterprise B2B Knowledge Graph and GraphRAG across 15,000 Ministry Annual Reports, Union Budgets, and Scheme Literature on Neo4j Aura." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#top" class="brand-mark">
+        <span class="brand-square" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="1.5" y="1.5" width="4" height="4" />
+            <rect x="10.5" y="1.5" width="4" height="4" />
+            <rect x="6" y="10.5" width="4" height="4" />
+            <path d="M5.5 3.5H10.5M3.5 5.5L7.5 10.5M12.5 5.5L8.5 10.5" />
+          </svg>
+        </span>
+        <span class="brand-text-wrap">
+          <span class="brand-name">Bharat Praman</span>
+          <span class="brand-tag">Enterprise Policy KG</span>
+        </span>
+      </a>
+
+      <nav class="header-nav" aria-label="Primary navigation">
+        <a href="#pillars">Principles</a>
+        <a href="#control-plane">Architecture</a>
+        <a href="#use-cases">Use Cases</a>
+        <a href="#coverage">Ministry Corpus</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="#control-plane" class="btn btn-ghost">Inspect Stack</a>
+        <a href="#pilot" class="btn btn-primary">Request Pilot</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- Hero + Synchronized Interactive GraphRAG Terminal -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-eyebrow-row">
+          <div class="eyebrow-badge">
+            <span class="status-square" aria-hidden="true"></span>
+            <span>Neo4j Aura Knowledge Graph · 8 Ministries · 4-Year Lineage</span>
+          </div>
+          <div class="hero-trust-inline">
+            <span>Unit-Locked Rs. Crore</span>
+            <span>Zero Query Training</span>
+            <span>Local BGE / Qwen3 Vectors</span>
+          </div>
+        </div>
+
+        <div class="hero-header">
+          <h1 class="hero-title">Primary government intelligence, verified by graph provenance.</h1>
+          <p class="hero-subtitle">
+            Query 4 years of Ministry Annual Reports, Demands for Grants, and scheme literature structured inside a Neo4j Knowledge Graph. Built for verifiable citation transparency, isolated tenant privacy, and accurate policy analysis.
+          </p>
+        </div>
+
+        <div class="workspace-shell" id="heroWorkspace">
+          <div class="workspace-topbar">
+            <div class="scenario-tabs" role="tablist" aria-label="GraphRAG demo scenarios">
+              <button type="button" class="scenario-btn active" data-scenario="0">01 · BE vs RE Variance</button>
+              <button type="button" class="scenario-btn" data-scenario="1">02 · Scheme Rollout</button>
+              <button type="button" class="scenario-btn" data-scenario="2">03 · Private Tenant Overlay</button>
+              <button type="button" class="scenario-btn" data-scenario="3">04 · Capex vs Revenue</button>
+            </div>
+
+            <div class="loop-controls">
+              <span id="loopStateText">AUTO DEMO ACTIVE</span>
+              <button type="button" id="loopToggleBtn" class="loop-toggle-btn">Pause Loop</button>
+            </div>
+          </div>
+
+          <div class="workspace-grid">
+            <!-- Left Console -->
+            <div class="query-pane">
+              <form class="search-box-wrap" id="heroQueryForm">
+                <div class="search-input-shell">
+                  <span class="search-prefix">Query</span>
+                  <input
+                    id="heroSearchInput"
+                    class="search-input"
+                    type="text"
+                    aria-label="Ask the Ministry Knowledge Graph"
+                    placeholder="Ask across 8 ministries and 4 fiscal years..."
+                    autocomplete="off"
+                  />
+                  <span id="typingCaret" class="typing-caret" aria-hidden="true"></span>
+                </div>
+                <button type="submit" id="runDemoBtn" class="btn btn-primary">Run GraphRAG</button>
+              </form>
+
+              <div class="quick-prompts-row">
+                <span class="quick-label">Quick prompts:</span>
+                <button type="button" class="chip-btn" data-prompt="What changed in Ayushman Bharat since 2022?">Ayushman Bharat</button>
+                <button type="button" class="chip-btn" data-prompt="Which agriculture schemes saw mid-year RE cuts?">Agriculture RE cuts</button>
+                <button type="button" class="chip-btn" data-prompt="Trace DRDO and iDEX defence priorities across 4 years">DRDO &amp; iDEX</button>
+                <button type="button" class="chip-btn" data-prompt="Summarize border fencing targets from MHA reports">MHA border targets</button>
+              </div>
+
+              <!-- 4-Step Pipeline Choreography -->
+              <div class="pipeline-box" aria-live="polite">
+                <div class="pipeline-header">
+                  <span id="pipelineHeadline">GRAPHRAG EXECUTION PIPELINE</span>
+                  <span id="pipelineLatency">184 ms graph + vector</span>
+                </div>
+                <div class="pipeline-progress-track">
+                  <div class="pipeline-progress-fill" id="pipelineProgressFill"></div>
+                </div>
+                <div class="pipeline-steps" id="pipelineSteps">
+                  <div class="pipeline-step" data-step="0">
+                    <span class="step-marker" aria-hidden="true"></span>
+                    <span class="step-text">Resolving ministry entities</span>
+                  </div>
+                  <div class="pipeline-step" data-step="1">
+                    <span class="step-marker" aria-hidden="true"></span>
+                    <span class="step-text">Traversing 4-year Neo4j graph</span>
+                  </div>
+                  <div class="pipeline-step" data-step="2">
+                    <span class="step-marker" aria-hidden="true"></span>
+                    <span class="step-text">Locking Rs. Crore units &amp; footnotes</span>
+                  </div>
+                  <div class="pipeline-step" data-step="3">
+                    <span class="step-marker" aria-hidden="true"></span>
+                    <span class="step-text">Citing primary pages &amp; gaps</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GraphRAG Answer Card -->
+              <div class="rag-output-card" id="ragOutputCard">
+                <div class="rag-path-bar">
+                  <code class="graph-path-code" id="ragGraphPath">MoRD -&gt; BudgetDoc (FY22-FY25) -&gt; NEXT_YEAR -&gt; BudgetTable</code>
+                  <span class="verified-stamp" id="ragBadge">Provenance Verified</span>
+                </div>
+
+                <p class="rag-summary-text" id="ragSummaryText"></p>
+
+                <div class="rag-table-wrap">
+                  <table class="rag-mini-table">
+                    <thead id="ragTableHead"></thead>
+                    <tbody id="ragTableBody"></tbody>
+                  </table>
+                </div>
+
+                <div class="rag-trust-footer">
+                  <span id="ragSourcesText">Sources: Union Expenditure Vol 1, Annual Reports</span>
+                  <span id="ragCaveatText">Not Disclosed splits flagged explicitly</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Panel: Synchronized Neo4j SVG Graph -->
+            <div class="graph-pane">
+              <div class="graph-pane-header">
+                <span class="graph-pane-title">Live Subgraph Traversal</span>
+                <span class="graph-instance-badge" id="graphBadgeText">AuraDB Vector + Cypher</span>
+              </div>
+
+              <div class="graph-svg-stage">
+                <svg class="graph-svg" id="knowledgeGraphSvg" viewBox="0 0 540 320" role="img" aria-label="Interactive Neo4j subgraph visualization">
+                  <defs>
+                    <pattern id="terminalGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+                      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#182235" stroke-width="1" />
+                    </pattern>
+                    <marker id="edgeArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1 L 8 5 L 0 9 z" fill="#3b82f6" />
+                    </marker>
+                    <marker id="edgeArrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1 L 8 5 L 0 9 z" fill="#10b981" />
+                    </marker>
+                  </defs>
+                  <rect width="540" height="320" fill="url(#terminalGrid)" />
+                  <g id="svgEdgesLayer"></g>
+                  <g id="svgNodesLayer"></g>
+                </svg>
+              </div>
+
+              <div class="graph-inspector" id="nodeInspector">
+                <div class="inspector-top">
+                  <span class="inspector-key">Node Properties (Click Node)</span>
+                  <span class="mono" id="inspectorLabel" style="color:#93c5fd;">:BudgetDoc</span>
+                </div>
+                <pre class="inspector-props" id="inspectorProps">{ "ministry": "Rural Development", "file": "mof_exp_vol1_2024-25.pdf", "unit": "Rs. in Crore" }</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Telemetry Metrics Strip -->
+    <section class="metrics-section reveal">
+      <div class="container">
+        <div class="metrics-grid">
+          <div class="metric-cell">
+            <div class="metric-value mono" data-count="15000" data-suffix="+">0</div>
+            <div class="metric-label">Corpus Capacity Target</div>
+            <div class="metric-note">Annual reports, budget volumes &amp; policy literature</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-value mono" data-count="44453" data-suffix="">0</div>
+            <div class="metric-label">Indexed Chunks Live Now</div>
+            <div class="metric-note">Active vector &amp; fulltext index across MoF, MoE, MoD &amp; MHA</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-value mono" data-count="8" data-suffix="">0</div>
+            <div class="metric-label">Union Ministries Modeled</div>
+            <div class="metric-note">Finance, Education, Defence, Home, Health, Rural, Roads, Agri</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-value mono" data-count="0" data-suffix=" B">0</div>
+            <div class="metric-label">Public Model Training Egress</div>
+            <div class="metric-note">Isolated Aura tenants &amp; local BGE / Qwen3 embeddings</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Product Principles -->
+    <section class="band" id="pillars">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="section-kicker">Design Foundation</div>
+          <h2 class="section-title">15,000 primary documents. Built for proof, privacy, and accuracy.</h2>
+          <p class="section-lead">
+            Every retrieval path enforces citation accountability, workspace confidentiality, and financial unit discipline.
+          </p>
+        </div>
+
+        <div class="pillars-grid">
+          <article class="pillar-card reveal">
+            <div class="pillar-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2 3.5H14M2 8H10M2 12.5H12" />
+                <rect x="11.5" y="10.5" width="3" height="3" />
+              </svg>
+            </div>
+            <h3 class="pillar-title">Glass-Box Transparency</h3>
+            <p class="pillar-copy">
+              No opaque chatbot paragraphs. Every claim renders its Neo4j entity path, source filename, page number, and explicit "Not Disclosed" boundary disclosures.
+            </p>
+            <div class="pillar-spec">AST Read-Only Cypher + Page-Pinned Citations</div>
+          </article>
+
+          <article class="pillar-card reveal">
+            <div class="pillar-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="7" width="10" height="7" />
+                <path d="M5 7V4.5a3 3 0 0 1 6 0V7" />
+              </svg>
+            </div>
+            <h3 class="pillar-title">Private Over Public Tenancy</h3>
+            <p class="pillar-copy">
+              Consultancies, infra bidders, and research teams upload private DPRs or policy memos into isolated Aura compartments linked cleanly to the shared Ministry spine.
+            </p>
+            <div class="pillar-spec">tenant_id Filter Injection · Zero Query Harvesting</div>
+          </article>
+
+          <article class="pillar-card reveal">
+            <div class="pillar-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2 12L6 8L9 10.5L14 4" />
+                <path d="M11 4H14V7" />
+              </svg>
+            </div>
+            <h3 class="pillar-title">Right Use of Information</h3>
+            <p class="pillar-copy">
+              Unit locks prevent confusing Rs. Crore with Rs. Lakh, separate Capital vs. Revenue outlays, and link FY21-22 through FY25-26 via explicit NEXT_YEAR edges.
+            </p>
+            <div class="pillar-spec">BE vs RE Variance · Footnote &amp; Unit Freezing</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Architecture & Control Plane -->
+    <section class="band band-alt" id="control-plane">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="section-kicker">Engineering &amp; Governance</div>
+          <h2 class="section-title">Inspect how chunks, Aura isolation, and local embeddings operate.</h2>
+          <p class="section-lead">
+            Full transparency over how Indian government PDFs become verifiable graph nodes and cosine vectors.
+          </p>
+        </div>
+
+        <div class="control-shell reveal">
+          <div class="control-tabs" role="tablist" aria-label="Architecture modules">
+            <button type="button" class="tab-btn active" data-tab="chunking">Local Chunk &amp; Embed Control</button>
+            <button type="button" class="tab-btn" data-tab="tenancy">Private Aura Tenancy (RBAC)</button>
+            <button type="button" class="tab-btn" data-tab="verification">Unit &amp; Caveat Guardrails</button>
+          </div>
+
+          <!-- Tab 1: Chunking & Embedding -->
+          <div class="control-panel active" id="panel-chunking">
+            <div class="control-form">
+              <div class="control-group">
+                <label>Chunk Token Ceiling</label>
+                <div class="seg-group" data-control="tokens">
+                  <button type="button" class="seg-option" data-val="256">256 tokens</button>
+                  <button type="button" class="seg-option active" data-val="512">512 tokens</button>
+                  <button type="button" class="seg-option" data-val="768">768 tokens</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label>Structure-Aware Rules (chunking_utils.py)</label>
+                <div class="seg-group" data-control="rules">
+                  <button type="button" class="seg-option active" data-val="strict">Freeze Table Units + Bind Footnotes</button>
+                  <button type="button" class="seg-option" data-val="raw">Plain Sliding Window</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label>Local Embedding Model (embeddings.py)</label>
+                <div class="seg-group" data-control="model">
+                  <button type="button" class="seg-option active" data-val="bge-small">BGE-small-en-v1.5 (384d)</button>
+                  <button type="button" class="seg-option" data-val="bge-m3">BGE-M3 Bilingual EN+HI (1024d)</button>
+                  <button type="button" class="seg-option" data-val="qwen3">Qwen3-Embedding-0.6B (1024d)</button>
+                </div>
+              </div>
+
+              <p style="margin:0; font-size:13.5px; color:var(--ink-secondary);">
+                Adjust parameters to preview how table captions, <code class="mono">Rs. in Crore</code> headers, and active chapter breadcrumbs stay attached before vectors hit Neo4j Aura.
+              </p>
+            </div>
+
+            <div class="code-preview-box">
+              <div class="code-preview-head">
+                <span id="chunkPreviewMeta">MODEL: BAAI/bge-small-en-v1.5 · 384-DIM · ~20ms QUERY</span>
+                <span>chunking_utils.py</span>
+              </div>
+              <pre id="chunkPreviewCode" style="margin:0; white-space:pre-wrap;"></pre>
+            </div>
+          </div>
+
+          <!-- Tab 2: Tenancy -->
+          <div class="control-panel" id="panel-tenancy">
+            <div class="control-form">
+              <div class="control-group">
+                <label>Workspace Query Scope</label>
+                <div class="seg-group" data-control="scope">
+                  <button type="button" class="seg-option active" data-val="hybrid">Public Spine + Private Tenant</button>
+                  <button type="button" class="seg-option" data-val="public">Public Ministry Spine Only</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label>Clearance Filter Level</label>
+                <div class="seg-group" data-control="clearance">
+                  <button type="button" class="seg-option active" data-val="internal">Level 1 · Internal Analysis</button>
+                  <button type="button" class="seg-option" data-val="restricted">Level 2 · Bid / Strategy Restricted</button>
+                </div>
+              </div>
+
+              <p style="margin:0; font-size:13.5px; color:var(--ink-secondary);">
+                Server-side FastAPI AST validation rewrites and parameterizes Cypher queries before touching Neo4j Aura. Private uploaded documents never co-mingle across organizations.
+              </p>
+            </div>
+
+            <div class="code-preview-box">
+              <div class="code-preview-head">
+                <span id="cypherPreviewMeta">READ_ACCESS · AST SCHEMA WHITELIST ENFORCED</span>
+                <span>validate_readonly_cypher()</span>
+              </div>
+              <pre id="cypherPreviewCode" style="margin:0; white-space:pre-wrap;"></pre>
+            </div>
+          </div>
+
+          <!-- Tab 3: Verification -->
+          <div class="control-panel" id="panel-verification">
+            <div class="control-form">
+              <h3 style="margin:0; font-size:17px;">Mandatory Guardrails Against AI Misinterpretation</h3>
+              <p style="margin:0; font-size:14px; color:var(--ink-secondary);">
+                Generic LLM wrappers frequently convert Rs. Lakh to Rs. Crore silently, average unaligned years, or guess missing state breakups. Bharat Praman locks verbatim source tables and mandates explicit limitation reporting.
+              </p>
+              <div class="rag-table-wrap">
+                <table class="rag-mini-table">
+                  <thead>
+                    <tr>
+                      <th>Failure Mode</th>
+                      <th>Neo4j + GraphRAG Safeguard</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Conflating BE vs RE vs Actuals</td>
+                      <td>Separate properties on <code class="mono">:BudgetLineItem</code></td>
+                    </tr>
+                    <tr>
+                      <td>Silent unit scaling errors</td>
+                      <td>Verbatim <code class="mono">Unit</code> prefix per chunk</td>
+                    </tr>
+                    <tr>
+                      <td>Unlinked fiscal year edits</td>
+                      <td>Explicit <code class="mono">[:NEXT_YEAR]</code> document edges</td>
+                    </tr>
+                    <tr>
+                      <td>Inventing absent state splits</td>
+                      <td>Required <code class="mono">Not Disclosed</code> audit block</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="code-preview-box">
+              <div class="code-preview-head">
+                <span>RETRIEVAL VERIFICATION ENVELOPE</span>
+                <span>reports_agent.py</span>
+              </div>
+              <pre style="margin:0; white-space:pre-wrap;"><span class="code-kw">STRICT_EVIDENCE_CONTRACT</span> = {
+  <span class="code-str">"unit_conversion"</span>: <span class="code-str">"FORBIDDEN (preserve Rs. Crore / Lakh verbatim)"</span>,
+  <span class="code-str">"estimate_types"</span>:  [<span class="code-str">"BE"</span>, <span class="code-str">"RE"</span>, <span class="code-str">"Actuals"</span>],
+  <span class="code-str">"missing_data"</span>:    <span class="code-str">"Emit explicit 'Not Disclosed' section"</span>,
+  <span class="code-str">"cypher_mode"</span>:     <span class="code-str">"READ_ACCESS (max 5 hops, LIMIT 50)"</span>,
+  <span class="code-str">"llm_prompt_pii"</span>:  <span class="code-str">"Scrubbed at ingestion"</span>
+}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Target B2B Use Cases -->
+    <section class="band" id="use-cases">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="section-kicker">Commercial Applications</div>
+          <h2 class="section-title">Four enterprise workflows built on the 8-Ministry Knowledge Graph.</h2>
+          <p class="section-lead">
+            Designed for teams whose decisions depend on accurate policy tracking, financial allocations, and private document cross-referencing.
+          </p>
+        </div>
+
+        <div class="usecases-grid">
+          <article class="usecase-card reveal">
+            <div class="usecase-meta">
+              <span>Corporate &amp; Infra Strategy</span>
+              <span class="usecase-tier">B2B SaaS · API</span>
+            </div>
+            <h3>Policy, Capex &amp; Scheme Radar</h3>
+            <p>
+              Highway EPCs, Defence OEMs, MedTech, and Agri firms track 4-year BE-to-RE allocation trends, capital vs. revenue shifts, and nodal implementing agencies across core ministries.
+            </p>
+            <div class="usecase-query">Query: Compare Defence capex vs border infra allocations since FY22</div>
+          </article>
+
+          <article class="usecase-card reveal">
+            <div class="usecase-meta">
+              <span>Advisory, Law &amp; Research</span>
+              <span class="usecase-tier">Multi-Seat + Tenant</span>
+            </div>
+            <h3>Evidence-First Policy Workbench</h3>
+            <p>
+              Public policy consultancies, regulatory law firms, and university centers overlay private project notes onto 15k public files to trace scheme evolution and statutory circulars.
+            </p>
+            <div class="usecase-query">Query: Cross-check private compliance brief against MoRTH guidelines</div>
+          </article>
+
+          <article class="usecase-card reveal">
+            <div class="usecase-meta">
+              <span>Philanthropy &amp; Section 135</span>
+              <span class="usecase-tier">Impact Terminal</span>
+            </div>
+            <h3>CSR &amp; Development Gap Finder</h3>
+            <p>
+              CSR committees and foundations cross-reference Education, Health, Rural Dev, and Agriculture utilization reports to direct private capital where public funding shows execution gaps.
+            </p>
+            <div class="usecase-query">Query: Track PM-SHRI &amp; Samagra Shiksha expenditure vs physical outcomes</div>
+          </article>
+
+          <article class="usecase-card reveal">
+            <div class="usecase-meta">
+              <span>Media &amp; Legislative Desks</span>
+              <span class="usecase-tier">Verification Desk</span>
+            </div>
+            <h3>Claim &amp; Parliamentary Fact Terminal</h3>
+            <p>
+              Business newsrooms, fact-check desks, and legislative assistants verify viral budget claims against exact Demand for Grants footnotes before publication or floor questions.
+            </p>
+            <div class="usecase-query">Query: Verify whether Ayushman Bharat allocations expanded in FY25</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8-Ministry Scope Table -->
+    <section class="band band-alt" id="coverage">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="section-kicker">Corpus Coverage</div>
+          <h2 class="section-title">Eight foundational Union Ministries modeled in Neo4j.</h2>
+          <p class="section-lead">
+            Active Aura vector indexes serve 44,453 chunks today across Finance, Education, Defence, and Home Affairs while expanding across the remaining four domains.
+          </p>
+        </div>
+
+        <div class="reveal" style="overflow-x:auto;">
+          <table class="ministry-table">
+            <thead>
+              <tr>
+                <th>Ministry Domain</th>
+                <th>Code</th>
+                <th>Document Classes Structured</th>
+                <th>FY Window</th>
+                <th>Aura Index State</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ministry of Finance</strong></td>
+                <td class="mono">MoF</td>
+                <td>Demands for Grants, Outcome Budgets, Expenditure Vol I, Economic Survey</td>
+                <td class="mono">2021-22 — 2025-26</td>
+                <td><span class="status-tag live">Live · 27,886 chunks</span></td>
+              </tr>
+              <tr>
+                <td><strong>Ministry of Education</strong></td>
+                <td class="mono">MoE</td>
+                <td>Annual Reports, UDISE Supplements, PM-SHRI &amp; Samagra Shiksha</td>
+                <td class="mono">2021-22 — 2025-26</td>
+                <td><span class="status-tag live">Live · 9,660 chunks</span></td>
+              </tr>
+              <tr>
+                <td><strong>Ministry of Defence</strong></td>
+                <td class="mono">MoD</td>
+                <td>Annual Reports, Capital Procurement, DRDO &amp; Agnipath Chapters</td>
+                <td class="mono">2023-24 — 2024-25</td>
+                <td><span class="status-tag live">Live · 4,660 chunks</span></td>
+              </tr>
+              <tr>
+                <td><strong>Ministry of Home Affairs</strong></td>
+                <td class="mono">MHA</td>
+                <td>Annual Reports, CAPF, Border Infrastructure &amp; Cyber Divisions</td>
+                <td class="mono">2022-23 — 2024-25</td>
+                <td><span class="status-tag live">Live · 2,247 chunks</span></td>
+              </tr>
+              <tr>
+                <td><strong>Health &amp; Family Welfare</strong></td>
+                <td class="mono">MoHFW</td>
+                <td>Annual Reports, Ayushman Bharat (PM-JAY), NHM &amp; AIIMS Annexures</td>
+                <td class="mono">4-Year Corpus</td>
+                <td><span class="status-tag">Ontology Ready · Batch Queue</span></td>
+              </tr>
+              <tr>
+                <td><strong>Rural Development</strong></td>
+                <td class="mono">MoRD</td>
+                <td>MGNREGA, PMGSY, PMAY-G &amp; DAY-NRLM Expenditure Tables</td>
+                <td class="mono">4-Year Corpus</td>
+                <td><span class="status-tag">Budget Linked · Batch Queue</span></td>
+              </tr>
+              <tr>
+                <td><strong>Road Transport &amp; Highways</strong></td>
+                <td class="mono">MoRTH</td>
+                <td>NHAI Corridor Milestones, Bharatmala &amp; FASTag Safety Reports</td>
+                <td class="mono">4-Year Corpus</td>
+                <td><span class="status-tag">Ontology Ready · Batch Queue</span></td>
+              </tr>
+              <tr>
+                <td><strong>Agriculture &amp; Farmers Welfare</strong></td>
+                <td class="mono">MoAFW</td>
+                <td>PM-KISAN, PMFBY Crop Insurance, MSP &amp; ICAR Annual Reports</td>
+                <td class="mono">4-Year Corpus</td>
+                <td><span class="status-tag">Ontology Ready · Batch Queue</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="cta-band" id="pilot">
+      <div class="container cta-inner">
+        <div>
+          <h2>Deploy on Neo4j Aura or an Isolated VPC Tenant.</h2>
+          <p>
+            Start with our 8-ministry knowledge graph API or launch a private workspace where your team cross-references internal DPRs and circulars with full citation proof.
+          </p>
+        </div>
+        <div class="cta-actions">
+          <a href="#heroWorkspace" class="btn btn-inverse">Replay Live Demo</a>
+          <a href="#control-plane" class="btn btn-outline-inverse">Inspect Schema Rules</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div><strong>Bharat Praman</strong> · Verifiable Ministry Knowledge Graph on Neo4j Aura</div>
+      <div class="mono">Primary Citations · Privacy Isolation · Unit Precision</div>
+    </div>
+  </footer>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>

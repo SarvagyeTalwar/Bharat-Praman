@@ -534,6 +534,9 @@ RETURN count(DISTINCT r) AS total
 
 @app.get("/")
 def home():
+    enterprise = BASE_DIR / "enterprise-landing" / "index.html"
+    if enterprise.is_file():
+        return FileResponse(enterprise)
     dashboard = BASE_DIR / "graphdashboard2.html"
     if dashboard.is_file():
         return FileResponse(dashboard)
@@ -2316,11 +2319,35 @@ def _redirect_removed_mps():
     return RedirectResponse(url="/", status_code=307)
 
 
+@app.get("/enterprise-landing")
+@app.get("/enterprise-landing/")
+def _serve_enterprise_landing_index():
+    target = (BASE_DIR / "enterprise-landing" / "index.html").resolve()
+    if not target.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(target)
+
+
+@app.get("/enterprise-landing/{filename}")
+def _serve_enterprise_landing_asset(filename: str):
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        raise HTTPException(status_code=404, detail="Not found")
+    base = (BASE_DIR / "enterprise-landing").resolve()
+    target = (base / filename).resolve()
+    if target.parent != base or target.suffix.lower() not in _ALLOWED_UI_EXTS or not target.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(target)
+
+
 @app.get("/{filename}")
 def _serve_root_ui_asset(filename: str):
     if "/" in filename or "\\" in filename or filename.startswith("."):
         raise HTTPException(status_code=404, detail="Not found")
     target = (BASE_DIR / filename).resolve()
-    if target.parent != BASE_DIR.resolve() or target.suffix.lower() not in _ALLOWED_UI_EXTS or not target.is_file():
-        raise HTTPException(status_code=404, detail="Not found")
-    return FileResponse(target)
+    if target.parent == BASE_DIR.resolve() and target.suffix.lower() in _ALLOWED_UI_EXTS and target.is_file():
+        return FileResponse(target)
+    ent_base = (BASE_DIR / "enterprise-landing").resolve()
+    ent_target = (ent_base / filename).resolve()
+    if ent_target.parent == ent_base and ent_target.suffix.lower() in _ALLOWED_UI_EXTS and ent_target.is_file():
+        return FileResponse(ent_target)
+    raise HTTPException(status_code=404, detail="Not found")
