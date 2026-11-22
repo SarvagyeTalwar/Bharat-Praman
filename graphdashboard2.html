@@ -603,7 +603,7 @@
       <nav class="nav" aria-label="Primary">
         <a href="graphdashboard2.html" class="active">Search</a>
         <a href="graph.html">Graph Explorer</a>
-        <a href="ask.html">Budget Dossier</a>
+        <a href="ask.html">Fiscal Intelligence</a>
         <a href="rti/rti_page.html">RTI Desk</a>
         <a href="rti_archive.html">RTI Archive</a>
         <button id="glossaryOpen" type="button">Glossary &amp; IPC</button>
@@ -727,7 +727,7 @@
         </div>
         <div class="stat-foot">
           8 Ministries (2021-22 to 2025-26) with BE vs RE citations.
-          <div style="margin-top:6px;"><a href="ask.html">Open Budget Dossier →</a></div>
+          <div style="margin-top:6px;"><a href="ask.html">Open Fiscal Intelligence →</a></div>
         </div>
       </div>
 
@@ -1447,7 +1447,7 @@
       const fullUrl = buildDedicatedUrl(q, effTarget, styleKey);
       answerHeaderTitle.textContent = `Ministry Audit — ${TARGET_LABELS[effTarget] || effTarget}`;
       answerFullLink.href = fullUrl;
-      answerFullLink.textContent = 'Open Full Dossier + RTI ↗';
+      answerFullLink.textContent = 'Open Full Briefing + RTI ↗';
 
       const results = data.results || [];
       if (!results.length) {
@@ -1600,7 +1600,7 @@
 
       answerHeaderTitle.textContent = `Primary Report Excerpts — ${TARGET_LABELS[effTarget] || effTarget}`;
       answerFullLink.href = fullUrl;
-      answerFullLink.textContent = 'Open Full Dossier + RTI ↗';
+      answerFullLink.textContent = 'Open Full Briefing + RTI ↗';
 
       if (!hits.length) {
         answerBody.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
@@ -1649,7 +1649,7 @@
                 <p style="font-size:13px; line-height:1.55; margin:0 0 10px 0; color:var(--ink);">${escapeHtml(h.excerpt || '')}</p>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                   ${h.source_url ? `<a href="${escapeHtml(h.source_url)}" target="_blank" rel="noopener" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Official Source ↗</a>` : ''}
-                  <a href="${escapeHtml(hitDossierUrl)}" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Open Full Dossier ↗</a>
+                  <a href="${escapeHtml(hitDossierUrl)}" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Open Full Briefing ↗</a>
                   <a href="${escapeHtml(hitRtiUrl)}" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Draft Section 6(1) RTI →</a>
                 </div>
               </div>`;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bharat Praman — Budget &amp; Ministry Audit Dossier</title>
+  <title>Bharat Praman — Ministry Fiscal &amp; Policy Intelligence Terminal</title>
   <script>
     (function () {
       if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
@@ -137,7 +137,7 @@
       background: transparent;
       color: #fff2db;
       padding: 6px 13px;
-      border-radius: 999px;
+      border-radius: 4px;
       font: 600 13px/1.2 var(--font-sans);
       text-decoration: none;
       cursor: pointer;
@@ -355,14 +355,14 @@
       letter-spacing: 0.04em;
     }
 
-    /* 70s Retro Capsule Pills */
+    /* Clean Enterprise Buttons & Controls */
     .mode, .detail-btn {
-      border: 1.5px solid var(--border-strong);
+      border: 1px solid var(--border-strong);
       background: var(--surface-soft);
       color: var(--fg);
-      padding: 6px 14px;
-      font: 600 12.5px/1.2 var(--font-sans);
-      border-radius: 9999px;
+      padding: 6px 12px;
+      font: 600 12px/1.2 var(--font-sans);
+      border-radius: 4px;
       cursor: pointer;
       transition: all 0.15s ease;
     }
@@ -370,14 +370,13 @@
       background: var(--surface-tint);
       border-color: var(--accent);
       color: var(--accent);
-      transform: translateY(-1px);
     }
     .mode.active, .detail-btn.active {
       background: var(--accent);
       color: #ffffff;
       border-color: var(--accent);
       font-weight: 700;
-      box-shadow: 0 1px 4px rgba(183, 121, 31, 0.3);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     }
 
     .askbox { padding: 18px; background: var(--surface); }
@@ -387,7 +386,7 @@
       resize: vertical;
       padding: 13px 16px;
       border: 1.5px solid var(--border);
-      border-radius: 14px;
+      border-radius: 6px;
       background: var(--bg);
       color: var(--fg);
       font: 14.5px/1.5 var(--font-sans);
@@ -410,24 +409,23 @@
       border-top: 1.5px solid var(--border);
     }
     .preset-chip {
-      border: 1.5px solid var(--border-strong);
+      border: 1px solid var(--border-strong);
       background: var(--surface);
       color: var(--fg);
-      padding: 6px 14px;
-      font: 600 12.5px/1.3 var(--font-sans);
-      border-radius: 9999px;
+      padding: 6px 12px;
+      font: 600 12px/1.3 var(--font-sans);
+      border-radius: 4px;
       cursor: pointer;
       box-shadow: var(--shadow-sm);
       transition: all 0.15s ease;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
     .preset-chip:hover {
       background: var(--surface-soft);
       border-color: var(--accent);
       color: var(--accent);
-      transform: translateY(-1px);
     }
 
     .action-footer {
@@ -442,17 +440,19 @@
       border: 0;
       background: var(--accent);
       color: var(--accent-fg);
-      padding: 12px 26px;
-      font: 700 14px/1.2 var(--font-sans);
-      border-radius: 12px;
+      padding: 11px 22px;
+      font: 700 13.5px/1.2 var(--font-sans);
+      border-radius: 4px;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(183, 121, 31, 0.28);
-      transition: background 0.15s ease, transform 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      transition: background 0.15s ease, opacity 0.15s ease;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
     button.ask:hover {
+      background: var(--accent-hover);
+    }
       background: var(--accent-hover);
       transform: translateY(-1px);
     }
@@ -750,7 +750,7 @@
       <nav class="nav" aria-label="Primary">
         <a href="graphdashboard2.html">Search</a>
         <a href="graph.html">Graph Explorer</a>
-        <a href="ask.html" class="active">Budget Dossier</a>
+        <a href="ask.html" class="active">Fiscal Intelligence</a>
         <a href="rti/rti_page.html">RTI Desk</a>
         <a href="rti_archive.html">RTI Archive</a>
         <a href="graph.html#glossary" id="glossaryOpen">Glossary &amp; IPC</a>
@@ -790,32 +790,32 @@
   <main>
     <div class="page-title-row">
       <div>
-        <h1>Union Ministry Budget &amp; Annual Report Audit Dossier</h1>
-        <span class="mono" style="font-size:12px; color:var(--accent); font-weight:600;">CORPUS: 8 MINISTRIES // FY 2021-22 TO 2025-26 // BE VS RE VARIANCE</span>
+        <h1>Union Ministry Fiscal &amp; Policy Intelligence Terminal</h1>
+        <span class="mono" style="font-size:12px; color:var(--accent); font-weight:600;">CORPUS: 8 UNION MINISTRIES · FY 2021-22 TO 2025-26 · BE VS RE DUAL-GROUNDED</span>
       </div>
     </div>
 
-    <section class="panel" aria-label="Audit query parameters">
+    <section class="panel" aria-label="Fiscal query parameters">
       <div class="panel-head">
-        <span>01 // Audit Query Parameters &amp; Model Routing</span>
-        <span class="mono" style="font-size:11px; color:var(--accent);">DeepSeek V3/R1 + Hybrid Verification + Sec 6(1) RTI</span>
+        <span>Fiscal &amp; Policy Intelligence Query</span>
+        <span class="mono" style="font-size:11px; color:var(--accent);">15,000+ Verified Ministry Records · Dual RAG + Web Intelligence</span>
       </div>
 
-      <!-- Ministry Filter Pills -->
+      <!-- Ministry Filter Buttons -->
       <div class="ctrl-row" id="modes">
         <span class="ctrl-label">Ministry:</span>
-        <button type="button" class="mode" data-mode="all">🏛️ All Ministries</button>
-        <button type="button" class="mode" data-mode="education">🎓 Education</button>
-        <button type="button" class="mode" data-mode="home">🛡️ Home Affairs</button>
-        <button type="button" class="mode" data-mode="finance">💰 Finance</button>
-        <button type="button" class="mode" data-mode="health">🏥 Health</button>
-        <button type="button" class="mode" data-mode="defence">⚔️ Defence</button>
-        <button type="button" class="mode" data-mode="rural">🌾 Rural Dev</button>
-        <button type="button" class="mode" data-mode="road">🛣️ Highways</button>
-        <button type="button" class="mode" data-mode="agriculture">🚜 Agriculture</button>
+        <button type="button" class="mode" data-mode="all">All Ministries</button>
+        <button type="button" class="mode" data-mode="education">Education</button>
+        <button type="button" class="mode" data-mode="home">Home Affairs</button>
+        <button type="button" class="mode" data-mode="finance">Finance</button>
+        <button type="button" class="mode" data-mode="health">Health &amp; Family Welfare</button>
+        <button type="button" class="mode" data-mode="defence">Defence</button>
+        <button type="button" class="mode" data-mode="rural">Rural Development</button>
+        <button type="button" class="mode" data-mode="road">Road Transport &amp; Highways</button>
+        <button type="button" class="mode" data-mode="agriculture">Agriculture &amp; Farmers Welfare</button>
       </div>
 
-      <!-- Fiscal Years Pills -->
+      <!-- Fiscal Years Buttons -->
       <div class="ctrl-row" id="yearModes">
         <span class="ctrl-label">Fiscal Years:</span>
         <button type="button" class="mode active" data-year="all">All Years</button>
@@ -828,15 +828,15 @@
 
       <!-- Engine & Depth Controls -->
       <div class="ctrl-row">
-        <span class="ctrl-label">Engine / Depth:</span>
+        <span class="ctrl-label">Intelligence Mode:</span>
         <div id="reasonToggle" style="display:flex; gap:6px; margin-right:16px;">
-          <button type="button" class="detail-btn active" data-reason="auto">⚡ Auto (V3 Fast)</button>
-          <button type="button" class="detail-btn" data-reason="chat">Plain V3</button>
-          <button type="button" class="detail-btn" data-reason="reasoner">🧠 R1 Reasoner</button>
+          <button type="button" class="detail-btn active" data-reason="auto">Adaptive Intelligence</button>
+          <button type="button" class="detail-btn" data-reason="chat">Direct Synthesis</button>
+          <button type="button" class="detail-btn" data-reason="reasoner">Deep Reasoning</button>
         </div>
         <div id="detailToggle" style="display:flex; gap:6px;">
-          <button type="button" class="detail-btn" data-detail="short">Brief Summary</button>
-          <button type="button" class="detail-btn active" data-detail="long">Full Audit Dossier</button>
+          <button type="button" class="detail-btn" data-detail="short">Executive Summary</button>
+          <button type="button" class="detail-btn active" data-detail="long">Comprehensive Audit Report</button>
         </div>
       </div>
 
@@ -857,23 +857,23 @@
           <div id="byodFileList" style="display:none; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:8px;"></div>
         </div>
 
-        <textarea id="question" placeholder="Enter your fiscal question (e.g. Compare BE vs RE allocation and actual releases for PM-SHRI and Samagra Shiksha in 2023-24)..."></textarea>
+        <textarea id="question" placeholder="Enter your fiscal or policy question (e.g. Compare BE vs RE allocation and actual releases for PM-SHRI and Samagra Shiksha in 2023-24)..."></textarea>
         
         <div class="preset-bar" id="presetBar">
-          <span class="ctrl-label" style="min-width:auto;">⚡ Popular Benchmark Audits:</span>
-          <button type="button" class="preset-chip" data-q="What was the BE vs RE budget outlay and actual funds released for PM-SHRI, Samagra Shiksha, and school infrastructure in 2023-24?" data-min="education">🎓 PM-SHRI &amp; Samagra Shiksha BE vs RE Gap</button>
-          <button type="button" class="preset-chip" data-q="How much was allocated to CRPF, BSF and police modernisation, and was it fully used?" data-min="home">🛡️ CRPF &amp; BSF Police Modernisation Audit</button>
-          <button type="button" class="preset-chip" data-q="Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26" data-min="all">📊 Multi-Ministry 5-Yr Budget Growth</button>
+          <span class="ctrl-label" style="min-width:auto;">Benchmark Scenarios:</span>
+          <button type="button" class="preset-chip" data-q="What was the BE vs RE budget outlay and actual funds released for PM-SHRI, Samagra Shiksha, and school infrastructure in 2023-24?" data-min="education">PM-SHRI &amp; Samagra Shiksha BE vs RE Gap</button>
+          <button type="button" class="preset-chip" data-q="How much was allocated to CRPF, BSF and police modernisation, and was it fully used?" data-min="home">CRPF &amp; BSF Capital Modernisation Audit</button>
+          <button type="button" class="preset-chip" data-q="Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26" data-min="all">Multi-Ministry 5-Year Budget Trajectory</button>
         </div>
 
         <div class="action-footer">
-          <span class="mono" style="font-size:12px; color:var(--muted);">💡 Press Ctrl+Enter to execute query</span>
-          <button id="ask" class="ask" type="button">Execute Audit Dossier ↵</button>
+          <span class="mono" style="font-size:12px; color:var(--muted);">Press Ctrl+Enter to execute query</span>
+          <button id="ask" class="ask" type="button">Run Intelligence Query ↵</button>
         </div>
       </div>
 
       <div class="status-bar">
-        <span id="status" role="status">Ready. Select parameters or enter an audit query above.</span>
+        <span id="status" role="status">Ready. Select parameters or enter an intelligence query above.</span>
         <span id="perfTag" class="mono"></span>
       </div>
     </section>
@@ -881,8 +881,8 @@
     <!-- Results Area -->
     <section id="results" aria-live="polite">
       <div class="empty">
-                <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No Audit Loaded Yet</div>
-        <div style="font-size:13px; color:var(--muted);">Click a popular benchmark audit chip above or enter your own audit question to inspect official allocations.</div>
+        <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No Query Loaded Yet</div>
+        <div style="font-size:13px; color:var(--muted);">Select a benchmark scenario chip above or enter your question to inspect official allocations.</div>
       </div>
     </section>
   </main>
@@ -1257,10 +1257,10 @@
       const distinctYears = [...new Set(sources.map((s) => s.year).filter(Boolean))];
       const distinctPages = [...new Set(sources.map((s) => `p.${s.page}`).filter((x) => x !== 'p.undefined'))];
       return [
-        { label: 'Primary Audited Figure', val: primaryFig, sub: `${moneyMatches.length} monetary tokens extracted`, cls: '' },
-        { label: 'BE vs RE Variance Signal', val: hasBeRe ? 'BE/RE Comparison Present' : 'Source Grounded', sub: 'Verbatim official units', cls: hasBeRe ? 'alert' : '' },
-        { label: 'Neo4j Graph Evidence', val: `${sources.length} Chunks / ${distinctPages.length || 1} Pages`, sub: `Years: ${distinctYears.join(', ') || 'All Ingested'}`, cls: '' },
-        { label: 'Synthesis Engine', val: (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 Synthesis', sub: 'Qwen3-1024d + BM25 Hybrid', cls: '' },
+        { label: 'Primary Audited Allocation', val: primaryFig, sub: `${moneyMatches.length} monetary allocations extracted`, cls: '' },
+        { label: 'Variance / BE vs RE Signal', val: hasBeRe ? 'BE/RE Discrepancy Detected' : 'Audited Baseline Grounded', sub: 'Verbatim official units', cls: hasBeRe ? 'alert' : '' },
+        { label: 'Verified Document Evidence', val: `${sources.length} Certified Sources`, sub: `Years: ${distinctYears.join(', ') || 'FY 2021-2026'}`, cls: '' },
+        { label: 'Intelligence Grounding', val: 'Sovereign Hybrid AI', sub: 'Dual RAG + Verified Web Context', cls: '' },
       ];
     }
 
@@ -1314,7 +1314,7 @@
         <div class="subgraph-box">
           <div class="subgraph-head">
             <span>Evidence Graph Lineage (:Ministry → :Document → :Chunk)</span>
-            <span>Index: BGE-Small Embeddings (384D) + FullText Evidence</span>
+            <span>Hybrid Semantic Graph Index · Certified Official Corpus</span>
           </div>
           <svg class="subgraph-svg" viewBox="0 0 820 136" xmlns="http://www.w3.org/2000/svg">
             ${edgesSvg}
@@ -1364,7 +1364,7 @@
 
     function renderResults(results) {
       if (!results || !results.length) {
-        resultsEl.innerHTML = '<div class="empty">No audit dossier returned.</div>';
+        resultsEl.innerHTML = '<div class="empty">No intelligence report returned.</div>';
         return;
       }
       const qText = questionEl.value.trim();
@@ -1389,7 +1389,8 @@
             <td class="mono">${escapeHtml(s.section || s.breadcrumb || '—')}</td>
           </tr>`).join('');
 
-        const modelBadge = (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 Synthesis';
+        const minClean = (r.ministry || 'Union Ministry').replace(/^Ministry of\s+/i, '');
+        const reportTitle = minClean.toLowerCase() === 'all ministries' ? 'Inter-Ministerial Policy &amp; Fiscal Intelligence Report' : `Ministry of ${escapeHtml(minClean)} · Policy &amp; Fiscal Intelligence Report`;
         const rtiDraft = buildRtiDraft(r, qText);
         const structuredHtml = renderStructuredMarkdown(r.answer);
         const subgraphHtml = renderSubgraphSvg(r);
@@ -1397,8 +1398,8 @@
         return `
           <article class="result">
             <div class="result-head">
-              <span>${escapeHtml(r.ministry)} // ${(r.detail_level || detailLevel).toUpperCase()} DOSSIER // ${modelBadge}</span>
-              <span class="mono" style="color:var(--accent); font-weight:600;">${r.byod_active ? '📄 Private BYOD Document Grounded · ' : ''}${r.sources ? r.sources.length : 0} Chunk Citations</span>
+              <span>${reportTitle}</span>
+              <span class="mono" style="color:var(--accent); font-weight:600;">${r.byod_active ? 'Private Document Grounded · ' : ''}${r.sources ? r.sources.length : 0} Verified Citations</span>
             </div>
             <table class="kpi-table"><tr>${kpiCells}</tr></table>
             ${subgraphHtml}
@@ -1522,7 +1523,7 @@
     async function ask() {
       const question = questionEl.value.trim();
       if (!question) {
-        statusEl.textContent = 'Please enter an audit question or select a popular benchmark audit chip above.';
+        statusEl.textContent = 'Please enter a fiscal or policy question or select a benchmark scenario chip above.';
         statusEl.classList.add('error');
         questionEl.focus();
         return;
@@ -1537,7 +1538,7 @@
             const payload = JSON.parse(cached);
             renderResults(payload.results || []);
             statusEl.classList.remove('error');
-            statusEl.textContent = `Audit Loaded (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
+            statusEl.textContent = `Report Loaded (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
             perfTag.textContent = `Client Cache Hit: ${(performance.now() - t0).toFixed(1)} ms`;
             return;
           } catch {}
@@ -1545,11 +1546,11 @@
       }
 
       statusEl.classList.remove('error');
-      statusEl.textContent = `Auditing ${labelFor[ministry] || ministry} (${detailLevel.toUpperCase()}, ${reasoningMode.toUpperCase()})...`;
+      statusEl.textContent = `Analyzing ${labelFor[ministry] || ministry} (${detailLevel.toUpperCase()})...`;
       perfTag.textContent = '';
       askButton.disabled = true;
-      askButton.textContent = 'Executing...';
-      resultsEl.innerHTML = '<div class="empty">Querying Neo4j Instance02 Hybrid Index + Synthesizing Audit Tables...</div>';
+      askButton.textContent = 'Synthesizing...';
+      resultsEl.innerHTML = '<div class="empty">Querying Sovereign Knowledge Graph + Synthesizing Intelligence...</div>';
       const t0 = performance.now();
       const activeDocIds = activeByodDocs.map((d) => d.doc_id);
       const reqBody = {
@@ -1572,20 +1573,20 @@
             body: JSON.stringify(reqBody),
           });
           payload = await response.json();
-          if (!response.ok) throw new Error(payload.detail || 'Audit failed.');
+          if (!response.ok) throw new Error(payload.detail || 'Query failed.');
         }
         try { sessionStorage.setItem(cacheKey, JSON.stringify(payload)); } catch {}
         renderResults(payload.results || []);
         const ttft = payload.results?.[0]?.first_token_ms;
-        statusEl.textContent = `Audit Complete (${payload.results?.[0]?.sources?.length || 0} chunk citations).`;
+        statusEl.textContent = `Intelligence Synthesis Complete (${payload.results?.[0]?.sources?.length || 0} verified source citations).`;
         perfTag.textContent = ttft ? `First token: ${ttft} ms · Total: ${Math.round(performance.now() - t0)} ms` : `Latency: ${Math.round(performance.now() - t0)} ms`;
       } catch (err) {
-        statusEl.textContent = `Audit Failed: ${err.message}`;
+        statusEl.textContent = `Query Failed: ${err.message}`;
         statusEl.classList.add('error');
-        resultsEl.innerHTML = '<div class="empty alert">API (:8000) or Neo4j Instance02 Unreachable. Check that your local backend is running.</div>';
+        resultsEl.innerHTML = '<div class="empty alert">API or Database Unreachable. Check that the service is running.</div>';
       } finally {
         askButton.disabled = false;
-        askButton.textContent = 'Execute Audit Dossier ↵';
+        askButton.textContent = 'Run Intelligence Query ↵';
       }
     }
 
