@@ -651,6 +651,7 @@ class RagAskRequest(BaseModel):
     detail_level: str = Field(default="long", max_length=16)
     reasoning_mode: str = Field(default="auto", max_length=16)
     byod_doc_id: str | None = None
+    byod_doc_ids: list[str] | None = None
     byod_text: str | None = None
 
 
@@ -672,8 +673,11 @@ class ByodPasteRequest(BaseModel):
     content: str = Field(min_length=2, max_length=150000)
 
 
+MAX_BYOD_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB limit per file
+
+
 def _extract_byod_text(req: ByodUploadRequest) -> str:
-    """Safely extract plain text from uploaded base64 data (PDF/TXT/MD/JSON/CSV) without external dependencies."""
+    """Safely extract plain text from uploaded base64 data (PDF/TXT/MD/JSON/CSV) enforcing 10MB limit."""
     if req.text_content:
         return req.text_content.strip()
     if not req.content_base64:
@@ -683,6 +687,13 @@ def _extract_byod_text(req: ByodUploadRequest) -> str:
         raw_bytes = base64.b64decode(req.content_base64)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid base64 encoding: {e}")
+
+    if len(raw_bytes) > MAX_BYOD_FILE_SIZE_BYTES:
+        size_mb = round(len(raw_bytes) / (1024 * 1024), 2)
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds maximum allowed size of 10 MB ({size_mb} MB provided)."
+        )
 
     fn = (req.filename or "").lower()
     if fn.endswith(".pdf"):
@@ -893,9 +904,17 @@ def rag_ask_stream(req: RagAskRequest):
     scope = req.ministries if req.ministries else req.ministry
 
     byod_ctx = ""
-    if req.byod_doc_id and req.byod_doc_id in _BYOD_DOCS:
-        doc = _BYOD_DOCS[req.byod_doc_id]
-        byod_ctx = f"DOCUMENT TITLE: {doc['title']}\nFILENAME: {doc['filename']}\nCONTENT:\n{doc['text']}"
+    active_ids = [d for d in (req.byod_doc_ids or []) if d][:3]
+    if not active_ids and req.byod_doc_id:
+        active_ids = [req.byod_doc_id]
+
+    doc_blocks = []
+    for did in active_ids:
+        if did in _BYOD_DOCS:
+            doc = _BYOD_DOCS[did]
+            doc_blocks.append(f"DOCUMENT TITLE: {doc['title']}\nFILENAME: {doc['filename']}\nCONTENT:\n{doc['text']}")
+    if doc_blocks:
+        byod_ctx = "\n\n===\n\n".join(doc_blocks)
     elif req.byod_text:
         byod_ctx = f"DOCUMENT CONTENT:\n{req.byod_text.strip()}"
 
@@ -959,9 +978,17 @@ def rag_ask(req: RagAskRequest):
     scope = req.ministries if req.ministries else req.ministry
 
     byod_ctx = ""
-    if req.byod_doc_id and req.byod_doc_id in _BYOD_DOCS:
-        doc = _BYOD_DOCS[req.byod_doc_id]
-        byod_ctx = f"DOCUMENT TITLE: {doc['title']}\nFILENAME: {doc['filename']}\nCONTENT:\n{doc['text']}"
+    active_ids = [d for d in (req.byod_doc_ids or []) if d][:3]
+    if not active_ids and req.byod_doc_id:
+        active_ids = [req.byod_doc_id]
+
+    doc_blocks = []
+    for did in active_ids:
+        if did in _BYOD_DOCS:
+            doc = _BYOD_DOCS[did]
+            doc_blocks.append(f"DOCUMENT TITLE: {doc['title']}\nFILENAME: {doc['filename']}\nCONTENT:\n{doc['text']}")
+    if doc_blocks:
+        byod_ctx = "\n\n===\n\n".join(doc_blocks)
     elif req.byod_text:
         byod_ctx = f"DOCUMENT CONTENT:\n{req.byod_text.strip()}"
 
