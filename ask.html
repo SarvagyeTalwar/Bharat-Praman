@@ -815,6 +815,19 @@
 
       <!-- Audit Input Box & Presets -->
       <div class="askbox">
+        <!-- BYOD Private Document Layer -->
+        <div class="byod-bar" style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:6px 12px; background:var(--panel-subtle, rgba(0,0,0,0.03)); border:1px dashed var(--border); border-radius:4px; font-size:12px;">
+          <span style="font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.04em;">BYOD Layer:</span>
+          <input type="file" id="byodFileInput" style="display:none;" accept=".pdf,.txt,.md,.csv,.json">
+          <button type="button" id="byodUploadBtn" class="detail-btn" style="padding:4px 10px; font-size:11px;">+ Upload Private Doc (PDF/TXT)</button>
+          <button type="button" id="byodPasteBtn" class="detail-btn" style="padding:4px 10px; font-size:11px;">Paste Private Text</button>
+          <div id="byodActiveBadge" style="display:none; align-items:center; gap:6px; background:var(--bg); border:1px solid var(--accent); padding:2px 8px; border-radius:4px; font-size:11px; margin-left:auto;">
+            <strong id="byodFileName" style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></strong>
+            <span id="byodWordCount" style="color:var(--muted);"></span>
+            <button type="button" id="byodRemoveBtn" style="background:none; border:none; cursor:pointer; font-weight:700; color:var(--accent); font-size:13px; line-height:1;" title="Remove document">&times;</button>
+          </div>
+        </div>
+
         <textarea id="question" placeholder="Enter your fiscal question (e.g. Compare BE vs RE allocation and actual releases for PM-SHRI and Samagra Shiksha in 2023-24)..."></textarea>
         
         <div class="preset-bar" id="presetBar">
@@ -885,6 +898,87 @@
     const modesEl = document.getElementById('modes');
     const yearModesEl = document.getElementById('yearModes');
     const detailToggleEl = document.getElementById('detailToggle');
+
+    // BYOD Layer State & Handlers
+    let activeByodDocId = null;
+    const byodFileInput = document.getElementById('byodFileInput');
+    const byodUploadBtn = document.getElementById('byodUploadBtn');
+    const byodPasteBtn = document.getElementById('byodPasteBtn');
+    const byodActiveBadge = document.getElementById('byodActiveBadge');
+    const byodFileName = document.getElementById('byodFileName');
+    const byodWordCount = document.getElementById('byodWordCount');
+    const byodRemoveBtn = document.getElementById('byodRemoveBtn');
+
+    if (byodUploadBtn && byodFileInput) {
+      byodUploadBtn.addEventListener('click', () => byodFileInput.click());
+      byodFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const prevText = byodUploadBtn.textContent;
+        byodUploadBtn.textContent = 'Uploading...';
+        try {
+          const reader = new FileReader();
+          reader.onload = async () => {
+            try {
+              const b64 = reader.result.split(',')[1];
+              const res = await fetch(`${window.BP_CONFIG.apiBase}/api/byod/upload`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file.name, content_base64: b64, title: file.name }),
+              });
+              const d = await res.json();
+              if (!res.ok) throw new Error(d.detail || 'Upload failed');
+              activeByodDocId = d.doc_id;
+              if (byodFileName) byodFileName.textContent = d.filename;
+              if (byodWordCount) byodWordCount.textContent = `(${d.words.toLocaleString()} words)`;
+              if (byodActiveBadge) byodActiveBadge.style.display = 'inline-flex';
+              byodUploadBtn.textContent = '+ Change Doc';
+              statusEl.textContent = `Private doc attached: ${d.filename} (${d.words} words). Queries will synthesize against your document.`;
+            } catch (err) {
+              alert(`BYOD upload failed: ${err.message}`);
+              byodUploadBtn.textContent = prevText;
+            }
+          };
+          reader.readAsDataURL(file);
+        } catch (err) {
+          alert(`BYOD file read failed: ${err.message}`);
+          byodUploadBtn.textContent = prevText;
+        }
+      });
+    }
+
+    if (byodPasteBtn) {
+      byodPasteBtn.addEventListener('click', async () => {
+        const text = prompt('Paste private document or policy notes to analyze:');
+        if (!text || text.trim().length < 5) return;
+        try {
+          const res = await fetch(`${window.BP_CONFIG.apiBase}/api/byod/paste`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: 'Pasted Document', content: text.trim() }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw new Error(d.detail || 'Paste failed');
+          activeByodDocId = d.doc_id;
+          if (byodFileName) byodFileName.textContent = 'Pasted Document';
+          if (byodWordCount) byodWordCount.textContent = `(${d.words.toLocaleString()} words)`;
+          if (byodActiveBadge) byodActiveBadge.style.display = 'inline-flex';
+          statusEl.textContent = `Private text attached (${d.words} words). Queries will synthesize against your document.`;
+        } catch (err) {
+          alert(`BYOD paste failed: ${err.message}`);
+        }
+      });
+    }
+
+    if (byodRemoveBtn) {
+      byodRemoveBtn.addEventListener('click', () => {
+        activeByodDocId = null;
+        if (byodFileInput) byodFileInput.value = '';
+        if (byodActiveBadge) byodActiveBadge.style.display = 'none';
+        if (byodUploadBtn) byodUploadBtn.textContent = '+ Upload Private Doc (PDF/TXT)';
+        statusEl.textContent = 'Private document detached. Queries will use official corpus.';
+      });
+    }
     const reasonToggleEl = document.getElementById('reasonToggle');
     const presetBarEl = document.getElementById('presetBar');
 
@@ -1177,7 +1271,7 @@
           <article class="result">
             <div class="result-head">
               <span>${escapeHtml(r.ministry)} // ${(r.detail_level || detailLevel).toUpperCase()} DOSSIER // ${modelBadge}</span>
-              <span class="mono" style="color:var(--accent); font-weight:600;">${r.sources ? r.sources.length : 0} Chunk Citations</span>
+              <span class="mono" style="color:var(--accent); font-weight:600;">${r.byod_active ? '📄 Private BYOD Document Grounded · ' : ''}${r.sources ? r.sources.length : 0} Chunk Citations</span>
             </div>
             <table class="kpi-table"><tr>${kpiCells}</tr></table>
             ${subgraphHtml}
@@ -1245,6 +1339,7 @@
           answer: content || 'Synthesizing cited audit briefing from retrieved passages...',
           graph_context: meta.graph_context || '',
           sources: meta.sources || [],
+          byod_active: meta.byod_active || Boolean(reqBody.byod_doc_id),
         }]);
         if (firstTokenMs !== null) {
           perfTag.textContent = `Streaming · First token: ${firstTokenMs} ms`;
@@ -1292,6 +1387,7 @@
           graph_context: meta.graph_context || '',
           sources: meta.sources || [],
           first_token_ms: firstTokenMs,
+          byod_active: meta.byod_active || Boolean(reqBody.byod_doc_id),
         }]
       };
     }
@@ -1306,17 +1402,19 @@
       }
       const yearsArr = selectedYears.size ? [...selectedYears].sort() : null;
       const cacheKey = `${CACHE_PREFIX}${ministry}::${detailLevel}::${reasoningMode}::${(yearsArr || []).join(',')}::${question.toLowerCase()}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const t0 = performance.now();
-          const payload = JSON.parse(cached);
-          renderResults(payload.results || []);
-          statusEl.classList.remove('error');
-          statusEl.textContent = `Audit Loaded (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
-          perfTag.textContent = `Client Cache Hit: ${(performance.now() - t0).toFixed(1)} ms`;
-          return;
-        } catch {}
+      if (!activeByodDocId) {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            const t0 = performance.now();
+            const payload = JSON.parse(cached);
+            renderResults(payload.results || []);
+            statusEl.classList.remove('error');
+            statusEl.textContent = `Audit Loaded (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
+            perfTag.textContent = `Client Cache Hit: ${(performance.now() - t0).toFixed(1)} ms`;
+            return;
+          } catch {}
+        }
       }
 
       statusEl.classList.remove('error');
@@ -1326,7 +1424,7 @@
       askButton.textContent = 'Executing...';
       resultsEl.innerHTML = '<div class="empty">Querying Neo4j Instance02 Hybrid Index + Synthesizing Audit Tables...</div>';
       const t0 = performance.now();
-      const reqBody = { question, ministry, detail_level: detailLevel, reasoning_mode: reasoningMode, years: yearsArr };
+      const reqBody = { question, ministry, detail_level: detailLevel, reasoning_mode: reasoningMode, years: yearsArr, byod_doc_id: activeByodDocId };
       try {
         let payload;
         try {

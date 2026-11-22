@@ -618,6 +618,7 @@ def _build_report_prompts(
     glossary_note: str = "",
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
+    byod_context: str = "",
 ) -> tuple:
     """Build (system_prompt, user_prompt, max_tokens, short_mode, use_r1) for report synthesis."""
     ctx_blocks = []
@@ -637,19 +638,28 @@ def _build_report_prompts(
     short_mode = str(detail_level or "long").strip().lower() == "short"
     use_r1 = should_use_reasoner(question, reasoning_mode)
 
+    byod_instruction = ""
+    if byod_context:
+        byod_instruction = (
+            "\n\nCRITICAL - USER UPLOADED PRIVATE DOCUMENT (BYOD):\n"
+            "The user has uploaded their own private document for analysis. Prioritize analyzing and answering "
+            "the user's question directly from this uploaded document evidence, cross-referencing it with the official "
+            "context passages where relevant. Cite private document findings clearly as `[Uploaded Document]`."
+        )
+
     if short_mode:
         max_tokens = 480
-        system_prompt = """You are a Senior Civic Intelligence Analyst answering questions from Indian Government Annual Reports.
+        system_prompt = f"""You are a Senior Civic Intelligence Analyst answering questions from Indian Government Annual Reports.
 
 Give a CRISP, DIRECT, SHORT answer using ONLY the provided CONTEXT:
 1. Start with a 2–3 sentence direct summary answering the question.
 2. Follow with 3–5 concise bullet points for key figures, BE vs. RE comparisons, or scheme highlights.
 3. **Strict Unit Normalization:** Always state the exact reporting unit from the source (`Rs. in Crore`, `Rs. in Lakh`, `BE`, `RE`, `Actuals`). Never silently convert Lakhs to Crores without writing the verbatim source number + unit first.
 4. End with a single line `**Not Disclosed in Retrieved Pages:**` noting any requested detail not present in the passages.
-5. Cite every figure with `[Report Title, p.XX]`. Never invent or extrapolate numbers outside the CONTEXT."""
+5. Cite every figure with `[Report Title, p.XX]`. Never invent or extrapolate numbers outside the CONTEXT.{byod_instruction}"""
     else:
         max_tokens = 1350
-        system_prompt = """You are a Senior Policy & Civic Intelligence Analyst specializing in Indian Government Annual Reports across Ministries and Fiscal Years.
+        system_prompt = f"""You are a Senior Policy & Civic Intelligence Analyst specializing in Indian Government Annual Reports across Ministries and Fiscal Years.
 
 Provide a rigorous, comprehensive, and audit-grade briefing using ONLY the facts and figures in the provided CONTEXT.
 
@@ -671,14 +681,17 @@ MANDATORY SECTION: Explicitly list what specific breakdowns, fiscal years, state
 Strict Rules:
 - **Strict Unit Normalization:** Always preserve and display the exact unit reported in the source passage (`Rs. in Crore`, `Rs. in Lakh`, `Actuals`, `BE`, `RE`). Never perform silent mental unit conversions; if you provide an approximate Crore conversion for a Lakh figure, always write the verbatim source figure and unit first (e.g. `Rs. 4,80,839.66 Lakh (approx. Rs. 4,808.40 Cr)`).
 - Never invent, guess, or extrapolate numbers outside the CONTEXT.
-- Every figure and claim MUST carry its source citation like `[Report Title, p.XX]`."""
+- Every figure and claim MUST carry its source citation like `[Report Title, p.XX]`.{byod_instruction}"""
 
+    byod_user_section = f"USER UPLOADED PRIVATE DOCUMENT EVIDENCE (BYOD):\n{byod_context}\n\n---\n\n" if byod_context else ""
     user_prompt = (
+        f"{byod_user_section}"
         f"GRAPH CONTEXT:\n{gctx or '(none)'}\n\n"
         f"GLOSSARY:\n{glossary_note or '(none)'}\n\n"
         f"CONTEXT PASSAGES:\n{context}\n\n"
         f"QUESTION: {question}\n\nREPORT:"
     )
+    return system_prompt, user_prompt, max_tokens, short_mode, use_r1
     return system_prompt, user_prompt, max_tokens, short_mode, use_r1
 
 
@@ -690,10 +703,11 @@ def synthesize_report(
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
     skip_deepseek: bool = False,
+    byod_context: str = "",
 ) -> str:
     """Generate a short or long cited briefing via DeepSeek (V3 or R1 Reasoner) or Gemini REST API."""
     system_prompt, user_prompt, max_tokens, short_mode, use_r1 = _build_report_prompts(
-        question, hits, gctx, glossary_note, detail_level, reasoning_mode
+        question, hits, gctx, glossary_note, detail_level, reasoning_mode, byod_context=byod_context
     )
 
     # 1. Prefer DeepSeek (R1 reasoner or V3 chat) if DEEPSEEK_API_KEY is configured
@@ -883,8 +897,9 @@ def answer_reports(
     top_k: int = 8,
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
+    byod_context: str = "",
 ) -> tuple[str, list[dict], str]:
-    """End-to-end multi-ministry, multi-year GraphRAG answer."""
+    """End-to-end multi-ministry, multi-year GraphRAG answer with optional BYOD document grounding."""
     target_ministries = resolve_ministries(ministry, question)
     target_years = detect_years_in_text(question, years)
     use_r1 = should_use_reasoner(question, reasoning_mode)
@@ -896,10 +911,11 @@ def answer_reports(
         str(detail_level or "long").strip().lower(),
         use_r1,
     )
-    with _CACHE_LOCK:
-        cached = _ANSWER_CACHE.get(cache_key)
-    if cached is not None:
-        return cached
+    if not byod_context:
+        with _CACHE_LOCK:
+            cached = _ANSWER_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
 
     scope_label = target_ministries[0] if len(target_ministries) == 1 else "Education"
     expanded_q, gmatches = expand_query(question, scope_label)
@@ -914,12 +930,25 @@ def answer_reports(
         raw_question=question,
     )
     if not hits:
-        return (
-            "No matching annual-report passages were found in Instance02 for the selected ministry/year filter. "
-            f"Verify that the reports are ingested into `{VECTOR_INDEX}`.",
-            [],
-            "",
-        )
+        if byod_context:
+            hits = [{
+                "title": "Uploaded Private Document",
+                "file": "user_byod",
+                "ministry": "Private Document",
+                "year": "Current",
+                "page": 1,
+                "section": "BYOD Evidence",
+                "breadcrumb": "User Document",
+                "text": byod_context[:2500],
+                "score": 1.0,
+            }]
+        else:
+            return (
+                "No matching annual-report passages were found in Instance02 for the selected ministry/year filter. "
+                f"Verify that the reports are ingested into `{VECTOR_INDEX}`.",
+                [],
+                "",
+            )
 
     gctx = fetch_graph_context(hits)
     raw_ans = synthesize_report(
@@ -929,13 +958,15 @@ def answer_reports(
         glossary_note,
         detail_level=detail_level,
         reasoning_mode=reasoning_mode,
+        byod_context=byod_context,
     )
     annotated_ans, _ = annotate_answer(raw_ans, scope_label)
     result = (annotated_ans, hits, gctx)
-    with _CACHE_LOCK:
-        if len(_ANSWER_CACHE) >= _MAX_CACHE_ENTRIES:
-            _ANSWER_CACHE.pop(next(iter(_ANSWER_CACHE)))
-        _ANSWER_CACHE[cache_key] = result
+    if not byod_context:
+        with _CACHE_LOCK:
+            if len(_ANSWER_CACHE) >= _MAX_CACHE_ENTRIES:
+                _ANSWER_CACHE.pop(next(iter(_ANSWER_CACHE)))
+            _ANSWER_CACHE[cache_key] = result
     return result
 
 
@@ -949,6 +980,7 @@ def synthesize_report_stream(
     glossary_note: str = "",
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
+    byod_context: str = "",
 ):
     """Yield (kind, text) tuples where kind is 'reasoning' or 'content'.
 
@@ -956,7 +988,7 @@ def synthesize_report_stream(
     emitted, falls back to the non-streaming Gemini / evidence path in one chunk.
     """
     system_prompt, user_prompt, max_tokens, short_mode, use_r1 = _build_report_prompts(
-        question, hits, gctx, glossary_note, detail_level, reasoning_mode
+        question, hits, gctx, glossary_note, detail_level, reasoning_mode, byod_context=byod_context
     )
 
     if DEEPSEEK_API_KEY:
@@ -1052,13 +1084,9 @@ def answer_reports_stream(
     top_k: int = 8,
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
+    byod_context: str = "",
 ):
-    """Streaming twin of answer_reports(). Yields dict events:
-
-    {"type": "meta", "hits": [...], "graph_context": str, "cached": bool, "reasoning_mode": str}
-    {"type": "reasoning" | "content", "delta": str}
-    {"type": "done", "answer": str}   # final glossary-annotated answer (same as answer_reports)
-    """
+    """Streaming twin of answer_reports() with optional BYOD document grounding."""
     target_ministries = resolve_ministries(ministry, question)
     target_years = detect_years_in_text(question, years)
     use_r1 = should_use_reasoner(question, reasoning_mode)
@@ -1072,12 +1100,13 @@ def answer_reports_stream(
         str(detail_level or "long").strip().lower(),
         use_r1,
     )
-    with _CACHE_LOCK:
-        cached = _ANSWER_CACHE.get(cache_key)
-    if cached is not None:
-        yield {"type": "meta", "hits": cached[1], "graph_context": cached[2], "cached": True, "reasoning_mode": mode_label}
-        yield {"type": "done", "answer": cached[0]}
-        return
+    if not byod_context:
+        with _CACHE_LOCK:
+            cached = _ANSWER_CACHE.get(cache_key)
+        if cached is not None:
+            yield {"type": "meta", "hits": cached[1], "graph_context": cached[2], "cached": True, "reasoning_mode": mode_label}
+            yield {"type": "done", "answer": cached[0]}
+            return
 
     scope_label = target_ministries[0] if len(target_ministries) == 1 else "Education"
     expanded_q, gmatches = expand_query(question, scope_label)
@@ -1092,12 +1121,25 @@ def answer_reports_stream(
         raw_question=question,
     )
     if not hits:
-        yield {"type": "meta", "hits": [], "graph_context": "", "cached": False, "reasoning_mode": mode_label}
-        yield {
-            "type": "done",
-            "answer": "No matching annual-report passages were found for the selected ministry/year filter.",
-        }
-        return
+        if byod_context:
+            hits = [{
+                "title": "Uploaded Private Document",
+                "file": "user_byod",
+                "ministry": "Private Document",
+                "year": "Current",
+                "page": 1,
+                "section": "BYOD Evidence",
+                "breadcrumb": "User Document",
+                "text": byod_context[:2500],
+                "score": 1.0,
+            }]
+        else:
+            yield {"type": "meta", "hits": [], "graph_context": "", "cached": False, "reasoning_mode": mode_label}
+            yield {
+                "type": "done",
+                "answer": "No matching annual-report passages were found for the selected ministry/year filter.",
+            }
+            return
 
     gctx = fetch_graph_context(hits)
     yield {"type": "meta", "hits": hits, "graph_context": gctx, "cached": False, "reasoning_mode": mode_label}
@@ -1107,6 +1149,7 @@ def answer_reports_stream(
     for kind, txt in synthesize_report_stream(
         question, hits, gctx, glossary_note,
         detail_level=detail_level, reasoning_mode=reasoning_mode,
+        byod_context=byod_context,
     ):
         (reasoning_parts if kind == "reasoning" else content_parts).append(txt)
         yield {"type": kind, "delta": txt}

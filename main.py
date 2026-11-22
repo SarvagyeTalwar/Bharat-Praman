@@ -650,6 +650,177 @@ class RagAskRequest(BaseModel):
     years: list[str] | None = None
     detail_level: str = Field(default="long", max_length=16)
     reasoning_mode: str = Field(default="auto", max_length=16)
+    byod_doc_id: str | None = None
+    byod_text: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# BYOD (Bring Your Own Document) Ingestion & Session Memory
+# ---------------------------------------------------------------------------
+_BYOD_DOCS: dict[str, dict] = {}
+
+
+class ByodUploadRequest(BaseModel):
+    filename: str = Field(default="document.txt", max_length=255)
+    content_base64: str | None = None
+    text_content: str | None = None
+    title: str | None = None
+
+
+class ByodPasteRequest(BaseModel):
+    title: str = Field(default="Pasted Document", max_length=200)
+    content: str = Field(min_length=2, max_length=150000)
+
+
+def _extract_byod_text(req: ByodUploadRequest) -> str:
+    """Safely extract plain text from uploaded base64 data (PDF/TXT/MD/JSON/CSV) without external dependencies."""
+    if req.text_content:
+        return req.text_content.strip()
+    if not req.content_base64:
+        return ""
+    import base64, io
+    try:
+        raw_bytes = base64.b64decode(req.content_base64)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid base64 encoding: {e}")
+
+    fn = (req.filename or "").lower()
+    if fn.endswith(".pdf"):
+        try:
+            import fitz
+            doc = fitz.open(stream=raw_bytes, filetype="pdf")
+            pages = []
+            for i, page in enumerate(doc):
+                if i >= 60:
+                    break
+                t = page.get_text() or ""
+                if t.strip():
+                    pages.append(f"--- Page {i+1} ---\n{t.strip()}")
+            doc.close()
+            if pages:
+                return "\n\n".join(pages)
+        except Exception:
+            pass
+
+        try:
+            import pypdf
+            reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
+            pages = []
+            for i, page in enumerate(reader.pages[:60]):
+                t = page.extract_text() or ""
+                if t.strip():
+                    pages.append(f"--- Page {i+1} ---\n{t.strip()}")
+            if pages:
+                return "\n\n".join(pages)
+        except Exception as p_err:
+            raise HTTPException(status_code=400, detail=f"Could not parse PDF content: {p_err}")
+
+    for enc in ("utf-8", "latin-1", "utf-16"):
+        try:
+            return raw_bytes.decode(enc).strip()
+        except UnicodeDecodeError:
+            continue
+    return raw_bytes.decode("utf-8", errors="replace").strip()
+
+
+@app.post("/api/byod/upload")
+def byod_upload(req: ByodUploadRequest):
+    """Ingest a private document (PDF, TXT, MD, CSV, JSON) via Base64 JSON payload."""
+    import uuid
+    try:
+        text = _extract_byod_text(req)
+        if not text:
+            raise HTTPException(status_code=400, detail="Document contains no readable text.")
+
+        if len(text) > 120000:
+            text = text[:120000] + "\n\n[...truncated to 120,000 characters for analysis...]"
+
+        doc_id = str(uuid.uuid4())
+        doc_title = req.title or req.filename or "Uploaded Document"
+
+        if len(_BYOD_DOCS) >= 50:
+            _BYOD_DOCS.pop(next(iter(_BYOD_DOCS)))
+
+        words_count = len(text.split())
+        _BYOD_DOCS[doc_id] = {
+            "doc_id": doc_id,
+            "title": doc_title,
+            "filename": req.filename or "document.txt",
+            "text": text,
+            "chars": len(text),
+            "words": words_count,
+            "created_at": time.time(),
+        }
+        return {
+            "status": "ok",
+            "doc_id": doc_id,
+            "title": doc_title,
+            "filename": req.filename or "document.txt",
+            "chars": len(text),
+            "words": words_count,
+            "preview": text[:260],
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("BYOD upload error")
+        raise HTTPException(status_code=500, detail=f"BYOD upload error: {exc}")
+
+
+@app.post("/api/byod/paste")
+def byod_paste(req: ByodPasteRequest):
+    """Directly paste private document text or policy tables for instant analysis."""
+    import uuid
+    doc_id = str(uuid.uuid4())
+    text = req.content.strip()
+    if len(text) > 120000:
+        text = text[:120000] + "\n\n[...truncated to 120,000 characters for analysis...]"
+
+    if len(_BYOD_DOCS) >= 50:
+        _BYOD_DOCS.pop(next(iter(_BYOD_DOCS)))
+
+    words_count = len(text.split())
+    _BYOD_DOCS[doc_id] = {
+        "doc_id": doc_id,
+        "title": req.title,
+        "filename": "pasted_text.txt",
+        "text": text,
+        "chars": len(text),
+        "words": words_count,
+        "created_at": time.time(),
+    }
+    return {
+        "status": "ok",
+        "doc_id": doc_id,
+        "title": req.title,
+        "filename": "pasted_text.txt",
+        "chars": len(text),
+        "words": words_count,
+        "preview": text[:260],
+    }
+
+
+@app.get("/api/byod/docs")
+def byod_docs():
+    """List active private documents in memory."""
+    return [
+        {
+            "doc_id": d["doc_id"],
+            "title": d["title"],
+            "filename": d["filename"],
+            "words": d["words"],
+            "chars": d["chars"],
+        }
+        for d in _BYOD_DOCS.values()
+    ]
+
+
+@app.delete("/api/byod/{doc_id}")
+def byod_delete(doc_id: str):
+    """Delete a private document from active session."""
+    if doc_id in _BYOD_DOCS:
+        del _BYOD_DOCS[doc_id]
+    return {"status": "ok"}
 
 
 class BudgetAskRequest(BaseModel):
@@ -721,6 +892,13 @@ def rag_ask_stream(req: RagAskRequest):
     reasoning_mode = str(req.reasoning_mode or "auto").strip().lower()
     scope = req.ministries if req.ministries else req.ministry
 
+    byod_ctx = ""
+    if req.byod_doc_id and req.byod_doc_id in _BYOD_DOCS:
+        doc = _BYOD_DOCS[req.byod_doc_id]
+        byod_ctx = f"DOCUMENT TITLE: {doc['title']}\nFILENAME: {doc['filename']}\nCONTENT:\n{doc['text']}"
+    elif req.byod_text:
+        byod_ctx = f"DOCUMENT CONTENT:\n{req.byod_text.strip()}"
+
     def _sse(obj: dict) -> str:
         return f"data: {json.dumps(obj, default=str, ensure_ascii=False)}\n\n"
 
@@ -732,6 +910,7 @@ def rag_ask_stream(req: RagAskRequest):
                 years=req.years,
                 detail_level=detail_level,
                 reasoning_mode=reasoning_mode,
+                byod_context=byod_ctx,
             ):
                 if ev.get("type") == "meta":
                     ev = {
@@ -740,6 +919,7 @@ def rag_ask_stream(req: RagAskRequest):
                         "reasoning_mode": ev.get("reasoning_mode", "chat"),
                         "detail_level": detail_level,
                         "graph_context": ev.get("graph_context", ""),
+                        "byod_active": bool(byod_ctx),
                         "sources": [
                             {
                                 "title": h.get("title"),
@@ -778,6 +958,13 @@ def rag_ask(req: RagAskRequest):
     reasoning_mode = str(req.reasoning_mode or "auto").strip().lower()
     scope = req.ministries if req.ministries else req.ministry
 
+    byod_ctx = ""
+    if req.byod_doc_id and req.byod_doc_id in _BYOD_DOCS:
+        doc = _BYOD_DOCS[req.byod_doc_id]
+        byod_ctx = f"DOCUMENT TITLE: {doc['title']}\nFILENAME: {doc['filename']}\nCONTENT:\n{doc['text']}"
+    elif req.byod_text:
+        byod_ctx = f"DOCUMENT CONTENT:\n{req.byod_text.strip()}"
+
     try:
         ans, hits, gctx = answer_reports(
             req.question,
@@ -785,6 +972,7 @@ def rag_ask(req: RagAskRequest):
             years=req.years,
             detail_level=detail_level,
             reasoning_mode=reasoning_mode,
+            byod_context=byod_ctx,
         )
         label = (
             ", ".join(req.ministries)
