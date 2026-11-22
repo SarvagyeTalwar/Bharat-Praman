@@ -703,6 +703,33 @@
       .kpi-table tr { display: grid; grid-template-columns: 1fr 1fr; }
       .kpi-table td { width: auto; border-bottom: 1px solid var(--border); }
     }
+
+    /* Drag and drop BYOD dropzone */
+    .byod-dropzone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 14px 18px;
+      background: var(--surface-soft);
+      border: 2px dashed var(--border-strong);
+      border-radius: var(--card-radius);
+      text-align: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .byod-dropzone:hover {
+      border-color: var(--accent);
+      background: var(--surface-tint);
+    }
+    .byod-dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 4px rgba(183, 121, 31, 0.2);
+      transform: scale(1.01);
+    }
   </style>
   <script src="bp-config.js"></script>
   <script src="fuzzy-utils.js"></script>
@@ -771,7 +798,7 @@
     <section class="panel" aria-label="Audit query parameters">
       <div class="panel-head">
         <span>01 // Audit Query Parameters &amp; Model Routing</span>
-        <span class="mono" style="font-size:11px; color:var(--accent);">Qwen3-1024d + BM25 RRF + Sec 6(1) RTI</span>
+        <span class="mono" style="font-size:11px; color:var(--accent);">DeepSeek V3/R1 + Hybrid Verification + Sec 6(1) RTI</span>
       </div>
 
       <!-- Ministry Filter Pills -->
@@ -815,16 +842,23 @@
 
       <!-- Audit Input Box & Presets -->
       <div class="askbox">
-        <!-- BYOD Private Document Layer -->
-        <div class="byod-bar" style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:6px 12px; background:var(--panel-subtle, rgba(0,0,0,0.03)); border:1px dashed var(--border); border-radius:4px; font-size:12px;">
-          <span style="font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:0.04em;">BYOD Layer:</span>
-          <input type="file" id="byodFileInput" style="display:none;" accept=".pdf,.txt,.md,.csv,.json">
-          <button type="button" id="byodUploadBtn" class="detail-btn" style="padding:4px 10px; font-size:11px;">+ Upload Private Doc (PDF/TXT)</button>
-          <button type="button" id="byodPasteBtn" class="detail-btn" style="padding:4px 10px; font-size:11px;">Paste Private Text</button>
-          <div id="byodActiveBadge" style="display:none; align-items:center; gap:6px; background:var(--bg); border:1px solid var(--accent); padding:2px 8px; border-radius:4px; font-size:11px; margin-left:auto;">
-            <strong id="byodFileName" style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></strong>
+        <!-- BYOD Private Document Drag & Drop Dropzone -->
+        <div id="byodDropZone" class="byod-dropzone">
+          <input type="file" id="byodFileInput" style="display:none;" accept=".pdf,.txt,.md,.csv,.json,.docx">
+          <div style="display:flex; align-items:center; gap:8px; pointer-events:none;">
+            <span style="font-size:22px;">📂</span>
+            <span style="font-weight:700; font-size:13.5px; color:var(--fg);">Drag &amp; Drop Private Tender DPR / Memo here</span>
+            <span style="font-size:12px; color:var(--muted);">(or click to browse PDF/TXT/CSV)</span>
+          </div>
+          <div style="font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:12px;">
+            <span>🔒 <strong>Zero-Leak Privacy:</strong> Local session only · Never synced or trained on</span>
+            <button type="button" id="byodPasteBtn" class="detail-btn" style="padding:2px 8px; font-size:10.5px; border-radius:6px;">Paste Raw Text</button>
+          </div>
+          <div id="byodActiveBadge" style="display:none; align-items:center; gap:8px; background:var(--surface); border:1.5px solid var(--accent); padding:4px 12px; border-radius:8px; font-size:12px; margin-top:6px;">
+            <span style="color:var(--accent); font-weight:700;">✓ Active Grounding Doc:</span>
+            <strong id="byodFileName" style="max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></strong>
             <span id="byodWordCount" style="color:var(--muted);"></span>
-            <button type="button" id="byodRemoveBtn" style="background:none; border:none; cursor:pointer; font-weight:700; color:var(--accent); font-size:13px; line-height:1;" title="Remove document">&times;</button>
+            <button type="button" id="byodRemoveBtn" style="background:none; border:none; cursor:pointer; font-weight:700; color:var(--danger); font-size:15px; line-height:1; padding:0 4px;" title="Remove document">&times;</button>
           </div>
         </div>
 
@@ -901,48 +935,97 @@
 
     // BYOD Layer State & Handlers
     let activeByodDocId = null;
+    const byodDropZone = document.getElementById('byodDropZone');
     const byodFileInput = document.getElementById('byodFileInput');
-    const byodUploadBtn = document.getElementById('byodUploadBtn');
     const byodPasteBtn = document.getElementById('byodPasteBtn');
     const byodActiveBadge = document.getElementById('byodActiveBadge');
     const byodFileName = document.getElementById('byodFileName');
     const byodWordCount = document.getElementById('byodWordCount');
     const byodRemoveBtn = document.getElementById('byodRemoveBtn');
 
-    if (byodUploadBtn && byodFileInput) {
-      byodUploadBtn.addEventListener('click', () => byodFileInput.click());
-      byodFileInput.addEventListener('change', async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const prevText = byodUploadBtn.textContent;
-        byodUploadBtn.textContent = 'Uploading...';
-        try {
-          const reader = new FileReader();
-          reader.onload = async () => {
-            try {
-              const b64 = reader.result.split(',')[1];
-              const res = await fetch(`${window.BP_CONFIG.apiBase}/api/byod/upload`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename: file.name, content_base64: b64, title: file.name }),
-              });
-              const d = await res.json();
-              if (!res.ok) throw new Error(d.detail || 'Upload failed');
-              activeByodDocId = d.doc_id;
-              if (byodFileName) byodFileName.textContent = d.filename;
-              if (byodWordCount) byodWordCount.textContent = `(${d.words.toLocaleString()} words)`;
-              if (byodActiveBadge) byodActiveBadge.style.display = 'inline-flex';
-              byodUploadBtn.textContent = '+ Change Doc';
-              statusEl.textContent = `Private doc attached: ${d.filename} (${d.words} words). Queries will synthesize against your document.`;
-            } catch (err) {
-              alert(`BYOD upload failed: ${err.message}`);
-              byodUploadBtn.textContent = prevText;
-            }
-          };
-          reader.readAsDataURL(file);
-        } catch (err) {
-          alert(`BYOD file read failed: ${err.message}`);
-          byodUploadBtn.textContent = prevText;
+    async function uploadByodFile(file) {
+      if (!file) return;
+      statusEl.textContent = `Uploading and parsing ${file.name}...`;
+      try {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const b64 = reader.result.split(',')[1];
+            const res = await fetch(`${window.BP_CONFIG.apiBase}/api/byod/upload`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: file.name, content_base64: b64, title: file.name }),
+            });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.detail || 'Upload failed');
+            activeByodDocId = d.doc_id;
+            if (byodFileName) byodFileName.textContent = d.filename;
+            if (byodWordCount) byodWordCount.textContent = `(${d.words.toLocaleString()} words)`;
+            if (byodActiveBadge) byodActiveBadge.style.display = 'inline-flex';
+            statusEl.textContent = `Private doc attached: ${d.filename} (${d.words} words). Queries will synthesize against your document with zero cloud sync.`;
+          } catch (err) {
+            alert(`BYOD upload failed: ${err.message}`);
+            statusEl.textContent = 'Upload failed. Please try again.';
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        alert(`BYOD file read failed: ${err.message}`);
+        statusEl.textContent = 'File read failed.';
+      }
+    }
+
+    if (byodDropZone && byodFileInput) {
+      byodDropZone.addEventListener('click', (e) => {
+        if (e.target.closest('#byodRemoveBtn') || e.target.closest('#byodPasteBtn')) return;
+        byodFileInput.click();
+      });
+      byodFileInput.addEventListener('change', (e) => {
+        uploadByodFile(e.target.files?.[0]);
+      });
+
+      // Visual Drag & Drop listeners
+      ['dragenter', 'dragover'].forEach((name) => {
+        byodDropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          byodDropZone.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach((name) => {
+        byodDropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          byodDropZone.classList.remove('dragover');
+        });
+      });
+      byodDropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) {
+          uploadByodFile(dt.files[0]);
+        }
+      });
+    }
+
+    // Also allow dropping onto question input
+    if (questionEl && byodDropZone) {
+      ['dragenter', 'dragover'].forEach((name) => {
+        questionEl.addEventListener(name, (e) => {
+          e.preventDefault();
+          byodDropZone.classList.add('dragover');
+        });
+      });
+      ['dragleave'].forEach((name) => {
+        questionEl.addEventListener(name, (e) => {
+          e.preventDefault();
+          byodDropZone.classList.remove('dragover');
+        });
+      });
+      questionEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        byodDropZone.classList.remove('dragover');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+          uploadByodFile(e.dataTransfer.files[0]);
         }
       });
     }
@@ -1132,7 +1215,7 @@
         { label: 'Primary Audited Figure', val: primaryFig, sub: `${moneyMatches.length} monetary tokens extracted`, cls: '' },
         { label: 'BE vs RE Variance Signal', val: hasBeRe ? 'BE/RE Comparison Present' : 'Source Grounded', sub: 'Verbatim official units', cls: hasBeRe ? 'alert' : '' },
         { label: 'Neo4j Graph Evidence', val: `${sources.length} Chunks / ${distinctPages.length || 1} Pages`, sub: `Years: ${distinctYears.join(', ') || 'All Ingested'}`, cls: '' },
-        { label: 'Synthesis Engine', val: (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 + RRF', sub: 'Qwen3-1024d + BM25 Hybrid', cls: '' },
+        { label: 'Synthesis Engine', val: (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 Synthesis', sub: 'Qwen3-1024d + BM25 Hybrid', cls: '' },
       ];
     }
 
@@ -1186,7 +1269,7 @@
         <div class="subgraph-box">
           <div class="subgraph-head">
             <span>Evidence Graph Lineage (:Ministry → :Document → :Chunk)</span>
-            <span>Index: BGE-Small Embeddings (384D) + FullText RRF</span>
+            <span>Index: BGE-Small Embeddings (384D) + FullText Evidence</span>
           </div>
           <svg class="subgraph-svg" viewBox="0 0 820 136" xmlns="http://www.w3.org/2000/svg">
             ${edgesSvg}
@@ -1259,10 +1342,9 @@
             <td class="mono">${escapeHtml(s.year || '—')}</td>
             <td class="num">p.${escapeHtml(s.page ?? '?')}</td>
             <td class="mono">${escapeHtml(s.section || s.breadcrumb || '—')}</td>
-            <td class="num">${s.score != null ? Number(s.score).toFixed(4) : '—'}</td>
           </tr>`).join('');
 
-        const modelBadge = (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 + Graph RRF';
+        const modelBadge = (r.reasoning_mode || '').toLowerCase() === 'reasoner' ? 'DeepSeek R1 Reasoner' : 'DeepSeek V3 Synthesis';
         const rtiDraft = buildRtiDraft(r, qText);
         const structuredHtml = renderStructuredMarkdown(r.answer);
         const subgraphHtml = renderSubgraphSvg(r);
@@ -1280,11 +1362,11 @@
             <div class="flat-block">
               <div class="flat-block-head">
                 <span>Verified Page Citations Ledger (${(r.sources || []).length} Passages from Neo4j)</span>
-                <span class="mono" style="color:var(--accent);">RRF Scored</span>
+                <span class="mono" style="color:var(--accent);">Evidence Verified</span>
               </div>
               <table class="raw-table">
-                <thead><tr><th style="width:45px">#</th><th>Document Title</th><th>Ministry</th><th style="width:90px">Fiscal Yr</th><th style="width:70px">Page</th><th>Section / Breadcrumb</th><th style="width:85px">RRF Score</th></tr></thead>
-                <tbody>${sourceRows || '<tr><td colspan="7" class="mono">No citations returned.</td></tr>'}</tbody>
+                <thead><tr><th style="width:45px">#</th><th>Document Title</th><th>Ministry</th><th style="width:90px">Fiscal Yr</th><th style="width:70px">Page</th><th>Section / Breadcrumb</th></tr></thead>
+                <tbody>${sourceRows || '<tr><td colspan="6" class="mono">No citations returned.</td></tr>'}</tbody>
               </table>
             </div>
 
