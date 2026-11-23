@@ -133,15 +133,17 @@ app.add_middleware(
         os.getenv("FRONTEND_ORIGIN", "http://localhost:5500"),
         "http://localhost:5500",
         "http://127.0.0.1:5500",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "https://bharat-praman-production.up.railway.app",
     ],
     allow_origin_regex=os.getenv(
         "FRONTEND_ORIGIN_REGEX",
-        r"^https?://(?:localhost|127\.0\.0\.1)(?::(?:5500|8000|8001|8080))?$",
+        r"^https?://(?:localhost|127\.0\.0\.1)(?::(?:5173|5500|8000|8001|8080))?$",
     ),
-    allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -653,6 +655,7 @@ class RagAskRequest(BaseModel):
     byod_doc_id: str | None = None
     byod_doc_ids: list[str] | None = None
     byod_text: str | None = None
+    auth_token: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -834,6 +837,164 @@ def byod_delete(doc_id: str):
     return {"status": "ok"}
 
 
+# ---------------------------------------------------------------------------
+# User Authentication & Role-Based Access Control (RBAC)
+# ---------------------------------------------------------------------------
+class RegisterRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=120)
+    password: str = Field(min_length=6, max_length=120)
+    name: Optional[str] = None
+    promo_code: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=120)
+    password: str = Field(min_length=1, max_length=120)
+
+
+class UpgradeRequest(BaseModel):
+    promo_code: str = Field(min_length=2, max_length=64)
+
+
+@app.post("/api/auth/register")
+def auth_register(req: RegisterRequest):
+    import auth_service
+    try:
+        user = auth_service.register_user(
+            email=req.email,
+            password=req.password,
+            name=req.name or "",
+            promo_code=req.promo_code,
+        )
+        auth = auth_service.authenticate_user(req.email, req.password)
+        return {"status": "ok", "user": user, "token": auth["token"] if auth else None}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Registration error: {e}")
+
+
+@app.post("/api/auth/login")
+def auth_login(req: LoginRequest):
+    import auth_service
+    auth = auth_service.authenticate_user(req.email, req.password)
+    if not auth:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    return {"status": "ok", **auth}
+
+
+@app.get("/api/auth/me")
+def auth_me(request: Request):
+    import auth_service
+    auth_header = request.headers.get("Authorization") or ""
+    user = auth_service.get_user_from_token(auth_header)
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthenticated.")
+    return {"status": "ok", "user": user}
+
+
+@app.post("/api/auth/upgrade")
+def auth_upgrade(req: UpgradeRequest, request: Request):
+    import auth_service
+    auth_header = request.headers.get("Authorization") or ""
+    user = auth_service.get_user_from_token(auth_header)
+    if not user:
+        raise HTTPException(status_code=401, detail="Please log in first to upgrade.")
+    ok = auth_service.upgrade_user(user["id"], req.promo_code)
+    if not ok:
+        raise HTTPException(status_code=400, detail="Invalid enterprise promo code. Use BHARAT_PRO_2026 for evaluation.")
+    user["tier"] = "premium"
+    return {"status": "ok", "tier": "premium", "user": user}
+
+
+@app.post("/api/auth/logout")
+def auth_logout(request: Request):
+    import auth_service
+    auth_header = request.headers.get("Authorization") or ""
+    auth_service.logout(auth_header)
+    return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Neo4j Premium Vector Vault (Chunking, BGE-384 Embeddings & Graph Ingestion)
+# ---------------------------------------------------------------------------
+class VaultUploadRequest(BaseModel):
+    filename: str = Field(default="document.pdf", max_length=255)
+    content_base64: Optional[str] = None
+    text_content: Optional[str] = None
+    title: Optional[str] = None
+
+
+@app.post("/api/byod/vault/index")
+def byod_vault_index(req: VaultUploadRequest, request: Request):
+    """Real-time structure-aware chunking, BGE vectorization, and Neo4j graph commitment for Premium users."""
+    import auth_service
+    import neo4j_vault
+    import base64
+
+    auth_header = request.headers.get("Authorization") or ""
+    user = auth_service.get_user_from_token(auth_header)
+    if not user:
+        raise HTTPException(status_code=401, detail="Please sign in to access the Private Neo4j Vector Vault.")
+    if user.get("tier") != "premium":
+        raise HTTPException(
+            status_code=403,
+            detail="Real-time Neo4j chunking & vectorization requires Enterprise Pro tier. Upgrade with code BHARAT_PRO_2026.",
+        )
+
+    raw_bytes = None
+    if req.content_base64:
+        try:
+            raw_bytes = base64.b64decode(req.content_base64)
+            if len(raw_bytes) > MAX_BYOD_FILE_SIZE_BYTES:
+                raise HTTPException(status_code=413, detail="File exceeds 10 MB limit.")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid file payload: {e}")
+
+    try:
+        res = neo4j_vault.index_user_document(
+            user_id=user["id"],
+            user_email=user["email"],
+            title=req.title or req.filename or "Private Document",
+            filename=req.filename or "document.pdf",
+            text=req.text_content or "",
+            pdf_bytes=raw_bytes if (req.filename or "").lower().endswith(".pdf") else None,
+        )
+        return res
+    except Exception as e:
+        logger.exception("Vault index failed")
+        raise HTTPException(status_code=500, detail=f"Neo4j Vault indexing failed: {e}")
+
+
+@app.get("/api/byod/vault/docs")
+def byod_vault_docs(request: Request):
+    """List persisted Neo4j documents for authenticated user."""
+    import auth_service
+    import neo4j_vault
+
+    auth_header = request.headers.get("Authorization") or ""
+    user = auth_service.get_user_from_token(auth_header)
+    if not user:
+        return []
+    return neo4j_vault.list_user_documents(user["id"])
+
+
+@app.delete("/api/byod/vault/{doc_id}")
+def byod_vault_delete(doc_id: str, request: Request):
+    """Delete a vaulted document and all its chunks from Neo4j."""
+    import auth_service
+    import neo4j_vault
+
+    auth_header = request.headers.get("Authorization") or ""
+    user = auth_service.get_user_from_token(auth_header)
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthenticated.")
+    ok = neo4j_vault.delete_user_document(user["id"], doc_id)
+    return {"status": "ok", "deleted": ok}
+
+
 class BudgetAskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=1000)
     ministry: Optional[str] = None
@@ -894,14 +1055,22 @@ def rag_search(req: RagAskRequest):
 
 
 @app.post("/api/rag/ask/stream")
-def rag_ask_stream(req: RagAskRequest):
+def rag_ask_stream(req: RagAskRequest, request: Request):
     """Server-Sent Events twin of /api/rag/ask: streams DeepSeek tokens as they arrive."""
     from fastapi.responses import StreamingResponse
     from reports_agent import answer_reports_stream, _source_portal_url
+    import auth_service
 
     detail_level = "short" if str(req.detail_level).strip().lower() == "short" else "long"
     reasoning_mode = str(req.reasoning_mode or "auto").strip().lower()
     scope = req.ministries if req.ministries else req.ministry
+
+    user_id = None
+    auth_tok = req.auth_token or request.headers.get("Authorization") or ""
+    if auth_tok:
+        usr = auth_service.get_user_from_token(auth_tok)
+        if usr:
+            user_id = usr["id"]
 
     byod_ctx = ""
     active_ids = [d for d in (req.byod_doc_ids or []) if d][:3]
@@ -930,6 +1099,7 @@ def rag_ask_stream(req: RagAskRequest):
                 detail_level=detail_level,
                 reasoning_mode=reasoning_mode,
                 byod_context=byod_ctx,
+                user_id=user_id,
             ):
                 if ev.get("type") == "meta":
                     ev = {
@@ -950,7 +1120,10 @@ def rag_ask_stream(req: RagAskRequest):
                                 "breadcrumb": h.get("breadcrumb"),
                                 "score": h.get("rrf_score") or h.get("score"),
                                 "source_url": _source_portal_url(
-                                    h.get("ministry", ""), h.get("title", ""), h.get("file", "")
+                                    h.get("ministry", ""),
+                                    h.get("title", ""),
+                                    h.get("file", ""),
+                                    page=h.get("page"),
                                 ),
                             }
                             for h in (ev.get("hits") or [])
@@ -969,13 +1142,21 @@ def rag_ask_stream(req: RagAskRequest):
 
 
 @app.post("/api/rag/ask")
-def rag_ask(req: RagAskRequest):
+def rag_ask(req: RagAskRequest, request: Request):
     """Answer a question across ingested Ministry annual reports (short/long + chat/reasoner)."""
     from reports_agent import answer_reports, should_use_reasoner, _source_portal_url
+    import auth_service
 
     detail_level = "short" if str(req.detail_level).strip().lower() == "short" else "long"
     reasoning_mode = str(req.reasoning_mode or "auto").strip().lower()
     scope = req.ministries if req.ministries else req.ministry
+
+    user_id = None
+    auth_tok = req.auth_token or request.headers.get("Authorization") or ""
+    if auth_tok:
+        usr = auth_service.get_user_from_token(auth_tok)
+        if usr:
+            user_id = usr["id"]
 
     byod_ctx = ""
     active_ids = [d for d in (req.byod_doc_ids or []) if d][:3]
@@ -1000,6 +1181,7 @@ def rag_ask(req: RagAskRequest):
             detail_level=detail_level,
             reasoning_mode=reasoning_mode,
             byod_context=byod_ctx,
+            user_id=user_id,
         )
         label = (
             ", ".join(req.ministries)
@@ -1027,6 +1209,7 @@ def rag_ask(req: RagAskRequest):
                         h.get("ministry", ""),
                         h.get("title", ""),
                         h.get("file", ""),
+                        page=h.get("page"),
                     ),
                 }
                 for h in (hits or [])
@@ -1047,6 +1230,40 @@ def rag_ask(req: RagAskRequest):
         "reasoning_mode": reasoning_mode,
         "results": results,
     }
+
+
+@app.get("/api/sources/list")
+def api_list_pdf_sources():
+    """Return the canonical list of all registered PDFs, local availability, and official URLs."""
+    from pdf_sources import list_pdf_sources
+    items = list_pdf_sources()
+    return {
+        "total": len(items),
+        "local_count": sum(1 for i in items if i["local_available"]),
+        "sources": items,
+    }
+
+
+@app.get("/api/sources/pdf/{filename}")
+def api_serve_pdf_source(filename: str):
+    """Serve a real PDF directly from disk if available, or redirect to its official .gov.in PDF URL."""
+    from fastapi.responses import FileResponse, RedirectResponse
+    from pdf_sources import resolve_local_pdf_path, PDF_SOURCE_REGISTRY
+
+    clean_name = os.path.basename(filename.strip())
+    local_path = resolve_local_pdf_path(clean_name)
+    if local_path is not None:
+        return FileResponse(
+            path=str(local_path),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'inline; filename="{clean_name}"'},
+        )
+
+    entry = PDF_SOURCE_REGISTRY.get(clean_name)
+    if entry and entry.get("official_pdf_url"):
+        return RedirectResponse(url=entry["official_pdf_url"])
+
+    raise HTTPException(status_code=404, detail=f"PDF source '{clean_name}' not found in registry.")
 
 
 @app.post("/api/budget/ask")

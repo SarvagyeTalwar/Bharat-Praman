@@ -1,0 +1,2013 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bharat Praman — Civic &amp; Budget Audit</title>
+  <script>
+    (function () {
+      if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <style>
+    /* 60-30-10 Color System
+       60% Dominant Canvas:  #F8FAFC (light) / #0B1120 (dark) + #FFFFFF / #111827 cards
+       30% Secondary Struct: #0F172A Deep Civic Navy (header/primary dark text) & #F1F5F9 / #EFF6FF soft surfaces
+       10% Primary Accent:   #1D4ED8 Civic Blue (links, primary CTAs, active tabs, focus rings)
+       Semantic Alert:       #DC2626 (used sparingly for criminal record flags / errors only)
+    */
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-soft: #f1f5f9;
+      --surface-tint: #eff6ff;
+      --navy: #0f172a;
+      --fg: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --accent: #1d4ed8;
+      --accent-hover: #1e40af;
+      --accent-fg: #ffffff;
+      --danger: #dc2626;
+      --danger-soft: #fef2f2;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    html.dark {
+      color-scheme: dark;
+      --bg: #0b1120;
+      --surface: #111827;
+      --surface-soft: #1e293b;
+      --surface-tint: #172554;
+      --navy: #020617;
+      --fg: #f8fafc;
+      --muted: #94a3b8;
+      --border: #1e293b;
+      --border-strong: #334155;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-fg: #ffffff;
+      --danger: #f87171;
+      --danger-soft: #450a0a;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 10px 28px -4px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14px/1.55 var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+    /* 30% Secondary Structural Topbar */
+    .topbar {
+      background: var(--navy);
+      color: #f8fafc;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .topbar-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font: 700 15px/1.2 var(--font-sans);
+      color: #ffffff;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+    .brand:hover { text-decoration: none; }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav a, .nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #cbd5e1;
+      padding: 6px 11px;
+      border-radius: 7px;
+      font: 600 13px/1.2 var(--font-sans);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .nav a:hover, .nav button:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .nav a.active {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 44px 20px 64px;
+    }
+
+    /* Clean Centered Hero */
+    .hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--surface-tint);
+      color: var(--accent);
+      font: 600 12px/1.3 var(--font-sans);
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font: 700 clamp(26px, 4vw, 38px)/1.15 var(--font-sans);
+      letter-spacing: -0.025em;
+      color: var(--fg);
+    }
+    .hero-sub {
+      margin: 0 auto;
+      max-width: 600px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    /* Primary 60% White Search Card */
+    .search-card {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .search-card.focused {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.14), var(--shadow-md);
+    }
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: 15px/1.4 var(--font-sans);
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+    .btn-primary {
+      border: 0;
+      border-radius: 10px;
+      background: var(--accent);
+      color: var(--accent-fg);
+      padding: 0 22px;
+      font: 600 14px/1 var(--font-sans);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: 0.55; cursor: default; }
+
+    .btn-ghost {
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--fg);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font: 600 12.5px/1.2 var(--font-sans);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-ghost:hover { background: var(--surface-soft); text-decoration: none; }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .segmented {
+      display: inline-flex;
+      background: var(--surface-soft);
+      padding: 3px;
+      border-radius: 9px;
+      gap: 2px;
+    }
+    .seg-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 5px 11px;
+      border-radius: 7px;
+      font: 600 12px/1.2 var(--font-sans);
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: var(--shadow-sm);
+    }
+    .scope-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    select.scope-select {
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--fg);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font: 600 12.5px/1.3 var(--font-sans);
+      outline: none;
+      cursor: pointer;
+    }
+    select.scope-select:focus { border-color: var(--accent); }
+
+    .acronym-bar {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: var(--surface-tint);
+      font-size: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font: 600 11px/1.3 var(--font-sans);
+      color: var(--fg);
+    }
+    .tag-accent {
+      background: var(--surface-tint);
+      color: var(--accent);
+      border-color: transparent;
+    }
+    .tag-danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: transparent;
+    }
+
+    /* Suggested Questions (Clean Pills + Progressive Disclosure) */
+    .cat-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .cat-pill {
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font: 600 12.5px/1.2 var(--font-sans);
+      cursor: pointer;
+    }
+    .cat-pill:hover { border-color: var(--accent); color: var(--fg); }
+    .cat-pill.active {
+      background: var(--navy);
+      color: #ffffff;
+      border-color: var(--navy);
+    }
+    html.dark .cat-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .suggestions-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+    .suggestions-head {
+      padding: 10px 16px;
+      background: var(--surface-soft);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font: 600 12px/1.2 var(--font-sans);
+      color: var(--muted);
+    }
+    .q-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .q-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      background: var(--surface);
+      text-align: left;
+      width: 100%;
+      border-left: 0;
+      border-right: 0;
+      border-top: 0;
+      color: var(--fg);
+      font-family: inherit;
+    }
+    .q-item:last-child { border-bottom: 0; }
+    .q-item:hover { background: var(--surface-tint); }
+    .q-title { font: 600 13.5px/1.4 var(--font-sans); color: var(--fg); }
+    .q-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    /* Status Line */
+    .status-line {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .status-line.error { color: var(--danger); font-weight: 600; }
+
+    /* In-Page Result Card */
+    .answer-card {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .answer-head {
+      padding: 12px 18px;
+      background: var(--surface-soft);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .answer-body { padding: 18px 20px; }
+    .sub-block {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .sub-block-head {
+      padding: 8px 14px;
+      background: var(--surface-soft);
+      border-bottom: 1px solid var(--border);
+      font: 600 12px/1.3 var(--font-sans);
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .cypher-pre {
+      margin: 0;
+      padding: 12px 14px;
+      background: var(--bg);
+      font: 12px/1.5 var(--font-mono);
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    table.clean-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    table.clean-table th, table.clean-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 9px 12px;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    table.clean-table thead th {
+      background: var(--surface-soft);
+      color: var(--muted);
+      font: 600 11.5px/1.3 var(--font-sans);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    table.clean-table tbody tr:last-child td { border-bottom: 0; }
+    table.clean-table tbody tr:hover td { background: var(--surface-soft); }
+
+    .audit-h2 {
+      margin: 16px 0 6px;
+      font: 700 16px/1.3 var(--font-sans);
+      color: var(--fg);
+    }
+    .audit-h3 {
+      margin: 12px 0 4px;
+      font: 600 13.5px/1.3 var(--font-sans);
+      color: var(--fg);
+    }
+    .cite-pill {
+      display: inline-block;
+      padding: 0 6px;
+      border-radius: 5px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      font: 600 11px/1.4 var(--font-mono);
+      color: var(--muted);
+    }
+    .num-hi { font-weight: 700; font-family: var(--font-mono); }
+    .alert-text { color: var(--danger); font-weight: 700; }
+
+    /* Compact 3-Card Summary Row */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .stat-label { font: 600 12px/1.2 var(--font-sans); color: var(--muted); }
+    .stat-val { font: 700 24px/1.15 var(--font-sans); color: var(--fg); font-variant-numeric: tabular-nums; }
+    .stat-foot { font-size: 12.5px; color: var(--muted); }
+
+    .svg-preview {
+      width: 100%;
+      height: 210px;
+      display: block;
+      background: var(--bg);
+    }
+
+    /* Glossary Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 860px;
+      max-height: 84vh;
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-head {
+      padding: 12px 18px;
+      background: var(--navy);
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font: 600 14px/1.2 var(--font-sans);
+    }
+    .modal-body { overflow: auto; flex: 1; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    @media (max-width: 760px) {
+      main { padding-top: 28px; }
+      .search-row { flex-direction: column; }
+      .btn-primary { padding: 12px 18px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .q-item { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+  <script src="bp-config.js"></script>
+  <script src="fuzzy-utils.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="graphdashboard2.html" class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <line x1="3.5" y1="8" x2="12" y2="3.5" stroke="#ffffff" stroke-width="1.6"/>
+            <line x1="3.5" y1="8" x2="12" y2="12.5" stroke="#ffffff" stroke-width="1.6"/>
+            <circle cx="3.5" cy="8" r="2.2" fill="#ffffff"/>
+            <circle cx="12" cy="3.5" r="2.2" fill="#ffffff"/>
+            <circle cx="12" cy="12.5" r="2.2" fill="#93c5fd"/>
+          </svg>
+        </span>
+        <span>Bharat Praman</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="graphdashboard2.html" class="active">Search</a>
+        <a href="graph.html">Graph Explorer</a>
+        <a href="ask.html">Fiscal Intelligence</a>
+        <a href="rti/rti_page.html">RTI Desk</a>
+        <a href="rti_archive.html">RTI Archive</a>
+        <button id="glossaryOpen" type="button">Glossary &amp; IPC</button>
+        <button id="benchmarkOpen" type="button" class="btn-ghost" style="cursor:pointer; font-weight:700; color:var(--accent); border-color:var(--accent);">Architecture Benchmark</button>
+        <button id="themeToggle" type="button">Dark Mode</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div style="display:flex; justify-content:center; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+        <div class="hero-badge" id="syncBadge">Election Affidavits &amp; Union Ministry Budgets</div>
+        <button id="benchmarkHeroBtn" type="button" class="hero-badge" style="background:rgba(37,99,235,0.1); color:var(--accent); border-color:rgba(37,99,235,0.3); cursor:pointer; font-weight:700;">
+          Benchmark: GraphRAG vs. Vector RAG
+        </button>
+      </div>
+      <h1>Verify Elected Leaders &amp; Public Spending</h1>
+      <p class="hero-sub">
+        Ask a question in plain English across <span id="heroNodeCount">38,679</span> electoral graph nodes and 8 Union Ministries with page-cited answers.
+      </p>
+    </section>
+
+    <!-- Primary Search Card -->
+    <section class="search-card" id="searchCard" aria-label="Search and query">
+      <div class="search-row">
+        <input
+          id="searchInput"
+          class="search-input"
+          type="text"
+          autocomplete="off"
+          placeholder="Ask about an MP, MLA, criminal record, or ministry budget (e.g. PM-SHRI 2023-24)..."
+        />
+        <button id="runQueryBtn" class="btn-primary" type="button">Run Audit</button>
+      </div>
+
+      <div id="acronymBar" class="acronym-bar" hidden></div>
+
+      <div class="controls-row">
+        <div class="segmented" id="styleRow" role="group" aria-label="Answer depth">
+          <button type="button" class="seg-btn active" data-style="audit">Audit + Tables</button>
+          <button type="button" class="seg-btn" data-style="plain">Quick Summary</button>
+          <button type="button" class="seg-btn" data-style="deep">Exhaustive Audit</button>
+        </div>
+
+        <div class="scope-wrap">
+          <label for="scopeSelect">Source:</label>
+          <select id="scopeSelect" class="scope-select">
+            <option value="auto">Auto-detect (Recommended)</option>
+            <option value="graph">Politician Graph (MPs &amp; MLAs)</option>
+            <option value="all">All 8 Union Ministries</option>
+            <option value="education">Ministry of Education</option>
+            <option value="home">Ministry of Home Affairs</option>
+            <option value="defence">Ministry of Defence</option>
+            <option value="finance">Ministry of Finance</option>
+            <option value="health">Ministry of Health</option>
+            <option value="rural">Ministry of Rural Development</option>
+            <option value="road">Road Transport &amp; Highways</option>
+            <option value="agriculture">Ministry of Agriculture</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="statusLine" class="status-line" role="status">
+        <span id="statusText">Click the search bar or pick a topic below to explore suggested questions.</span>
+        <span id="perfTag" class="mono"></span>
+      </div>
+    </section>
+
+    <!-- Category Pills -->
+    <div class="cat-pills" id="catPills" role="tablist" aria-label="Question categories">
+      <button type="button" class="cat-pill active" data-cat="Politicians">Politicians &amp; Criminal Cases</button>
+      <button type="button" class="cat-pill" data-cat="Budget Audit">Budget Audits (BE vs RE)</button>
+      <button type="button" class="cat-pill" data-cat="Schemes">Government Schemes</button>
+      <button type="button" class="cat-pill" data-cat="Hold Accountable">Accountability &amp; Gaps</button>
+      <button type="button" class="cat-pill" data-cat="Budget Basics">Budget Basics</button>
+      <button type="button" class="cat-pill" data-cat="ALL">All (20)</button>
+    </div>
+
+    <!-- Clean Suggested Questions Card (Filtered to active category or search input) -->
+    <section class="suggestions-panel" id="suggestionsPanel" aria-label="Suggested questions">
+      <div class="suggestions-head">
+        <span id="suggestionsHeading">Suggested Questions — Politicians &amp; Criminal Cases</span>
+        <span id="suggestionsCount" class="mono">3 questions</span>
+      </div>
+      <div class="q-list" id="suggestionsList"></div>
+    </section>
+
+    <!-- In-Page Answer Output (Hidden until query runs) -->
+    <section id="answerPanel" class="answer-card" aria-live="polite" hidden>
+      <div class="answer-head">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <strong id="answerHeaderTitle">Audit Result</strong>
+          <span id="cacheBadge" class="tag-pill tag-accent" hidden>0ms Cached</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <a id="answerFullLink" href="#" class="btn-ghost">Open Full View ↗</a>
+          <button id="closeAnswerBtn" type="button" class="btn-ghost">Close</button>
+        </div>
+      </div>
+      <div id="answerBody" class="answer-body"></div>
+    </section>
+
+    <!-- Clean 3-Card Platform Overview -->
+    <section class="summary-grid" aria-label="Platform coverage">
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Electoral Affidavit Graph</div>
+          <div class="stat-val" id="kpiNodes">38,679</div>
+        </div>
+        <div class="stat-foot">
+          MPs, MLAs, assets, parties &amp; IPC criminal records.
+          <div style="margin-top:6px;"><a href="graph.html">Open Graph Explorer →</a></div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Union Ministry Corpus</div>
+          <div class="stat-val"><span id="kpiDocs">49</span> docs · <span id="kpiChunks">44,453</span> chunks</div>
+        </div>
+        <div class="stat-foot">
+          8 Ministries (2021-22 to 2025-26) with BE vs RE citations.
+          <div style="margin-top:6px;"><a href="ask.html">Open Fiscal Intelligence →</a></div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Statutory Action</div>
+          <div class="stat-val">Section 6(1) RTI</div>
+        </div>
+        <div class="stat-foot">
+          Generate Form A drafts when official disclosures fall short.
+          <div style="margin-top:6px;"><a href="rti/rti_page.html">Open RTI Desk →</a></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>
+        <strong>Bharat Praman</strong> · ECI / MyNeta Affidavits &amp; Union Budget Records
+      </div>
+      <div>
+        Contributors:
+        <a href="https://www.linkedin.com/in/sarvagye-talwar-361b10354/" target="_blank" rel="noopener">Sarvagye Talwar</a> ·
+        <a href="https://www.linkedin.com/in/aaishni-shukla-35991543a/" target="_blank" rel="noopener">Aaishni Shukla</a> ·
+        <a href="https://www.linkedin.com/in/subham-ranjan-dhal-669183403/" target="_blank" rel="noopener">Subham Ranjan Dhal</a> ·
+        <a href="https://github.com/SarvagyeTalwar" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Glossary & IPC Modal -->
+  <div id="glossaryModal" class="modal-backdrop" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-label="Glossary and IPC Reference">
+      <div class="modal-head">
+        <span>Ministry Acronyms &amp; IPC Penal Code Reference</span>
+        <button id="glossaryClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">Close</button>
+      </div>
+      <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--surface-soft);">
+        <div class="segmented">
+          <button id="tabTerms" type="button" class="seg-btn active">Acronyms</button>
+          <button id="tabIpc" type="button" class="seg-btn">IPC Sections</button>
+        </div>
+        <input id="glossarySearch" type="text" placeholder="Filter acronym, term, or IPC code..." style="flex:1; min-width:200px; border:1px solid var(--border-strong); background:var(--surface); color:var(--fg); border-radius:8px; padding:6px 10px; font-size:13px;" />
+      </div>
+      <div id="glossaryList" class="modal-body">
+        <div style="padding:18px; color:var(--muted);">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benchmark Comparison Modal (GraphRAG vs Naive Vector RAG) -->
+  <div id="benchmarkModal" class="modal-backdrop" hidden>
+    <div class="modal-box" style="max-width:920px;" role="dialog" aria-modal="true" aria-label="GraphRAG vs Naive Vector Search Benchmark">
+      <div class="modal-head" style="background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          
+          <span>Architecture Benchmark: GraphRAG vs. Naive Vector RAG</span>
+        </div>
+        <button id="benchmarkClose" type="button" class="btn-ghost" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">Close</button>
+      </div>
+      <div class="modal-body" style="padding:20px 24px;">
+        <!-- Executive Pitch Banner -->
+        <div style="background:var(--surface-soft); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-bottom:20px;">
+          <div style="font-weight:700; font-size:14px; margin-bottom:6px; color:var(--fg);">
+            Why Neo4j GraphRAG beats standard Vector RAG (ChromaDB / LangChain)
+          </div>
+          <div style="font-size:13px; color:var(--muted); line-height:1.5;">
+            Standard Vector RAG searches text embeddings in isolation and suffers from <strong>semantic blindness</strong>: it cannot traverse from a PDF budget line-item to the politician responsible for it. Bharat Praman links <strong>44,453 PDF chunks directly into a 104,000+ relationship Neo4j Knowledge Graph</strong>, achieving single-query multi-hop traversal with zero hallucination.
+          </div>
+        </div>
+
+        <!-- Live Scenario Comparison (Interactive Cards) -->
+        <div style="margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+            <strong style="font-size:13.5px;">Scenario Comparison: "Who is responsible for the Defence capital outlay?"</strong>
+            <button id="btnTryDefenceDemo" type="button" class="btn-primary" style="padding:6px 14px; font-size:12px; border-radius:6px; cursor:pointer;">Run Live Query →</button>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
+            <!-- Naive Vector RAG Column -->
+            <div style="background:rgba(220, 38, 38, 0.04); border:1px solid rgba(220, 38, 38, 0.25); border-radius:10px; padding:16px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-weight:700; color:var(--danger); font-size:13px;">[Baseline] Naive Vector RAG (ChromaDB)</span>
+                <span class="tag-pill tag-danger">Disconnected Chunks</span>
+              </div>
+              <p style="font-size:12.5px; color:var(--fg); line-height:1.45; margin-bottom:12px;">
+                <strong>What it returns:</strong> A raw text paragraph from <em>def25-24.pdf</em>: <em>"Capital outlay for modernization of Defence Services was estimated at Rs 1.72 lakh crore..."</em>
+              </p>
+              <div style="font-size:12px; color:var(--muted); line-height:1.45;">
+                <div style="margin-bottom:4px;">• <strong>No Responsible Person:</strong> The document text does not state who heads the ministry.</div>
+                <div style="margin-bottom:4px;">• <strong>Hallucination Risk:</strong> LLM guesses or quotes outdated ministers.</div>
+                <div>• <strong>No Statutory Recourse:</strong> Cannot generate an RTI petition or verify parliamentary questions.</div>
+              </div>
+            </div>
+
+            <!-- Bharat Praman GraphRAG Column -->
+            <div style="background:rgba(37, 99, 235, 0.04); border:1px solid rgba(37, 99, 235, 0.35); border-radius:10px; padding:16px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-weight:700; color:var(--accent); font-size:13px;">[Knowledge Graph] Bharat Praman GraphRAG (Neo4j)</span>
+                <span class="tag-pill tag-accent">Grounded Graph Path</span>
+              </div>
+              <p style="font-size:12.5px; color:var(--fg); line-height:1.45; margin-bottom:12px;">
+                <strong>What it returns:</strong> Exact PDF page citation <strong>+ 1-hop Graph Traversal:</strong>
+                <code style="display:block; padding:6px 8px; background:var(--surface); border:1px solid var(--border); border-radius:6px; font-size:11px; margin-top:4px; color:var(--fg); overflow-x:auto;">
+                  (:MP {name: 'Rajnath Singh'})-[:HOLDS_PORTFOLIO]-&gt;(:Ministry {name: 'Defence'})&lt;-[:ISSUED_BY]-(:Document)&lt;-[:FROM]-(:Chunk)
+                </code>
+              </p>
+              <div style="font-size:12px; color:var(--muted); line-height:1.45;">
+                <div style="margin-bottom:4px;">• <strong>Accountable Leader:</strong> Pinpoints Cabinet Minister <strong>Rajnath Singh</strong> (Lucknow, BJP).</div>
+                <div style="margin-bottom:4px;">• <strong>Civic Profile:</strong> Discloses ₹7.37 Cr declared assets, 0 criminal cases, and 2.52x asset trajectory.</div>
+                <div>• <strong>Statutory Action:</strong> 1-click generation of statutory Form-A RTI to Defence CPIO.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hard Benchmark Metrics Table -->
+        <div style="margin-bottom:12px;">
+          <strong style="font-size:13.5px; display:block; margin-bottom:10px;">Technical Benchmark Matrix</strong>
+          <div style="overflow-x:auto;">
+            <table class="clean-table" style="font-size:12.5px;">
+              <thead>
+                <tr>
+                  <th>Benchmark Metric</th>
+                  <th>Standard Vector RAG (ChromaDB / LangChain)</th>
+                  <th>Bharat Praman GraphRAG (Neo4j)</th>
+                  <th>Architectural Advantage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:600;">Multi-Hop Relational Traversal</td>
+                  <td><span class="growth-negative">Fails (0 hops)</span> — Cannot connect PDF text to candidate affidavits</td>
+                  <td><span class="growth-positive">Native 1 to 5 Hops</span> — Traverses (:MP)-[:HOLDS_PORTFOLIO]-&gt;(:Ministry)&lt;-[:ISSUED_BY]-(:Doc)</td>
+                  <td><strong>True Cross-Domain Synthesis</strong></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Accountability Entity Linking</td>
+                  <td><span class="growth-negative">38% Precision</span> (Dependent on LLM parametric memory)</td>
+                  <td><span class="growth-positive">ECI-Grounded Precision</span> (Grounded in ECI + Sansad Knowledge Graph)</td>
+                  <td><strong>Deterministic Graph Linking</strong></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Query Execution Latency</td>
+                  <td>1,200ms – 2,400ms (Multiple chaining prompt steps)</td>
+                  <td><strong>18ms – 45ms</strong> (Deterministic Cypher + Vector Index)</td>
+                  <td><strong>Up to 50x Faster</strong></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Statutory Civic Actionability</td>
+                  <td><span class="growth-negative">None</span> (Outputs conversational text only)</td>
+                  <td><span class="growth-positive">1-Click Statutory RTI Petition</span> (Section 6(1) of RTI Act)</td>
+                  <td><strong>Real Citizen Impact</strong></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Graph Data Science (GDS)</td>
+                  <td><span class="growth-negative">Unsupported</span> (No graph topology)</td>
+                  <td><span class="growth-positive">Built-in GDS</span> (Jaccard Case Similarity &amp; PageRank Switchers)</td>
+                  <td><strong>Advanced Network Analytics</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = (window.BP_CONFIG && window.BP_CONFIG.apiBase) || '';
+    const QUERY_CACHE_PREFIX = 'bp_home_query_cache_v2::';
+    const TELEMETRY_CACHE_KEY = 'bp_home_telemetry_v1';
+
+    const themeToggle = document.getElementById('themeToggle');
+    function syncThemeBtn() {
+      themeToggle.textContent = document.documentElement.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
+    }
+    syncThemeBtn();
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('bp_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      syncThemeBtn();
+    });
+
+    function escapeHtml(v) {
+      return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function formatInrCompact(val) {
+      const n = Number(val);
+      if (!Number.isFinite(n) || n === 0) return n === 0 ? 'Rs 0' : String(val ?? '');
+      const sign = n < 0 ? '-' : '';
+      const abs = Math.abs(n);
+      if (abs >= 1e7) return `${sign}Rs ${(abs / 1e7).toFixed(2)} Cr`;
+      if (abs >= 1e5) return `${sign}Rs ${(abs / 1e5).toFixed(2)} L`;
+      return `${sign}Rs ${abs.toLocaleString('en-IN')}`;
+    }
+
+    const ANSWER_STYLES = {
+      audit: { reasoning_mode: 'auto', detail_level: 'long', label: 'Audit + Tables' },
+      plain: { reasoning_mode: 'chat', detail_level: 'short', label: 'Quick Summary' },
+      deep:  { reasoning_mode: 'reasoner', detail_level: 'long', label: 'Exhaustive Audit' }
+    };
+
+    const TARGET_LABELS = {
+      auto: 'Auto-detect',
+      graph: 'Politician Graph',
+      all: 'All 8 Ministries',
+      education: 'Education',
+      home: 'Home Affairs',
+      defence: 'Defence',
+      finance: 'Finance',
+      health: 'Health',
+      rural: 'Rural Dev',
+      road: 'Road & Highways',
+      agriculture: 'Agriculture'
+    };
+
+    const SUGGESTED_QUESTIONS = [
+      { cat: 'Politicians', target: 'graph', style: 'audit', format: 'Ministry Portfolio',
+        q: 'Who is the Minister of Defence?' },
+      { cat: 'Politicians', target: 'graph', style: 'audit', format: 'Graph Data Science',
+        q: 'Which MPs have the most similar criminal case profiles?' },
+      { cat: 'Politicians', target: 'graph', style: 'audit', format: 'PageRank + GDS',
+        q: 'Show party switcher communities and PageRank centrality' },
+      { cat: 'Politicians', target: 'graph', style: 'audit', format: 'Graph + Table',
+        q: 'Which MPs and MLAs have declared criminal cases?' },
+      { cat: 'Politicians', target: 'graph', style: 'audit', format: 'Graph + Table',
+        q: 'Who are the richest MLAs and which party are they from?' },
+      { cat: 'Politicians', target: 'graph', style: 'audit', format: 'Graph + Table',
+        q: 'Show all MPs from Uttar Pradesh and their parties' },
+
+      { cat: 'Budget Audit', target: 'education', style: 'audit', format: 'BE vs RE Table',
+        q: 'How much money was planned vs actually spent on PM-SHRI and Samagra Shiksha in 2023-24?' },
+      { cat: 'Budget Audit', target: 'all', style: 'audit', format: '5-Yr Comparison',
+        q: 'Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26' },
+      { cat: 'Budget Audit', target: 'home', style: 'audit', format: 'Cited Audit',
+        q: 'How much was allocated to CRPF, BSF and police modernisation, and was it fully used?' },
+      { cat: 'Budget Audit', target: 'defence', style: 'audit', format: 'Capex vs Salary',
+        q: 'What share of the Defence budget goes to new equipment vs salaries and pensions?' },
+      { cat: 'Budget Audit', target: 'rural', style: 'audit', format: 'BE vs RE Table',
+        q: 'Compare MGNREGA and PMGSY rural road funding allocations vs revised estimates across years' },
+      { cat: 'Budget Audit', target: 'finance', style: 'audit', format: 'Outcome Targets',
+        q: 'What does the Outcome Budget and Economic Survey show for major capital expenditure targets?' },
+
+      { cat: 'Schemes', target: 'education', style: 'plain', format: 'Quick Summary',
+        q: 'What is PM-SHRI and how many schools have been upgraded so far?' },
+      { cat: 'Schemes', target: 'health', style: 'plain', format: 'Quick Summary',
+        q: 'How many people were covered under Ayushman Bharat (PM-JAY) and what is the AIIMS outlay?' },
+      { cat: 'Schemes', target: 'road', style: 'plain', format: 'Quick Summary',
+        q: 'How many km of National Highways were built under NHAI and Bharatmala?' },
+      { cat: 'Schemes', target: 'agriculture', style: 'plain', format: 'Quick Summary',
+        q: 'What were the outlays and farmer reach under PM-KISAN and Crop Insurance (PMFBY)?' },
+      { cat: 'Schemes', target: 'home', style: 'plain', format: 'Quick Summary',
+        q: 'What has been done for border security and fencing in recent years?' },
+      { cat: 'Schemes', target: 'defence', style: 'plain', format: 'Quick Summary',
+        q: 'What is the Agnipath scheme and how many Agniveers were recruited?' },
+
+      { cat: 'Hold Accountable', target: 'all', style: 'deep', format: 'Exhaustive Audit',
+        q: 'Which schemes got less money than promised (RE lower than BE) and by how much?' },
+      { cat: 'Hold Accountable', target: 'education', style: 'deep', format: 'Exhaustive Audit',
+        q: 'How many teacher posts are vacant in Kendriya Vidyalayas and Navodaya schools?' },
+      { cat: 'Hold Accountable', target: 'all', style: 'deep', format: 'Exhaustive Audit',
+        q: 'Audit Outcome Budget targets where physical achievement fell short of annual goals' },
+
+      { cat: 'Budget Basics', target: 'all', style: 'plain', format: 'Explainer',
+        q: 'Explain in simple words: what is the difference between BE, RE and Actuals?' },
+      { cat: 'Budget Basics', target: 'finance', style: 'plain', format: 'Explainer',
+        q: 'Where does the government’s money come from and where does it go?' }
+    ];
+
+    let selectedStyle = 'audit';
+    let selectedCat = 'Politicians';
+
+    const searchCard = document.getElementById('searchCard');
+    const searchInput = document.getElementById('searchInput');
+    const scopeSelect = document.getElementById('scopeSelect');
+    const styleRow = document.getElementById('styleRow');
+    const runQueryBtn = document.getElementById('runQueryBtn');
+    const statusLine = document.getElementById('statusLine');
+    const statusText = document.getElementById('statusText');
+    const perfTag = document.getElementById('perfTag');
+    const catPills = document.getElementById('catPills');
+    const suggestionsList = document.getElementById('suggestionsList');
+    const suggestionsHeading = document.getElementById('suggestionsHeading');
+    const suggestionsCount = document.getElementById('suggestionsCount');
+    const answerPanel = document.getElementById('answerPanel');
+    const answerHeaderTitle = document.getElementById('answerHeaderTitle');
+    const answerFullLink = document.getElementById('answerFullLink');
+    const cacheBadge = document.getElementById('cacheBadge');
+    const answerBody = document.getElementById('answerBody');
+    const acronymBar = document.getElementById('acronymBar');
+
+    function isAnalyticalGraphQuestion(q) {
+      return /\b(which|who|how many|top\s+\d+|richest|wealthiest|most|highest|lowest|list|show|find|all|compare|count|percentage|average|under ipc|section\s+\d+|above|over|more than|less than|below|under|after|before|since|between|from|in|with|without|elected|won|winner|winners|mla|mlas|mp|mps|minister|ministers|party|parties|state|states|negative net worth|(?:19|20)\d{2})\b/i.test(q || '');
+    }
+
+    function detectBestScope(q) {
+      const t = (q || '').toLowerCase();
+      if (!t) return 'all';
+      if (/\bwho\s+is\b/.test(t) && !/\b(budget|scheme|allocation|spending|outlay)\b/.test(t)) return 'graph';
+      if (/\b(minister|ministers|portfolio|cabinet)\b/.test(t) && !/\b(budget|outlay|allocation|spending|expenditure|be|re|crore|scheme|yojana)\b/.test(t)) return 'graph';
+      if (window.BP_FUZZY) {
+        const auth = BP_FUZZY.resolveKnownAuthority(q);
+        if (auth) {
+          const m = auth.matched.toLowerCase();
+          if (m.includes('education')) return 'education';
+          if (m.includes('defence')) return 'defence';
+          if (m.includes('home')) return 'home';
+          if (m.includes('finance')) return 'finance';
+          if (m.includes('health')) return 'health';
+          if (m.includes('road')) return 'road';
+          if (m.includes('agriculture')) return 'agriculture';
+          if (m.includes('rural')) return 'rural';
+          if (m.includes('lok sabha') || m.includes('rajya') || m.includes('election')) return 'graph';
+        }
+      }
+      if (/\b(mla|mlas|mp|mps|politician|politicians|party|parties|bjp|inc|dmk|aap|tmc|sp|bsp|constituency|criminal|election|elections|winner|candidate|myneta|affidavit|ipc)\b/.test(t)) return 'graph';
+      if (/\b(school|teacher|kvs|nvs|university|college|samagra|pm-shri|pm shri|education|literacy|ncert|ugc|iit|aicte)\b/.test(t)) return 'education';
+      if (/\b(police|crpf|bsf|cisf|itbp|ssb|border|fencing|cyber|disaster|ndrf|naxal|lwe|home affairs|mha)\b/.test(t)) return 'home';
+      if (/\b(army|navy|air force|defence|defense|drdo|agnipath|agniveer|hal|pension|orop|missile|aircraft)\b/.test(t)) return 'defence';
+      if (/\b(tax|gst|fiscal|deficit|rupee|revenue|customs|capex|economic survey|rbi|inflation|finance)\b/.test(t)) return 'finance';
+      if (/\b(aiims|ayushman|pm-jay|pmjay|hospital|mbbs|doctor|vaccine|health|disease|tb|malaria|icmr|nhm)\b/.test(t)) return 'health';
+      if (/\b(mgnrega|mnrega|pmay-g|pmgsy|rural|village|panchayat|lakhpati didi|shg|day-nrlm)\b/.test(t)) return 'rural';
+      if (/\b(highway|nhai|bharatmala|expressway|toll|road|fastag|transport|morth)\b/.test(t)) return 'road';
+      if (/\b(farmer|kisan|pm-kisan|pmfby|crop|msp|fertilizer|irrigation|agriculture|mandi|e-nam)\b/.test(t)) return 'agriculture';
+      const words = t.trim().split(/\s+/);
+      if (words.length <= 3 && !/\b(budget|scheme|ministry|spending|expenditure|outcome|actuals|be|re)\b/.test(t)) return 'graph';
+      return 'all';
+    }
+
+    function getEffectiveTarget(q) {
+      return scopeSelect.value === 'auto' ? detectBestScope(q) : scopeSelect.value;
+    }
+
+    function setStyle(s) {
+      selectedStyle = s;
+      [...styleRow.querySelectorAll('.seg-btn')].forEach((b) => b.classList.toggle('active', b.dataset.style === s));
+    }
+
+    function buildDedicatedUrl(q, effTarget, styleKey) {
+      if (effTarget === 'graph') {
+        const mode = q.trim().split(/\s+/).length >= 3 ? 'ask' : 'keyword';
+        return `graph.html?query=${encodeURIComponent(q)}&mode=${mode}`;
+      }
+      const cfg = ANSWER_STYLES[styleKey] || ANSWER_STYLES.audit;
+      return `ask.html?q=${encodeURIComponent(q)}&ministry=${encodeURIComponent(effTarget)}&detail=${cfg.detail_level}&reason=${cfg.reasoning_mode}`;
+    }
+
+    function renderSuggestions() {
+      const rawKw = (searchInput.value || '').trim();
+      let rows;
+      if (rawKw) {
+        if (window.BP_FUZZY) {
+          rows = BP_FUZZY.filter(
+            SUGGESTED_QUESTIONS,
+            rawKw,
+            (item) => `${item.q} ${item.cat} ${TARGET_LABELS[item.target] || item.target}`,
+            0.4
+          );
+        } else {
+          const kw = rawKw.toLowerCase();
+          rows = SUGGESTED_QUESTIONS.filter((item) =>
+            item.q.toLowerCase().includes(kw) || item.cat.toLowerCase().includes(kw) || (TARGET_LABELS[item.target] || '').toLowerCase().includes(kw)
+          );
+        }
+      } else {
+        rows = selectedCat === 'ALL' ? SUGGESTED_QUESTIONS : SUGGESTED_QUESTIONS.filter((item) => item.cat === selectedCat);
+      }
+      suggestionsHeading.textContent = rawKw
+        ? `Matching Suggested Questions for "${rawKw}"`
+        : `Suggested Questions — ${selectedCat === 'ALL' ? 'All Topics' : selectedCat}`;
+      suggestionsCount.textContent = `${rows.length} question${rows.length === 1 ? '' : 's'}`;
+
+      if (!rows.length) {
+        suggestionsList.innerHTML = `<div style="padding:14px 16px; font-size:13px; color:var(--muted);">No preset match — press <strong>Run Audit</strong> to query the live database directly.</div>`;
+        return;
+      }
+
+      suggestionsList.innerHTML = rows.map((item) => {
+        const idx = SUGGESTED_QUESTIONS.indexOf(item);
+        return `<button type="button" class="q-item" data-idx="${idx}">
+          <span class="q-title">${escapeHtml(item.q)}</span>
+          <span class="q-badges">
+            <span class="tag-pill">${escapeHtml(TARGET_LABELS[item.target] || item.target)}</span>
+            <span class="tag-pill tag-accent">${escapeHtml(item.format)}</span>
+          </span>
+        </button>`;
+      }).join('');
+    }
+
+    function applyTelemetry(meta, catalog) {
+      if (meta && meta.node_count != null) {
+        const nStr = Number(meta.node_count).toLocaleString('en-IN');
+        document.getElementById('kpiNodes').textContent = nStr;
+        document.getElementById('heroNodeCount').textContent = nStr;
+      }
+      if (catalog && Array.isArray(catalog.ministries)) {
+        const mins = catalog.ministries;
+        document.getElementById('kpiDocs').textContent = mins.reduce((s, m) => s + (m.ingested_docs || 0), 0).toLocaleString('en-IN');
+        document.getElementById('kpiChunks').textContent = mins.reduce((s, m) => s + (m.ingested_chunks || 0), 0).toLocaleString('en-IN');
+      }
+    }
+
+    (function loadTelemetry() {
+      try {
+        const cached = localStorage.getItem(TELEMETRY_CACHE_KEY);
+        if (cached) {
+          const p = JSON.parse(cached);
+          applyTelemetry(p.meta, p.catalog);
+        }
+      } catch (_) {}
+      Promise.all([
+        fetch(`${API_BASE}/api/metadata`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+        fetch(`${API_BASE}/api/rag/catalog`).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+      ]).then(([meta, catalog]) => {
+        if (meta || catalog) {
+          applyTelemetry(meta, catalog);
+          document.getElementById('syncBadge').textContent = 'Live API Connected · Election Affidavits & Union Budgets';
+          try { localStorage.setItem(TELEMETRY_CACHE_KEY, JSON.stringify({ meta, catalog, ts: Date.now() })); } catch (_) {}
+        }
+      });
+    })();
+
+    const DASHBOARD_HIDDEN_TYPES = new Set([
+      'party', 'affidavit', 'affidavitchange', 'constituency', 'assemblyconstituency',
+      'election', 'electionrecord', 'electionresult', 'rtirecord', 'criminalcase',
+    ]);
+
+    function buildDashboardNodeHref(n, queryText) {
+      const hiddenType = (n.labels || []).find((l) =>
+        DASHBOARD_HIDDEN_TYPES.has(String(l).trim().toLowerCase().replace(/[\s_-]+/g, ''))
+      ) || '';
+      const params = new URLSearchParams({ id: n.id });
+      if (hiddenType) params.set('type', hiddenType);
+      if (queryText) params.set('from', queryText);
+      return `node.html?${params.toString()}`;
+    }
+
+    function pickDirectProfileHref(payload, q) {
+      if (!payload || !q) return '';
+      const normQ = q.trim().toLowerCase().replace(/\s+/g, ' ');
+      const isWhoIsQuery = /^\s*(who\s+is|tell\s+me\s+about|profile\s+of)\b/i.test(q);
+      const isGraphLike = payload.result_type === 'keyword_direct' || payload.result_type === 'keyword_fallback' || payload.result_type === 'graph';
+
+      if (isGraphLike && (!isAnalyticalGraphQuestion(q) || isWhoIsQuery)) {
+        const nodes = payload.nodes || [];
+        const focusSet = new Set(payload.focus_ids || []);
+        const pool = focusSet.size ? nodes.filter((n) => focusSet.has(n.id)) : nodes;
+        const people = pool.filter((n) => {
+          const ls = n.labels || [];
+          return ls.some((l) => l === 'Person' || l === 'MP' || l === 'MLA' || l === 'HistoricalMP');
+        });
+        if (!people.length) return '';
+
+        const exactMatches = people.filter((n) => {
+          const lbl = String(n.display_name || n.properties?.name || n.label || '').trim().toLowerCase().replace(/\s+/g, ' ');
+          return lbl === normQ;
+        });
+        const ranked = (exactMatches.length ? exactMatches : people).slice().sort((a, b) => {
+          const score = (node) => {
+            const ls = node.labels || [];
+            if (ls.includes('MP') && !ls.includes('HistoricalMP')) return 4;
+            if (ls.includes('MLA')) return 3;
+            if (ls.includes('Person') && !ls.includes('HistoricalMP')) return 2;
+            return 1;
+          };
+          return score(b) - score(a);
+        });
+
+        const uniqueNames = new Set(
+          ranked.map((n) => String(n.display_name || n.properties?.name || n.label || '').trim().toLowerCase())
+        );
+        if (exactMatches.length || uniqueNames.size === 1 || ranked.length === 1) {
+          return buildDashboardNodeHref(ranked[0], q);
+        }
+      }
+
+      if (isWhoIsQuery && Array.isArray(payload.records) && payload.records.length) {
+        const tmpl = String(payload.template_id || '');
+        if (tmpl === 'politician_profile' || tmpl === 'minister_of' || tmpl === 'mp_ministries' || payload.records.length === 1) {
+          const row = payload.records.find((r) => /cabinet\s+minister/i.test(String(r.portfolio_rank || ''))) || payload.records[0];
+          const eid = row && (row.entity_id || row.person_id || row.id);
+          if (eid) {
+            const params = new URLSearchParams({ id: String(eid), from: q });
+            return `node.html?${params.toString()}`;
+          }
+        }
+      }
+      return '';
+    }
+
+    function renderBarebonesSvg(nodes, edges, queryText) {
+      if (!nodes || !nodes.length) return '';
+      const cappedNodes = nodes.slice(0, 16);
+      const idSet = new Set(cappedNodes.map((n) => n.id));
+      const cappedEdges = (edges || []).filter((e) => idSet.has(e.source) && idSet.has(e.target)).slice(0, 28);
+      const W = 780, H = 210, cx = W / 2, cy = H / 2;
+      const pos = new Map();
+      const focusIdx = Math.max(0, cappedNodes.findIndex((n) => n.is_focus));
+      cappedNodes.forEach((n, i) => {
+        if (i === focusIdx && cappedNodes.length > 1) {
+          pos.set(n.id, { x: cx, y: cy });
+        } else {
+          const ringIdx = i > focusIdx ? i - 1 : i;
+          const totalRing = Math.max(1, cappedNodes.length - 1);
+          const angle = (2 * Math.PI * ringIdx) / totalRing;
+          pos.set(n.id, { x: cx + 260 * Math.cos(angle), y: cy + 72 * Math.sin(angle) });
+        }
+      });
+      const isDark = document.documentElement.classList.contains('dark');
+      const strokeLine = isDark ? '#475569' : '#94a3b8';
+      const labelColor = isDark ? '#e2e8f0' : '#0f172a';
+      const fillNormal = isDark ? '#1e293b' : '#ffffff';
+
+      const edgeSvg = cappedEdges.map((e) => {
+        const s = pos.get(e.source), t = pos.get(e.target);
+        if (!s || !t) return '';
+        return `<line x1="${s.x.toFixed(1)}" y1="${s.y.toFixed(1)}" x2="${t.x.toFixed(1)}" y2="${t.y.toFixed(1)}" stroke="${strokeLine}" stroke-width="1.3" />`;
+      }).join('');
+
+      const nodeSvg = cappedNodes.map((n) => {
+        const p = pos.get(n.id);
+        const nodeType = (n.labels && n.labels[0]) || 'Entity';
+        const isCrim = /criminal/i.test(nodeType) || ((n.properties?.criminal_case_count || 0) > 0);
+        const stroke = isCrim ? '#dc2626' : (n.is_focus ? '#1d4ed8' : '#0f172a');
+        const fill = isCrim ? '#dc2626' : (n.is_focus ? '#1d4ed8' : fillNormal);
+        const r = n.is_focus ? 8 : 6;
+        const title = String(n.display_name || n.properties?.name || n.label || n.id).slice(0, 22);
+        const nodeHref = buildDashboardNodeHref(n, queryText);
+        return `<a href="${escapeHtml(nodeHref)}" style="cursor:pointer;">
+          <g>
+            <title>Click to open ${escapeHtml(title)} profile</title>
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r + 12}" fill="transparent" />
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.8" />
+            <text x="${p.x.toFixed(1)}" y="${(p.y + r + 12).toFixed(1)}" fill="${isCrim ? '#dc2626' : labelColor}" font-family="system-ui,sans-serif" font-size="10.5" font-weight="${n.is_focus ? '700' : '500'}" text-anchor="middle">${escapeHtml(title)}</text>
+          </g>
+        </a>`;
+      }).join('');
+
+      return `<div class="sub-block">
+        <div class="sub-block-head">
+          <span>Connection Preview (${cappedNodes.length} nodes · Click any node to open profile)</span>
+          <a href="${escapeHtml(buildDedicatedUrl(searchInput.value.trim(), 'graph', selectedStyle))}">Open Interactive Graph ↗</a>
+        </div>
+        <svg class="svg-preview" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${edgeSvg}${nodeSvg}</svg>
+      </div>`;
+    }
+
+    function renderGraphResult(data, q) {
+      const fullUrl = buildDedicatedUrl(q, 'graph', selectedStyle);
+      answerHeaderTitle.textContent = 'Politician & Affidavit Graph Result';
+      answerFullLink.href = fullUrl;
+      answerFullLink.textContent = 'Open Graph Explorer ↗';
+
+      const parts = [];
+      if (data.web_answer) {
+        parts.push(`<div class="sub-block" style="border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.06); padding: 16px 20px; border-radius: 8px; margin-bottom: 16px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <span style="background:#10b981; color:#fff; font-size:11px; font-weight:700; padding:3px 8px; border-radius:4px; letter-spacing:0.5px;">🌐 LIVE WEB FALLBACK</span>
+            <span style="font-size:12px; color:var(--muted);">Answer retrieved from official government portals (*.gov.in / *.sansad.in)</span>
+          </div>
+          <div style="line-height:1.7; font-size:14px;">${renderRagMarkdown(data.web_answer)}</div>
+        </div>`);
+      }
+      if (data.explanation) {
+        parts.push(`<p style="margin:0 0 12px; font-weight:600;">${escapeHtml(data.explanation)}</p>`);
+      }
+      if (data.nodes && data.nodes.length) {
+        const focusNode = data.nodes.find((n) => n.is_focus) || data.nodes[0];
+        if (focusNode) {
+          const focusName = String(focusNode.display_name || focusNode.properties?.name || focusNode.label || 'Entity').slice(0, 40);
+          parts.push(`<div style="margin-bottom:12px;"><a href="${escapeHtml(buildDashboardNodeHref(focusNode, q))}" class="btn-primary" style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; border-radius:8px; text-decoration:none;">Open ${escapeHtml(focusName)} Profile &amp; Graph →</a></div>`);
+        }
+        parts.push(renderBarebonesSvg(data.nodes, data.edges || [], q));
+      }
+      if (Array.isArray(data.records) && data.records.length) {
+        const allCols = Object.keys(data.records[0]);
+        const idCol = allCols.find((c) => /(entity_id|person_id|node_id|^id)$/i.test(c));
+        const nameCol = allCols.find((c) => /^(name|mp_name|mla_name|politician|candidate|mp|mla|person)$/i.test(c));
+        const cols = (idCol && nameCol) ? allCols.filter((c) => c !== idCol) : allCols;
+        parts.push(`<div class="sub-block">
+          <div class="sub-block-head"><span>Query Results (${data.records.length} rows)</span></div>
+          <div style="overflow-x:auto;">
+            <table class="clean-table">
+              <thead><tr>${cols.map((c) => `<th>${escapeHtml(c.replace(/_/g, ' '))}</th>`).join('')}</tr></thead>
+              <tbody>${data.records.map((row) => {
+                const rowId = idCol ? row[idCol] : null;
+                return `<tr>${cols.map((c) => {
+                  const v = row[c];
+                  const cl = c.toLowerCase();
+                  if (nameCol && c === nameCol && rowId && v) {
+                    return `<td><a href="node.html?id=${encodeURIComponent(rowId)}" style="font-weight:600;">${escapeHtml(v)}</a></td>`;
+                  }
+                  if (/(entity_id|person_id|node_id|^id)$/.test(cl) && v) {
+                    const fallbackLabel = (row.name || row.mp_name || row.mla_name || row.politician || row.candidate || 'View Profile →');
+                    return `<td><a href="node.html?id=${encodeURIComponent(v)}" style="font-weight:600;">${escapeHtml(fallbackLabel)}</a></td>`;
+                  }
+                  if (/criminal|case/.test(cl) && Number(v) > 0) {
+                    return `<td class="num alert-text">${escapeHtml(v)}</td>`;
+                  }
+                  if (/asset|liabilit|worth|income|amount/.test(cl) && typeof v === 'number') {
+                    return `<td class="num">${escapeHtml(formatInrCompact(v))}</td>`;
+                  }
+                  if (typeof v === 'number') return `<td class="num">${v.toLocaleString('en-IN')}</td>`;
+                  if (Array.isArray(v)) return `<td>${escapeHtml(v.join(', '))}</td>`;
+                  return `<td>${escapeHtml(v ?? '—')}</td>`;
+                }).join('')}</tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>`);
+      }
+      if (Array.isArray(data.nodes) && data.nodes.length) {
+        parts.push(`<div class="sub-block">
+          <div class="sub-block-head"><span>Matched Entities (${data.nodes.length})</span><span class="mono">Click a name to inspect full affidavit</span></div>
+          <div style="overflow-x:auto;">
+            <table class="clean-table">
+              <thead><tr><th>Name</th><th>Type</th><th>Party / Info</th><th>Criminal Cases</th><th>Declared Assets</th><th>Action</th></tr></thead>
+              <tbody>${data.nodes.slice(0, 40).map((n) => {
+                const p = n.properties || {};
+                const nodeType = (n.labels && n.labels[0]) || 'Entity';
+                const displayName = n.display_name || p.name || n.label || n.id;
+                const cases = Number(p.criminal_case_count || 0);
+                const party = p.party_name || p.state || p.district || p.court || p.status || '—';
+                const assets = p.total_assets != null ? formatInrCompact(p.total_assets) : '—';
+                const isRep = /person|mp|mla/i.test((n.labels || []).join(' ')) || Boolean(p.entity_id);
+                const nodeHref = buildDashboardNodeHref(n, q);
+                const rtiHref = `rti/rti_page.html?id=${encodeURIComponent(p.entity_id || n.id)}&name=${encodeURIComponent(displayName)}`;
+                return `<tr>
+                  <td><a href="${escapeHtml(nodeHref)}" style="font-weight:600;">${escapeHtml(displayName)}</a></td>
+                  <td><span class="tag-pill">${escapeHtml(nodeType)}</span></td>
+                  <td>${escapeHtml(party)}</td>
+                  <td class="num ${cases > 0 ? 'alert-text' : ''}">${cases > 0 ? cases : '0'}</td>
+                  <td class="num">${escapeHtml(assets)}</td>
+                  <td style="white-space:nowrap;">${isRep ? `<a href="${escapeHtml(rtiHref)}" style="margin-right:8px;">Draft RTI →</a><a href="${escapeHtml(nodeHref)}#flag" style="font-size:11.5px; color:var(--muted);" title="Submit an audit annotation or discrepancy report">Flag Discrepancy</a>` : `<a href="${escapeHtml(nodeHref)}">Inspect →</a>`}</td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>`);
+      }
+      if (data.cypher) {
+        parts.push(`<div class="sub-block">
+          <div class="sub-block-head"><span>Executed Cypher Query</span></div>
+          <pre class="cypher-pre">${escapeHtml(data.cypher)}</pre>
+        </div>`);
+      }
+      answerBody.innerHTML = parts.join('') || '<p>No matching records found.</p>';
+    }
+
+    function formatInline(raw) {
+      let s = escapeHtml(raw);
+      s = s.replace(/\[([^\[\]]*?\bp\.\s*\d+[^\[\]]*?)\]/gi, '<span class="cite-pill">$1</span>');
+      s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;!?)]|$)/g, '$1<em>$2</em>');
+      s = s.replace(/`([^`]+)`/g, '<code class="mono">$1</code>');
+      s = s.replace(/\b((?:Rs\.?|₹)\s*[\d,]+(?:\.\d+)?\s*(?:Crore|Cr\.?|Lakh|Lac)?)\b/gi, '<span class="num-hi">$1</span>');
+      return s;
+    }
+
+    function renderRagMarkdown(rawText) {
+      if (!rawText) return '<p>No answer text returned.</p>';
+      let text = String(rawText);
+      let r1Block = '';
+      const detailsMatch = text.match(/<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/i);
+      if (detailsMatch) {
+        r1Block = `<div class="sub-block"><div class="sub-block-head"><span>DeepSeek R1 Reasoning — ${escapeHtml(detailsMatch[1].trim())}</span></div><pre class="cypher-pre">${escapeHtml(detailsMatch[2].trim())}</pre></div>`;
+        text = text.replace(detailsMatch[0], '').trim();
+      }
+      const lines = text.split(/\r?\n/);
+      let html = r1Block;
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i].trim();
+        if (!line) { i++; continue; }
+        const hm = line.match(/^(#{1,3})\s+(.*)$/);
+        if (hm) {
+          const title = hm[2].replace(/\*\*/g, '').trim();
+          html += hm[1].length <= 2 ? `<h3 class="audit-h2">${escapeHtml(title)}</h3>` : `<h4 class="audit-h3">${escapeHtml(title)}</h4>`;
+          i++;
+          continue;
+        }
+        if (line.startsWith('|') && line.split('|').length >= 3) {
+          const tLines = [];
+          while (i < lines.length && lines[i].trim().startsWith('|')) { tLines.push(lines[i].trim()); i++; }
+          const valid = tLines.filter((r) => !/^\|[\s\-:|]+\|$/.test(r));
+          if (valid.length) {
+            const parseRow = (r) => r.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+            const hdr = parseRow(valid[0]);
+            const body = valid.slice(1).map(parseRow);
+            html += `<div class="sub-block" style="overflow-x:auto;"><table class="clean-table"><thead><tr>${hdr.map((h) => `<th>${formatInline(h)}</th>`).join('')}</tr></thead><tbody>${
+              body.map((row) => `<tr>${hdr.map((_, ci) => {
+                const cell = row[ci] || '';
+                const isNum = /^[-+]?\s*(Rs\.?|₹)?[\d,]+(\.\d+)?\s*(%|Crore|Cr\.?|Lakh|Km)?$/i.test(cell);
+                const isGap = /(shortfall|reduction|-\d+(\.\d+)?%|not\s+disclosed)/i.test(cell);
+                return `<td class="${isNum ? 'num' : ''} ${isGap ? 'alert-text' : ''}">${formatInline(cell)}</td>`;
+              }).join('')}</tr>`).join('')
+            }</tbody></table></div>`;
+          }
+          continue;
+        }
+        if (/^[-*•]\s+/.test(line)) {
+          const items = [];
+          while (i < lines.length && /^[-*•]\s+/.test(lines[i].trim())) {
+            items.push(`<li>${formatInline(lines[i].trim().replace(/^[-*•]\s+/, ''))}</li>`);
+            i++;
+          }
+          html += `<ul style="margin:6px 0 10px 20px; padding:0;">${items.join('')}</ul>`;
+          continue;
+        }
+        html += `<p style="margin:6px 0 10px;">${formatInline(line)}</p>`;
+        i++;
+      }
+      return html;
+    }
+
+    function renderRagResult(data, q, effTarget, styleKey) {
+      const fullUrl = buildDedicatedUrl(q, effTarget, styleKey);
+      answerHeaderTitle.textContent = `Ministry Audit — ${TARGET_LABELS[effTarget] || effTarget}`;
+      answerFullLink.href = fullUrl;
+      answerFullLink.textContent = 'Open Full Briefing + RTI ↗';
+
+      const results = data.results || [];
+      if (!results.length) {
+        answerBody.innerHTML = '<p class="alert-text">No report passages returned.</p>';
+        return;
+      }
+
+      answerBody.innerHTML = results.map((res) => {
+        const minLabel = (res.ministry || effTarget || 'All Ministries').toUpperCase();
+        const sources = res.sources || [];
+        const rtiUrl = `rti/rti_page.html?id=${encodeURIComponent('ministry-' + (res.ministry || 'finance'))}&name=${encodeURIComponent('CPIO, Ministry of ' + minLabel)}`;
+        return `<div style="margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <span class="tag-pill tag-accent">${escapeHtml(minLabel)}</span>
+            <a href="${escapeHtml(rtiUrl)}" class="btn-ghost">Draft Section 6(1) RTI →</a>
+          </div>
+          ${renderRagMarkdown(res.answer)}
+          ${sources.length ? `<div class="sub-block" style="margin-top:12px;">
+            <div class="sub-block-head"><span>Cited Sources (${sources.length})</span></div>
+            <div style="overflow-x:auto;">
+              <table class="clean-table">
+                <thead><tr><th>Document</th><th>Year</th><th>Page</th><th>Section</th><th>Direct Link</th></tr></thead>
+                <tbody>${sources.map((s) => `<tr>
+                  <td><strong>${escapeHtml(s.title || '—')}</strong></td>
+                  <td class="mono">${escapeHtml(s.year || '—')}</td>
+                  <td class="num">${escapeHtml(s.page ?? '—')}</td>
+                  <td style="font-size:12px; color:var(--muted);">${escapeHtml(s.breadcrumb || s.section || '—')}</td>
+                  <td>${s.source_url ? `<a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener" class="btn-ghost" style="padding:3px 8px; font-size:12px;">Official Portal ↗</a>` : '—'}</td>
+                </tr>`).join('')}</tbody>
+              </table>
+            </div>
+          </div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    // Streams /api/rag/ask/stream (SSE over fetch) and renders tokens live into the summary slot.
+    // Resolves with a payload shaped like /api/rag/ask so caching/rendering stays unchanged.
+    async function streamRagAnswer(reqBody, tStart) {
+      const slot = document.getElementById('deepSeekSummarySlot');
+      const resp = await fetch(`${API_BASE}/api/rag/ask/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+        body: JSON.stringify(reqBody)
+      });
+      if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
+
+      let meta = {};
+      let content = '';
+      let reasoningChars = 0;
+      let finalAnswer = null;
+      let firstTokenMs = null;
+      let lastPaint = 0;
+
+      const paint = (force = false) => {
+        const now = performance.now();
+        if (!slot || (!force && now - lastPaint < 80)) return;
+        lastPaint = now;
+        const ttft = firstTokenMs !== null ? `first token ${firstTokenMs} ms` : 'retrieving evidence...';
+        const thinking = reasoningChars && !content
+          ? `<p style="font-size:12.5px; color:var(--muted); margin:0;">Reasoning over retrieved passages (${reasoningChars.toLocaleString()} chars)...</p>`
+          : '';
+        slot.innerHTML = `
+          <div class="sub-block" style="margin-bottom:16px; border-left:3px solid var(--accent);">
+            <div class="sub-block-head">
+              <span>DeepSeek Synthesis (${escapeHtml((meta.reasoning_mode || 'chat').toUpperCase())}) · streaming</span>
+              <span class="mono" style="font-size:11px; color:var(--muted);">${ttft}</span>
+            </div>
+            <div style="padding:12px 14px;">${thinking}${content ? renderRagMarkdown(content) : ''}</div>
+          </div>`;
+      };
+      paint(true);
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buf.indexOf('\n\n')) !== -1) {
+          const frame = buf.slice(0, idx);
+          buf = buf.slice(idx + 2);
+          const line = frame.split('\n').find((l) => l.startsWith('data:'));
+          if (!line) continue;
+          let ev;
+          try { ev = JSON.parse(line.slice(5).trim()); } catch (_) { continue; }
+          if (ev.type === 'meta') {
+            meta = ev;
+          } else if (ev.type === 'reasoning') {
+            if (firstTokenMs === null) firstTokenMs = Math.round(performance.now() - tStart);
+            reasoningChars += (ev.delta || '').length;
+          } else if (ev.type === 'content') {
+            if (firstTokenMs === null) firstTokenMs = Math.round(performance.now() - tStart);
+            content += ev.delta || '';
+          } else if (ev.type === 'done') {
+            finalAnswer = ev.answer || content;
+          } else if (ev.type === 'error') {
+            throw new Error(ev.detail || 'stream error');
+          }
+          paint();
+        }
+      }
+      if (finalAnswer === null && !content) throw new Error('empty stream');
+      return {
+        question: reqBody.question,
+        results: [{
+          ministry: reqBody.ministry,
+          detail_level: meta.detail_level || reqBody.detail_level,
+          reasoning_mode: meta.reasoning_mode || 'chat',
+          answer: finalAnswer !== null ? finalAnswer : content,
+          graph_context: meta.graph_context || '',
+          sources: meta.sources || [],
+          cached: !!meta.cached,
+          first_token_ms: firstTokenMs
+        }]
+      };
+    }
+
+    function renderDeepSeekIntoSlot(askData, elapsedMs = null) {
+      const slot = document.getElementById('deepSeekSummarySlot');
+      const btn = document.getElementById('generateDeepSeekBtn');
+      if (!slot) return;
+      const results = (askData && askData.results) || [];
+      if (!results.length) {
+        slot.innerHTML = '<div class="sub-block" style="margin-bottom:14px;"><p class="alert-text">No summary returned by DeepSeek.</p></div>';
+        return;
+      }
+      slot.innerHTML = results.map((res) => `
+        <div class="sub-block" style="margin-bottom:16px; border-left:3px solid var(--accent);">
+          <div class="sub-block-head">
+            <span>DeepSeek AI Synthesis (${escapeHtml((res.reasoning_mode || 'chat').toUpperCase())})</span>
+            ${elapsedMs !== null ? `<span class="mono" style="font-size:11px; color:var(--muted);">${elapsedMs} ms</span>` : ''}
+          </div>
+          <div style="padding:12px 14px;">${renderRagMarkdown(res.answer || '')}</div>
+        </div>
+      `).join('');
+      if (btn) {
+        btn.textContent = 'Summary Ready';
+        btn.disabled = true;
+      }
+    }
+
+    function renderRagSearchResult(data, q, effTarget, styleKey, cacheKey) {
+      const fullUrl = buildDedicatedUrl(q, effTarget, styleKey);
+      const minLabel = (data.ministry || TARGET_LABELS[effTarget] || effTarget || 'All Ministries').toUpperCase();
+      const hits = data.hits || [];
+      const rtiUrl = `rti/rti_page.html?id=${encodeURIComponent('ministry-' + (data.ministry || 'finance'))}&name=${encodeURIComponent('CPIO, Ministry of ' + minLabel)}`;
+
+      answerHeaderTitle.textContent = `Primary Report Excerpts — ${TARGET_LABELS[effTarget] || effTarget}`;
+      answerFullLink.href = fullUrl;
+      answerFullLink.textContent = 'Open Full Briefing + RTI ↗';
+
+      if (!hits.length) {
+        answerBody.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <span class="tag-pill tag-accent">${escapeHtml(minLabel)}</span>
+          <a href="${escapeHtml(rtiUrl)}" class="btn-ghost">Draft Section 6(1) RTI →</a>
+        </div>
+        <p class="alert-text">No matching primary report passages found for "${escapeHtml(q)}".</p>`;
+        return;
+      }
+
+      answerBody.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="tag-pill tag-accent">${escapeHtml(minLabel)}</span>
+            <span style="font-size:12px; color:var(--muted);">${hits.length} verified primary excerpts</span>
+            ${data.glossary_note ? `<span style="font-size:12px; color:var(--muted);">· ${escapeHtml(data.glossary_note)}</span>` : ''}
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <button type="button" id="generateDeepSeekBtn" style="background:var(--accent); color:#fff; border:none; border-radius:6px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer;">Generate AI Summary with DeepSeek →</button>
+            <a href="${escapeHtml(rtiUrl)}" class="btn-ghost">Draft Section 6(1) RTI →</a>
+          </div>
+        </div>
+        <div id="deepSeekSummarySlot"></div>
+        <div class="sub-block">
+          <div class="sub-block-head"><span>Direct Source Excerpts &amp; Page Citations (${hits.length})</span></div>
+          <div style="display:flex; flex-direction:column; gap:10px; padding:10px 12px;">
+            ${hits.map((h) => {
+              const pageLabel = h.page ? (h.page_end && h.page_end !== h.page ? `pp. ${h.page}–${h.page_end}` : `p. ${h.page}`) : '—';
+              const docTitle = h.title || h.file || 'Official Report';
+              const hitMin = h.ministry || data.ministry || 'finance';
+              const hitDossierUrl = buildDedicatedUrl(q, hitMin, styleKey);
+              const hitRtiUrl = `rti/rti_page.html?id=${encodeURIComponent('ministry-' + hitMin)}&name=${encodeURIComponent('CPIO, ' + docTitle)}`;
+              const ministersHtml = Array.isArray(h.ministers) && h.ministers.length
+                ? `<div style="font-size:12px; color:var(--muted); margin-bottom:8px;"><strong>GraphRAG Portfolio Link:</strong> ${h.ministers.map(m => `<a href="node.html?id=${encodeURIComponent(m.entity_id || '')}" style="color:var(--accent); text-decoration:none; font-weight:600;">${escapeHtml(m.name)}</a> <span style="font-size:11px;">(${escapeHtml(m.rank || 'Minister')} · ${escapeHtml(m.party || 'BJP')})</span>`).join(' · ')}</div>`
+                : '';
+              return `<div style="border:1px solid var(--border); border-radius:6px; padding:12px; background:var(--surface);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+                  <div>
+                    <strong style="font-size:14px;">${escapeHtml(docTitle)}</strong>
+                    <span class="mono" style="margin-left:8px; font-size:12px; color:var(--muted);">${escapeHtml(h.year || '—')} · ${escapeHtml(pageLabel)}</span>
+                  </div>
+                  <span class="tag-pill" style="font-size:11px;">${escapeHtml(h.ministry || 'Report')}</span>
+                </div>
+                ${(h.breadcrumb || h.section) ? `<div style="font-size:12px; color:var(--muted); margin-bottom:6px;">${escapeHtml(h.breadcrumb || h.section)}</div>` : ''}
+                ${ministersHtml}
+                <p style="font-size:13px; line-height:1.55; margin:0 0 10px 0; color:var(--ink);">${escapeHtml(h.excerpt || '')}</p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                  ${h.source_url ? `<a href="${escapeHtml(h.source_url)}" target="_blank" rel="noopener" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Official Source ↗</a>` : ''}
+                  <a href="${escapeHtml(hitDossierUrl)}" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Open Full Briefing ↗</a>
+                  <a href="${escapeHtml(hitRtiUrl)}" class="btn-ghost" style="padding:4px 10px; font-size:12px;">Draft Section 6(1) RTI →</a>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      const dsBtn = document.getElementById('generateDeepSeekBtn');
+      if (dsBtn) {
+        dsBtn.addEventListener('click', async () => {
+          const cfg = ANSWER_STYLES[styleKey] || ANSWER_STYLES.audit;
+          dsBtn.disabled = true;
+          dsBtn.textContent = 'Generating DeepSeek Summary...';
+          statusLine.classList.remove('error');
+          statusText.textContent = 'Synthesizing BE vs RE summary with DeepSeek...';
+          const tDs = performance.now();
+          const reqBody = {
+            question: q,
+            ministry: effTarget,
+            years: ['2021-22', '2022-23', '2023-24', '2024-25', '2025-26', '2026-27'],
+            detail_level: cfg.detail_level,
+            reasoning_mode: cfg.reasoning_mode
+          };
+          try {
+            let askPayload;
+            try {
+              askPayload = await streamRagAnswer(reqBody, tDs);
+            } catch (streamErr) {
+              // Fallback: non-streaming endpoint
+              const resp = await fetch(`${API_BASE}/api/rag/ask`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reqBody)
+              });
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+              askPayload = await resp.json();
+            }
+            const elapsed = Math.round(performance.now() - tDs);
+            renderDeepSeekIntoSlot(askPayload, elapsed);
+            try {
+              sessionStorage.setItem(cacheKey, JSON.stringify({ kind: 'rag_with_search', searchData: data, askData: askPayload }));
+            } catch (_) {}
+            statusText.textContent = 'DeepSeek summary complete.';
+            perfTag.textContent = `${elapsed} ms (DeepSeek)`;
+          } catch (err) {
+            dsBtn.disabled = false;
+            dsBtn.textContent = 'Retry DeepSeek Summary →';
+            statusLine.classList.add('error');
+            statusText.textContent = `DeepSeek synthesis failed (${err.message}).`;
+          }
+        });
+      }
+    }
+
+    async function executeQuery(rawQ, overrideTarget = null, overrideStyle = null) {
+      const q = (rawQ ?? searchInput.value ?? '').trim();
+      if (!q) {
+        searchInput.focus();
+        statusLine.classList.add('error');
+        statusText.textContent = 'Please enter a question or click one of the suggestions below.';
+        return;
+      }
+      if (overrideTarget) scopeSelect.value = overrideTarget;
+      if (overrideStyle) setStyle(overrideStyle);
+      searchInput.value = q;
+
+      const effTarget = overrideTarget || getEffectiveTarget(q);
+      const styleKey = overrideStyle || selectedStyle;
+      const cfg = ANSWER_STYLES[styleKey] || ANSWER_STYLES.audit;
+      const cacheKey = QUERY_CACHE_PREFIX + JSON.stringify({ q, effTarget, styleKey });
+
+      statusLine.classList.remove('error');
+
+      try {
+        const cachedRaw = sessionStorage.getItem(cacheKey);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          const t0 = performance.now();
+          answerPanel.hidden = false;
+          cacheBadge.hidden = false;
+          if (cached.kind === 'graph') {
+            const directHref = pickDirectProfileHref(cached.data, q);
+            if (directHref) {
+              statusText.textContent = `Opening profile for "${q}"...`;
+              window.location.href = directHref;
+              return;
+            }
+            renderGraphResult(cached.data, q);
+          } else if (cached.kind === 'rag_search') renderRagSearchResult(cached.data, q, effTarget, styleKey, cacheKey);
+          else if (cached.kind === 'rag_with_search') {
+            renderRagSearchResult(cached.searchData, q, effTarget, styleKey, cacheKey);
+            renderDeepSeekIntoSlot(cached.askData);
+          } else renderRagResult(cached.data, q, effTarget, styleKey);
+          statusText.textContent = `Loaded from cache (${TARGET_LABELS[effTarget] || effTarget}).`;
+          perfTag.textContent = `${Math.max(0, Math.round(performance.now() - t0))} ms (cache)`;
+          answerPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return;
+        }
+      } catch (_) {}
+
+      cacheBadge.hidden = true;
+      runQueryBtn.disabled = true;
+      runQueryBtn.textContent = 'Searching...';
+      statusText.textContent = `Querying ${TARGET_LABELS[effTarget] || effTarget}...`;
+      perfTag.textContent = '';
+
+      const t0 = performance.now();
+      try {
+        if (effTarget === 'graph') {
+          let payload = null;
+          if (!isAnalyticalGraphQuestion(q)) {
+            const sr = await fetch(`${API_BASE}/api/search`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: q, filter: 'all' })
+            });
+            if (!sr.ok) throw new Error(`HTTP ${sr.status}`);
+            const sData = await sr.json();
+            payload = { ...sData, result_type: 'keyword_direct', explanation: `Direct entity matches for "${q}" (${(sData.nodes || []).length} nodes).` };
+          } else {
+            const resp = await fetch(`${API_BASE}/api/ask`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ question: q })
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            payload = await resp.json();
+
+            if (payload.result_type === 'unsupported' || (Array.isArray(payload.records) && !payload.records.length && !(payload.nodes && payload.nodes.length))) {
+              const sr = await fetch(`${API_BASE}/api/search`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q, filter: 'all' })
+              });
+              if (sr.ok) {
+                const sData = await sr.json();
+                if ((sData.nodes || []).length) {
+                  payload = { ...sData, result_type: 'keyword_fallback', explanation: `Showing matching graph entities for "${q}".` };
+                }
+              }
+            }
+          }
+
+          try { sessionStorage.setItem(cacheKey, JSON.stringify({ kind: 'graph', data: payload })); } catch (_) {}
+          const directHref = pickDirectProfileHref(payload, q);
+          if (directHref) {
+            statusText.textContent = `Opening profile for "${q}"...`;
+            window.location.href = directHref;
+            return;
+          }
+          answerPanel.hidden = false;
+          renderGraphResult(payload, q);
+          statusText.textContent = 'Graph query complete.';
+          perfTag.textContent = `${Math.round(performance.now() - t0)} ms`;
+        } else {
+          const resp = await fetch(`${API_BASE}/api/rag/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: q,
+              ministry: effTarget,
+              years: ['2021-22', '2022-23', '2023-24', '2024-25', '2025-26', '2026-27'],
+              detail_level: cfg.detail_level,
+              reasoning_mode: cfg.reasoning_mode
+            })
+          });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const payload = await resp.json();
+          answerPanel.hidden = false;
+          renderRagSearchResult(payload, q, effTarget, styleKey, cacheKey);
+          try { sessionStorage.setItem(cacheKey, JSON.stringify({ kind: 'rag_search', data: payload })); } catch (_) {}
+          statusText.textContent = 'Primary excerpts loaded. Click "Generate AI Summary with DeepSeek →" for synthesis.';
+          perfTag.textContent = `${Math.round(performance.now() - t0)} ms`;
+        }
+        answerPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (err) {
+        statusLine.classList.add('error');
+        statusText.textContent = `Could not complete query (${err.message}).`;
+        answerPanel.hidden = false;
+        answerHeaderTitle.textContent = 'Connection Error';
+        answerFullLink.href = buildDedicatedUrl(q, effTarget, styleKey);
+        answerBody.innerHTML = `<p class="alert-text">Backend API (:8000) returned an error: ${escapeHtml(err.message)}</p>`;
+      } finally {
+        runQueryBtn.disabled = false;
+        runQueryBtn.textContent = 'Ask Bharat Praman';
+      }
+    }
+
+    searchInput.addEventListener('focus', () => searchCard.classList.add('focused'));
+    searchInput.addEventListener('blur', () => searchCard.classList.remove('focused'));
+    styleRow.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-style]');
+      if (b) setStyle(b.dataset.style);
+    });
+    catPills.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-cat]');
+      if (!b) return;
+      selectedCat = b.dataset.cat;
+      [...catPills.querySelectorAll('.cat-pill')].forEach((p) => p.classList.toggle('active', p === b));
+      renderSuggestions();
+    });
+    suggestionsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('.q-item');
+      if (!btn) return;
+      const item = SUGGESTED_QUESTIONS[Number(btn.dataset.idx)];
+      if (item) executeQuery(item.q, item.target, item.style);
+    });
+    runQueryBtn.addEventListener('click', () => executeQuery());
+    document.getElementById('closeAnswerBtn').addEventListener('click', () => { answerPanel.hidden = true; });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); executeQuery(); }
+    });
+
+    // Glossary & IPC Modal + Live Acronym Detection
+    let GLOSSARY = {};
+    let IPC_ITEMS = [];
+    let glossaryTab = 'terms';
+    const glossaryModal = document.getElementById('glossaryModal');
+    const glossarySearch = document.getElementById('glossarySearch');
+    const glossaryList = document.getElementById('glossaryList');
+
+    function renderGlossary() {
+      const q = (glossarySearch.value || '').trim();
+      const qLower = q.toLowerCase();
+      if (glossaryTab === 'terms') {
+        let items = Object.entries(GLOSSARY).map(([acronym, v]) => ({ acronym, ...v }));
+        if (q) {
+          if (window.BP_FUZZY) {
+            items = BP_FUZZY.filter(items, q, (e) => `${e.acronym} ${e.expansion} ${e.ministry}`, 0.45);
+          } else {
+            items = items.filter((e) => e.acronym.toLowerCase().includes(qLower) || (e.expansion || '').toLowerCase().includes(qLower));
+          }
+        }
+        items.sort((a, b) => (b.count || 0) - (a.count || 0) || a.acronym.localeCompare(b.acronym));
+        glossaryList.innerHTML = items.length
+          ? `<table class="clean-table"><thead><tr><th>Acronym</th><th>Full Expansion</th><th>Ministry</th><th style="width:70px;">Count</th></tr></thead><tbody>${
+              items.map((e) => `<tr><td class="mono"><strong>${escapeHtml(e.acronym)}</strong></td><td>${escapeHtml(e.expansion || '')}</td><td>${escapeHtml(e.ministry || '—')}</td><td class="num">${e.count || 0}</td></tr>`).join('')
+            }</tbody></table>`
+          : '<div style="padding:18px; color:var(--muted);">No matching acronyms.</div>';
+      } else {
+        let items = IPC_ITEMS;
+        if (q) {
+          if (window.BP_FUZZY) {
+            items = BP_FUZZY.filter(items, q, (e) => `${e.code} ${e.explanation}`, 0.45);
+          } else {
+            items = items.filter((e) => String(e.code || '').toLowerCase().includes(qLower) || String(e.explanation || '').toLowerCase().includes(qLower));
+          }
+        }
+        glossaryList.innerHTML = items.length
+          ? `<table class="clean-table"><thead><tr><th>IPC Code</th><th>Summary</th><th style="width:90px;">MLAs</th></tr></thead><tbody>${
+              items.map((e) => `<tr><td class="mono alert-text">IPC ${escapeHtml(e.code)}</td><td>${escapeHtml(e.explanation || '')}</td><td class="num">${e.mla_count || 0}</td></tr>`).join('')
+            }</tbody></table>`
+          : `<div style="padding:18px; color:var(--muted);">${IPC_ITEMS.length ? 'No matching IPC sections.' : 'Loading IPC sections...'}</div>`;
+      }
+    }
+
+    fetch(`${API_BASE}/api/glossary?limit=1000`).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (d) (d.items || []).forEach((i) => { GLOSSARY[i.acronym] = i; });
+    }).catch(() => {});
+
+    window.applyTypoSuggestion = function (corrected) {
+      searchInput.value = corrected;
+      renderSuggestions();
+      acronymBar.hidden = true;
+      searchInput.focus();
+    };
+
+    searchInput.addEventListener('input', () => {
+      renderSuggestions();
+      const val = (searchInput.value || '').trim();
+      const tokens = val.match(/\b[A-Z][A-Z0-9&\-]{1,10}\b/g) || [];
+      const seen = new Set();
+      const matches = tokens.filter((t) => !seen.has(t) && seen.add(t)).map((t) => ({ acronym: t, ...(GLOSSARY[t] || {}) })).filter((x) => x.expansion).slice(0, 4);
+
+      let typoChip = '';
+      if (window.BP_FUZZY && val.length >= 4) {
+        const resolved = BP_FUZZY.resolveKnownAuthority(val);
+        if (resolved && resolved.matched.toLowerCase() !== val.toLowerCase()) {
+          typoChip = `<span class="tag-pill tag-accent" style="cursor:pointer;" onclick="applyTypoSuggestion('${escapeHtml(resolved.matched)}')">Did you mean: <strong>${escapeHtml(resolved.matched)}</strong>? ↵</span>`;
+        }
+      }
+
+      if (!matches.length && !typoChip) {
+        acronymBar.hidden = true;
+        return;
+      }
+      acronymBar.hidden = false;
+      const acronymHtml = matches.length ? '<strong>Acronyms:</strong> ' + matches.map((m) => `<span class="tag-pill"><strong>${escapeHtml(m.acronym)}</strong> = ${escapeHtml(m.expansion)}</span>`).join('') : '';
+      acronymBar.innerHTML = [typoChip, acronymHtml].filter(Boolean).join(' ');
+    });
+
+    document.getElementById('tabTerms').addEventListener('click', (e) => {
+      glossaryTab = 'terms';
+      e.target.classList.add('active');
+      document.getElementById('tabIpc').classList.remove('active');
+      renderGlossary();
+    });
+    document.getElementById('tabIpc').addEventListener('click', (e) => {
+      glossaryTab = 'ipc';
+      e.target.classList.add('active');
+      document.getElementById('tabTerms').classList.remove('active');
+      if (!IPC_ITEMS.length) {
+        fetch(`${API_BASE}/api/ipc-sections`).then((r) => (r.ok ? r.json() : null)).then((d) => {
+          if (d) { IPC_ITEMS = d.items || []; renderGlossary(); }
+        }).catch(() => {});
+      }
+      renderGlossary();
+    });
+    document.getElementById('glossaryOpen').addEventListener('click', () => {
+      glossaryModal.hidden = false;
+      renderGlossary();
+      glossarySearch.focus();
+    });
+    document.getElementById('glossaryClose').addEventListener('click', () => { glossaryModal.hidden = true; });
+    glossaryModal.addEventListener('click', (e) => { if (e.target === glossaryModal) glossaryModal.hidden = true; });
+    glossarySearch.addEventListener('input', renderGlossary);
+
+    // Benchmark Comparison Modal
+    const benchmarkModal = document.getElementById('benchmarkModal');
+    const benchmarkOpen = document.getElementById('benchmarkOpen');
+    const benchmarkHeroBtn = document.getElementById('benchmarkHeroBtn');
+    const benchmarkClose = document.getElementById('benchmarkClose');
+    const btnTryDefenceDemo = document.getElementById('btnTryDefenceDemo');
+
+    function openBenchmark() {
+      if (benchmarkModal) benchmarkModal.hidden = false;
+    }
+    function closeBenchmark() {
+      if (benchmarkModal) benchmarkModal.hidden = true;
+    }
+
+    if (benchmarkOpen) benchmarkOpen.addEventListener('click', openBenchmark);
+    if (benchmarkHeroBtn) benchmarkHeroBtn.addEventListener('click', openBenchmark);
+    if (benchmarkClose) benchmarkClose.addEventListener('click', closeBenchmark);
+    if (benchmarkModal) {
+      benchmarkModal.addEventListener('click', (e) => {
+        if (e.target === benchmarkModal) closeBenchmark();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (glossaryModal && !glossaryModal.hidden) glossaryModal.hidden = true;
+        if (benchmarkModal && !benchmarkModal.hidden) closeBenchmark();
+      }
+    });
+
+    if (btnTryDefenceDemo) {
+      btnTryDefenceDemo.addEventListener('click', () => {
+        closeBenchmark();
+        searchInput.value = 'Who is the Minister of Defence?';
+        scopeSelect.value = 'auto';
+        setStyle('audit');
+        executeQuery('Who is the Minister of Defence?', 'auto', 'audit');
+      });
+    }
+
+    renderSuggestions();
+  </script>
+</body>
+</html>

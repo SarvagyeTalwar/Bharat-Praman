@@ -36,6 +36,7 @@ from neo4j import GraphDatabase
 
 from glossary import annotate_answer, expand_query
 from deepseek_client import call_deepseek_chat, stream_deepseek_chat, answer_from_web_fallback
+from neo4j_vault import search_user_vault
 
 HERE = Path(__file__).resolve().parent
 load_dotenv(find_dotenv())
@@ -786,8 +787,18 @@ _MINISTRY_PORTAL_URLS = {
 }
 
 
-def _source_portal_url(ministry: str = "", title: str = "", file_name: str = "") -> str:
-    """Return the canonical official government portal URL for a report or Demand for Grants."""
+def _source_portal_url(
+    ministry: str = "", title: str = "", file_name: str = "", page: int | str | None = None
+) -> str:
+    """Return the direct real PDF URL (with #page=N) or fallback ministry portal URL."""
+    try:
+        from pdf_sources import resolve_source_pdf_url
+        pdf_url = resolve_source_pdf_url(ministry=ministry, title=title, file_name=file_name, page=page)
+        if pdf_url:
+            return pdf_url
+    except Exception:
+        pass
+
     combined = f"{title or ''} {file_name or ''}".lower()
     if any(k in combined for k in ("dfg", "demand", "outcome", "budget", "eb")):
         return "https://www.indiabudget.gov.in/"
@@ -898,6 +909,7 @@ def answer_reports(
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
     byod_context: str = "",
+    user_id: str | None = None,
 ) -> tuple[str, list[dict], str]:
     """End-to-end multi-ministry, multi-year GraphRAG answer with optional BYOD document grounding."""
     target_ministries = resolve_ministries(ministry, question)
@@ -911,7 +923,7 @@ def answer_reports(
         str(detail_level or "long").strip().lower(),
         use_r1,
     )
-    if not byod_context:
+    if not byod_context and not user_id:
         with _CACHE_LOCK:
             cached = _ANSWER_CACHE.get(cache_key)
         if cached is not None:
@@ -929,6 +941,13 @@ def answer_reports(
         top_k=effective_k,
         raw_question=question,
     )
+    if user_id:
+        try:
+            vault_hits = search_user_vault(user_id, question, k=5)
+            if vault_hits:
+                hits = vault_hits + hits
+        except Exception as _ve:
+            logger.warning("search_user_vault error in answer_reports: %s", _ve)
     if not hits:
         if byod_context:
             hits = [{
@@ -1093,6 +1112,7 @@ def answer_reports_stream(
     detail_level: str = "long",
     reasoning_mode: str | bool = "auto",
     byod_context: str = "",
+    user_id: str | None = None,
 ):
     """Streaming twin of answer_reports() with optional BYOD document grounding."""
     target_ministries = resolve_ministries(ministry, question)
@@ -1108,7 +1128,7 @@ def answer_reports_stream(
         str(detail_level or "long").strip().lower(),
         use_r1,
     )
-    if not byod_context:
+    if not byod_context and not user_id:
         with _CACHE_LOCK:
             cached = _ANSWER_CACHE.get(cache_key)
         if cached is not None:
@@ -1128,6 +1148,13 @@ def answer_reports_stream(
         top_k=effective_k,
         raw_question=question,
     )
+    if user_id:
+        try:
+            vault_hits = search_user_vault(user_id, question, k=5)
+            if vault_hits:
+                hits = vault_hits + hits
+        except Exception as _ve:
+            logger.warning("search_user_vault error in answer_reports_stream: %s", _ve)
     if not hits:
         if byod_context:
             hits = [{

@@ -1,0 +1,1863 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bharat Praman — Ministry Fiscal &amp; Policy Intelligence Terminal</title>
+  <script>
+    (function () {
+      if (localStorage.getItem('bp_theme') === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Retro 70s Two-Color Theme (Crisp White + Light Brownish-Yellow)
+       Primary Canvas: #FAF6EE (warm eggshell white) & #FFFFFF (pure crisp white surfaces)
+       Primary Accent: #B7791F (retro golden brownish-yellow / warm ochre)
+       Soft Tints:     #FBF4E6 / #F5E8D0 (warm cream & light brownish-yellow wash)
+       Text & Borders: #2A1D0F (deep warm espresso text for crystal-clear readability)
+    */
+    :root {
+      color-scheme: light;
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --surface-soft: #FBF4E6;
+      --surface-tint: #F5E8D0;
+      --navy: #B7791F;
+      --fg: #2A1D0F;
+      --muted: #6B5238;
+      --border: #ECDBC0;
+      --border-strong: #D9BD8F;
+      --accent: #B7791F;
+      --accent-hover: #9E6414;
+      --accent-fg: #FFFFFF;
+      --accent-soft: #FDF6E8;
+      --danger: #B83A1D;
+      --danger-soft: #FBECE8;
+      --shadow-sm: 0 1px 3px rgba(60, 40, 15, 0.06);
+      --shadow-md: 0 8px 24px -4px rgba(60, 40, 15, 0.09), 0 2px 6px -1px rgba(60, 40, 15, 0.04);
+      --font-sans: "Plus Jakarta Sans", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      --font-retro: "Fraunces", "Cooper Black", "Bookman Old Style", "Georgia", serif;
+      --font-mono: ui-monospace, SFMono-Regular, "Courier New", monospace;
+      --card-radius: 16px;
+      --btn-radius: 12px;
+    }
+
+    html.dark {
+      color-scheme: dark;
+      --bg: #16120C;
+      --surface: #221A11;
+      --surface-soft: #2D2317;
+      --surface-tint: #3A2C1D;
+      --navy: #19130B;
+      --fg: #FAF5EB;
+      --muted: #BAA993;
+      --border: #3D2E1E;
+      --border-strong: #57412A;
+      --accent: #D8962E;
+      --accent-hover: #E5AA45;
+      --accent-fg: #16120C;
+      --accent-soft: rgba(216, 150, 46, 0.15);
+      --danger: #E06243;
+      --danger-soft: rgba(224, 98, 67, 0.15);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 10px 28px -4px rgba(0, 0, 0, 0.6);
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14.5px/1.6 var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; color: var(--accent-hover); }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+    .alert { color: var(--danger); font-weight: 700; }
+
+    /* Retro 70s Masthead Topbar */
+    .topbar {
+      background: var(--navy);
+      color: #ffffff;
+      border-bottom: 2.5px solid var(--accent-hover);
+      box-shadow: 0 2px 10px rgba(60, 40, 15, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .topbar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-retro);
+      font-weight: 800;
+      font-size: 20px;
+      color: #ffffff;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .brand:hover { text-decoration: none; color: #fff6e5; }
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      backdrop-filter: blur(4px);
+    }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav a, .nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #fff2db;
+      padding: 6px 13px;
+      border-radius: 4px;
+      font: 600 13px/1.2 var(--font-sans);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav a:hover, .nav button:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .nav a.active {
+      background: #ffffff;
+      color: var(--navy);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+    html.dark .nav a.active {
+      background: var(--accent);
+      color: #16120C;
+    }
+
+    /* Watermelon UI SwitchMode Component */
+    .nav button.switch-mode-btn,
+    .switch-mode-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      width: 58px;
+      height: 28px;
+      border-radius: 999px;
+      border: 2px solid #D8D6E0;
+      background: transparent;
+      padding: 0;
+      margin: 0 0 0 4px;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      overflow: visible;
+      transition: border-color 0.25s ease, transform 0.18s cubic-bezier(0.34, 1.35, 0.64, 1);
+      vertical-align: middle;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      line-height: normal;
+    }
+    .nav button.switch-mode-btn:hover,
+    .switch-mode-btn:hover {
+      background: transparent !important;
+      transform: scale(1.05);
+    }
+    .nav button.switch-mode-btn:active,
+    .switch-mode-btn:active {
+      transform: scale(0.96);
+    }
+    html.dark .nav button.switch-mode-btn,
+    html.dark .switch-mode-btn,
+    .switch-mode-btn.is-dark {
+      border-color: #4C4C50;
+    }
+
+    /* Track */
+    .switch-mode-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background-color: #FFFFFF;
+      transition: background-color 0.35s ease;
+      z-index: 1;
+    }
+    html.dark .switch-mode-track,
+    .switch-mode-btn.is-dark .switch-mode-track {
+      background-color: #0B0B0B;
+    }
+
+    /* Sliding Knob with Spring Physics (stiffness: 260, damping: 20) */
+    .switch-mode-knob {
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #D8D6E0;
+      background-color: #F3F2F7;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      z-index: 3;
+      pointer-events: none;
+      transition: transform 0.36s cubic-bezier(0.34, 1.35, 0.64, 1),
+                  background-color 0.3s ease,
+                  border-color 0.3s ease;
+      transform: translateX(0);
+      box-sizing: border-box;
+    }
+    html.dark .switch-mode-knob,
+    .switch-mode-btn.is-dark .switch-mode-knob {
+      transform: translateX(30px);
+      background-color: #2A2A2E;
+      border-color: #4C4C50;
+      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Sun & Moon Icon Slots */
+    .switch-mode-icon {
+      position: relative;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.34, 1.35, 0.64, 1),
+                  color 0.25s ease;
+      box-sizing: border-box;
+    }
+
+    /* Sun on Left */
+    .switch-mode-sun {
+      transform: rotate(0deg);
+      color: #686771;
+    }
+    .switch-mode-sun .sun-solid { display: block; }
+    .switch-mode-sun .sun-outline { display: none; }
+
+    html.dark .switch-mode-sun,
+    .switch-mode-btn.is-dark .switch-mode-sun {
+      transform: rotate(45deg);
+      color: #8A8A8F;
+    }
+    html.dark .switch-mode-sun .sun-solid,
+    .switch-mode-btn.is-dark .switch-mode-sun .sun-solid { display: none; }
+    html.dark .switch-mode-sun .sun-outline,
+    .switch-mode-btn.is-dark .switch-mode-sun .sun-outline { display: block; }
+
+    /* Moon on Right */
+    .switch-mode-moon {
+      transform: rotate(15deg);
+      color: #ABABB4;
+    }
+    .switch-mode-moon .moon-solid { display: none; }
+    .switch-mode-moon .moon-outline { display: block; }
+
+    html.dark .switch-mode-moon,
+    .switch-mode-btn.is-dark .switch-mode-moon {
+      transform: rotate(0deg);
+      color: #F4F4FB;
+    }
+    html.dark .switch-mode-moon .moon-solid,
+    .switch-mode-btn.is-dark .switch-mode-moon .moon-solid { display: block; }
+    html.dark .switch-mode-moon .moon-outline,
+    .switch-mode-btn.is-dark .switch-mode-moon .moon-outline { display: none; }
+
+    main { max-width: 1440px; margin: 0 auto; padding: 24px 20px 64px; }
+
+    .page-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-family: var(--font-retro);
+      font-weight: 800;
+      font-size: clamp(26px, 3.5vw, 36px);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      color: var(--fg);
+    }
+
+    /* Audit Query Control Panel matching 70s retro search-card */
+    .panel {
+      border: 1.5px solid var(--border-strong);
+      border-radius: 18px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .panel:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--surface-tint), var(--shadow-md);
+    }
+    .panel-head {
+      background: var(--surface-soft);
+      color: var(--fg);
+      border-bottom: 1.5px solid var(--border);
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font: 700 13px/1.2 var(--font-sans);
+      letter-spacing: 0.01em;
+    }
+    .ctrl-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .ctrl-label {
+      font: 700 11.5px/1.2 var(--font-sans);
+      color: var(--muted);
+      min-width: 110px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Clean Enterprise Buttons & Controls */
+    .mode, .detail-btn {
+      border: 1px solid var(--border-strong);
+      background: var(--surface-soft);
+      color: var(--fg);
+      padding: 6px 12px;
+      font: 600 12px/1.2 var(--font-sans);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .mode:hover, .detail-btn:hover {
+      background: var(--surface-tint);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .mode.active, .detail-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    .askbox { padding: 18px; background: var(--surface); }
+    textarea {
+      width: 100%;
+      min-height: 92px;
+      resize: vertical;
+      padding: 13px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14.5px/1.5 var(--font-sans);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px var(--surface-tint);
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1.5px solid var(--border);
+    }
+    .preset-chip {
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--fg);
+      padding: 6px 12px;
+      font: 600 12px/1.3 var(--font-sans);
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .preset-chip:hover {
+      background: var(--surface-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .action-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    button.ask {
+      border: 0;
+      background: var(--accent);
+      color: var(--accent-fg);
+      padding: 11px 22px;
+      font: 700 13.5px/1.2 var(--font-sans);
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      transition: background 0.15s ease, opacity 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button.ask:hover {
+      background: var(--accent-hover);
+    }
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    button.ask:disabled { opacity: 0.6; cursor: wait; }
+
+    .status-bar {
+      border-top: 1px solid var(--border);
+      background: var(--surface-soft);
+      padding: 9px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      font: 500 12px/1.3 var(--font-mono);
+      color: var(--muted);
+    }
+    #status.error { color: var(--danger); font-weight: 700; }
+
+    /* Dossier Output */
+    #results { display: grid; gap: 20px; }
+    .result {
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .result-head {
+      background: var(--surface-soft);
+      color: var(--fg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font: 700 12px/1.2 var(--font-mono);
+      letter-spacing: 0.02em;
+    }
+
+    /* 4-Cell KPI Ledger Row */
+    .kpi-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .kpi-table td {
+      width: 25%;
+      border-right: 1px solid var(--border);
+      padding: 12px 16px;
+      vertical-align: top;
+      background: var(--surface-tint);
+    }
+    .kpi-table td:last-child { border-right: 0; }
+    .kpi-label {
+      font: 700 10.5px/1.2 var(--font-mono);
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .kpi-val { font: 700 16px/1.2 var(--font-mono); color: var(--fg); }
+    .kpi-val.alert { color: var(--danger); }
+    .kpi-sub { font: 12px/1.3 var(--font-sans); color: var(--muted); margin-top: 3px; }
+
+    /* SVG Schematic */
+    .subgraph-box {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      background: var(--surface);
+    }
+    .subgraph-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      font: 700 11px/1.2 var(--font-mono);
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .subgraph-svg {
+      width: 100%;
+      min-width: 640px;
+      height: 136px;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: var(--btn-radius);
+      background: var(--surface);
+    }
+
+    /* Structured Audit Sections & Tables */
+    .answer { padding: 18px; background: var(--surface); }
+    .audit-section {
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      background: var(--surface);
+    }
+    .audit-section.limitations {
+      border-left: 4px solid var(--danger);
+      background: var(--danger-soft);
+    }
+    .audit-section h2 {
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      font: 700 13px/1.2 var(--font-mono);
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .audit-section.limitations h2 { color: var(--danger); border-bottom-color: rgba(220, 38, 38, 0.2); }
+    .answer p { margin: 0 0 10px; line-height: 1.6; }
+    .answer ul, .answer ol { margin: 6px 0 12px; padding-left: 20px; }
+    .answer li { margin-bottom: 5px; line-height: 1.5; }
+    .cite-pill {
+      display: inline-block;
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin: 0 2px;
+      font: 700 11.5px/1.35 var(--font-mono);
+    }
+    .num-hi {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      background: var(--surface-soft);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
+    .table-wrap { width: 100%; overflow-x: auto; margin: 12px 0 16px; }
+    table.audit-table, table.raw-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      line-height: 1.45;
+      border-radius: var(--btn-radius);
+      overflow: hidden;
+    }
+    table.audit-table th, table.audit-table td,
+    table.raw-table th, table.raw-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 9px 12px;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    table.audit-table thead th, table.raw-table thead th {
+      background: var(--surface-soft);
+      color: var(--muted);
+      font: 600 11.5px/1.25 var(--font-sans);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    table.audit-table tbody tr:hover td,
+    table.raw-table tbody tr:hover td { background: var(--surface-soft); }
+    table.audit-table td.num-cell {
+      font: 700 13px/1.35 var(--font-mono);
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Open R1 Trace & Governance Context */
+    .flat-block {
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      margin: 0 16px 16px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .flat-block-head {
+      background: var(--surface-soft);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font: 700 11.5px/1.2 var(--font-mono);
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .flat-block pre {
+      margin: 0;
+      padding: 14px;
+      white-space: pre-wrap;
+      font: 12px/1.55 var(--font-mono);
+      color: var(--fg);
+      background: var(--bg);
+    }
+    .rti-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-soft);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
+      padding: 6px 14px;
+      font: 600 12px/1.2 var(--font-sans);
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      background: var(--surface-soft);
+      border-color: var(--border-strong);
+      color: var(--accent);
+    }
+    .btn-accent {
+      border: 1px solid var(--accent);
+      color: #ffffff;
+      background: var(--accent);
+      font-weight: 700;
+    }
+    .btn-accent:hover {
+      background: var(--accent-hover);
+      color: #ffffff;
+    }
+    .empty {
+      padding: 48px 16px;
+      text-align: center;
+      font: 13.5px/1.5 var(--font-sans);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      background: var(--surface);
+    }
+
+    @media (max-width: 820px) {
+      .kpi-table tr { display: grid; grid-template-columns: 1fr 1fr; }
+      .kpi-table td { width: auto; border-bottom: 1px solid var(--border); }
+    }
+
+    /* Drag and drop BYOD dropzone */
+    .byod-dropzone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 14px 18px;
+      background: var(--surface-soft);
+      border: 2px dashed var(--border-strong);
+      border-radius: var(--card-radius);
+      text-align: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .byod-dropzone:hover {
+      border-color: var(--accent);
+      background: var(--surface-tint);
+    }
+    .byod-dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 4px rgba(183, 121, 31, 0.2);
+      transform: scale(1.01);
+    }
+
+    /* Clean Enterprise Auth Modal & Badges */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--card-radius);
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+      padding: 22px;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .modal-header span {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--fg);
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .modal-close:hover { color: var(--fg); }
+    .auth-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      padding-bottom: 6px;
+    }
+    .auth-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .auth-tab.active {
+      color: var(--fg);
+      background: var(--surface-soft);
+      border-color: var(--border-strong);
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .auth-form label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+    .auth-form input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 13px;
+    }
+    .auth-form input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .auth-error {
+      padding: 8px 12px;
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      border-radius: 4px;
+      color: #ef4444;
+      font-size: 12px;
+    }
+    .badge-vault {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 7px;
+      background: rgba(183, 121, 31, 0.14);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .badge-pro {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      background: #10b981;
+      color: #ffffff;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .vault-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .vault-item-remove {
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: bold;
+    }
+    .vault-item-remove:hover { color: #ef4444; }
+  </style>
+  <script src="bp-config.js"></script>
+  <script src="fuzzy-utils.js"></script>
+</head>
+<body>
+  <!-- Retro 70s Masthead Topbar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="graphdashboard2.html" class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/>
+            <path d="M8.7 10.7l6.6-3.4"/><path d="M8.7 13.3l6.6 3.4"/>
+          </svg>
+        </span>
+        <span>Bharat Praman</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="graphdashboard2.html">Search</a>
+        <a href="graph.html">Graph Explorer</a>
+        <a href="ask.html" class="active">Fiscal Intelligence</a>
+        <a href="rti/rti_page.html">RTI Desk</a>
+        <a href="rti_archive.html">RTI Archive</a>
+        <a href="graph.html#glossary" id="glossaryOpen">Glossary &amp; IPC</a>
+        <a href="graphdashboard2.html#benchmark" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12);">Architecture Benchmark</a>
+        <button id="authBtn" type="button" class="btn-ghost" style="font-weight:700; color:#ffffff; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:4px; font-size:12px; cursor:pointer;">
+          <span id="authBtnLabel">Sign In / Register</span>
+        </button>
+        <button id="themeToggle" class="switch-mode-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <span class="switch-mode-track" aria-hidden="true"></span>
+          <span class="switch-mode-knob" aria-hidden="true"></span>
+          <span class="switch-mode-icon switch-mode-sun" aria-hidden="true">
+            <svg class="sun-solid" width="13" height="13" viewBox="0 0 512 512" fill="currentColor">
+              <path d="M256 160c-53 0-96 43-96 96s43 96 96 96 96-43 96-96-43-96-96-96zm0 240c-79.5 0-144-64.5-144-144s64.5-144 144-144 144 64.5 144 144-64.5 144-144 144zm0-352c13.3 0 24-10.7 24-24V16c0-13.3-10.7-24-24-24s-24 10.7-24 24v8c0 13.3 10.7 24 24 24zm0 464c-13.3 0-24 10.7-24 24v8c0 13.3 10.7 24 24 24s24-10.7 24-24v-8c0-13.3-10.7-24-24-24zm208-208c0-13.3-10.7-24-24-24h-8c-13.3 0-24 10.7-24 24s10.7 24 24 24h8c13.3 0 24-10.7 24-24zm-376 0c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24s10.7 24 24 24h24c13.3 0 24-10.7 24-24zm322.8-114.8c9.4-9.4 9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0zm-289.6 289.6c-9.4 9.4-9.4 24.6 0 33.9l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0zm0-289.6l-5.7 5.7c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l5.7-5.7c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0zm289.6 289.6l5.7 5.7c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-5.7-5.7c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9z"/>
+            </svg>
+            <svg class="sun-outline" width="13" height="13" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="256" cy="256" r="96"/>
+              <line x1="256" y1="48" x2="256" y2="96"/>
+              <line x1="256" y1="416" x2="256" y2="464"/>
+              <line x1="464" y1="256" x2="416" y2="256"/>
+              <line x1="96" y1="256" x2="48" y2="256"/>
+              <line x1="403.08" y1="108.92" x2="369.14" y2="142.86"/>
+              <line x1="142.86" y1="369.14" x2="108.92" y2="403.08"/>
+              <line x1="403.08" y1="403.08" x2="369.14" y2="369.14"/>
+              <line x1="142.86" y1="142.86" x2="108.92" y2="108.92"/>
+            </svg>
+          </span>
+          <span class="switch-mode-icon switch-mode-moon" aria-hidden="true">
+            <svg class="moon-solid" width="13" height="13" viewBox="0 0 512 512" fill="currentColor">
+              <path d="M264 480A232 232 0 0 1 32 248c0-94 56.23-179.9 143.27-213.9 7.77-3 16.54-1 22.18 5.1s6.61 15 2.47 22.4A175.87 175.87 0 0 0 176 160c0 97 79 176 176 176 34.6 0 67.23-10.15 95.12-28.7 6.94-4.63 16.14-4.5 22.75 1.1s8.85 14.2 6.06 22.1C438.3 420.2 355.6 480 264 480z"/>
+            </svg>
+            <svg class="moon-outline" width="13" height="13" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M160 136c0-30.62 4.51-61.61 16-88C99.57 81.27 48 159.32 48 248c0 119.29 96.71 216 216 216 88.68 0 166.73-51.57 200-128-26.39 11.49-57.38 16-88 16-119.29 0-216-96.71-216-216z"/>
+            </svg>
+          </span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-title-row">
+      <div>
+        <h1>Union Ministry Fiscal &amp; Policy Intelligence Terminal</h1>
+        <span class="mono" style="font-size:12px; color:var(--accent); font-weight:600;">CORPUS: 8 UNION MINISTRIES · FY 2021-22 TO 2025-26 · BE VS RE DUAL-GROUNDED</span>
+      </div>
+    </div>
+
+    <section class="panel" aria-label="Fiscal query parameters">
+      <div class="panel-head">
+        <span>Fiscal &amp; Policy Intelligence Query</span>
+        <span class="mono" style="font-size:11px; color:var(--accent);">15,000+ Verified Ministry Records · Dual RAG + Web Intelligence</span>
+      </div>
+
+      <!-- Ministry Filter Buttons -->
+      <div class="ctrl-row" id="modes">
+        <span class="ctrl-label">Ministry:</span>
+        <button type="button" class="mode" data-mode="all">All Ministries</button>
+        <button type="button" class="mode" data-mode="education">Education</button>
+        <button type="button" class="mode" data-mode="home">Home Affairs</button>
+        <button type="button" class="mode" data-mode="finance">Finance</button>
+        <button type="button" class="mode" data-mode="health">Health &amp; Family Welfare</button>
+        <button type="button" class="mode" data-mode="defence">Defence</button>
+        <button type="button" class="mode" data-mode="rural">Rural Development</button>
+        <button type="button" class="mode" data-mode="road">Road Transport &amp; Highways</button>
+        <button type="button" class="mode" data-mode="agriculture">Agriculture &amp; Farmers Welfare</button>
+      </div>
+
+      <!-- Fiscal Years Buttons -->
+      <div class="ctrl-row" id="yearModes">
+        <span class="ctrl-label">Fiscal Years:</span>
+        <button type="button" class="mode active" data-year="all">All Years</button>
+        <button type="button" class="mode" data-year="2021-22">2021-22</button>
+        <button type="button" class="mode" data-year="2022-23">2022-23</button>
+        <button type="button" class="mode" data-year="2023-24">2023-24</button>
+        <button type="button" class="mode" data-year="2024-25">2024-25</button>
+        <button type="button" class="mode" data-year="2025-26">2025-26</button>
+      </div>
+
+      <!-- Engine & Depth Controls -->
+      <div class="ctrl-row">
+        <span class="ctrl-label">Intelligence Mode:</span>
+        <div id="reasonToggle" style="display:flex; gap:6px; margin-right:16px;">
+          <button type="button" class="detail-btn active" data-reason="auto">Adaptive Intelligence</button>
+          <button type="button" class="detail-btn" data-reason="chat">Direct Synthesis</button>
+          <button type="button" class="detail-btn" data-reason="reasoner">Deep Reasoning</button>
+        </div>
+        <div id="detailToggle" style="display:flex; gap:6px;">
+          <button type="button" class="detail-btn" data-detail="short">Executive Summary</button>
+          <button type="button" class="detail-btn active" data-detail="long">Comprehensive Audit Report</button>
+        </div>
+      </div>
+
+      <!-- Audit Input Box & Presets -->
+      <div class="askbox">
+        <!-- BYOD Private Document Drag & Drop Dropzone (Standard vs Neo4j Vault) -->
+        <div id="byodDropZone" class="byod-dropzone">
+          <input type="file" id="byodFileInput" style="display:none;" accept=".pdf,.txt,.md,.csv,.json,.docx" multiple>
+          <div style="display:flex; align-items:center; gap:8px; pointer-events:none;">
+            <span style="font-size:22px;">📂</span>
+            <span style="font-weight:700; font-size:13.5px; color:var(--fg);" id="byodDropTitle">Drag &amp; Drop Private Tender DPRs / Memos here</span>
+            <span id="tierBadge" class="badge-vault" style="display:none;">NEO4J GRAPH VAULT ACTIVE</span>
+          </div>
+          <div style="font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:12px;" id="byodSubRow">
+            <span id="byodPrivacyNote">🔒 <strong>Standard Mode:</strong> Ephemeral in-memory · <a href="#" id="unlockVaultLink" style="color:var(--accent); font-weight:700; text-decoration:underline;">Upgrade to Neo4j Vector Vault</a></span>
+            <button type="button" id="byodPasteBtn" class="detail-btn" style="padding:2px 8px; font-size:10.5px; border-radius:4px;">Paste Raw Text</button>
+          </div>
+          <div id="vaultIndexingProgress" style="display:none; font-family:var(--font-mono); font-size:11.5px; color:var(--accent); margin-top:6px; font-weight:600;"></div>
+          <div id="byodFileList" style="display:none; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:8px;"></div>
+          <div id="vaultDocList" style="display:none; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:8px;"></div>
+        </div>
+
+        <textarea id="question" placeholder="Enter your fiscal or policy question (e.g. Compare BE vs RE allocation and actual releases for PM-SHRI and Samagra Shiksha in 2023-24)..."></textarea>
+        
+        <div class="preset-bar" id="presetBar">
+          <span class="ctrl-label" style="min-width:auto;">Benchmark Scenarios:</span>
+          <button type="button" class="preset-chip" data-q="What was the BE vs RE budget outlay and actual funds released for PM-SHRI, Samagra Shiksha, and school infrastructure in 2023-24?" data-min="education">PM-SHRI &amp; Samagra Shiksha BE vs RE Gap</button>
+          <button type="button" class="preset-chip" data-q="How much was allocated to CRPF, BSF and police modernisation, and was it fully used?" data-min="home">CRPF &amp; BSF Capital Modernisation Audit</button>
+          <button type="button" class="preset-chip" data-q="Compare the budget growth of Education, Home Affairs and Defence from 2021-22 to 2025-26" data-min="all">Multi-Ministry 5-Year Budget Trajectory</button>
+        </div>
+
+        <div class="action-footer">
+          <span class="mono" style="font-size:12px; color:var(--muted);">Press Ctrl+Enter to execute query</span>
+          <button id="ask" class="ask" type="button">Run Intelligence Query ↵</button>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <span id="status" role="status">Ready. Select parameters or enter an intelligence query above.</span>
+        <span id="perfTag" class="mono"></span>
+      </div>
+    </section>
+
+    <!-- Results Area -->
+    <section id="results" aria-live="polite">
+      <div class="empty">
+        <div style="font-weight:600; margin-bottom:4px; font-size:14px;">No Query Loaded Yet</div>
+        <div style="font-size:13px; color:var(--muted);">Select a benchmark scenario chip above or enter your question to inspect official allocations.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Clean B2B Authentication Modal -->
+  <div id="authModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="authModalTitle">Sign In to Sovereign Intelligence</span>
+        <button type="button" class="modal-close" id="authModalClose">×</button>
+      </div>
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tabSignIn">Sign In</button>
+        <button type="button" class="auth-tab" id="tabRegister">Register</button>
+        <button type="button" class="auth-tab" id="tabUpgrade">Enterprise Upgrade</button>
+      </div>
+      <form id="authForm" class="auth-form">
+        <div id="nameFieldGroup" style="display:none;">
+          <label>Full Name / Title</label>
+          <input type="text" id="authNameInput" placeholder="Dr. Vikram Sarabhai">
+        </div>
+        <div id="emailFieldGroup">
+          <label>Email Address</label>
+          <input type="email" id="authEmailInput" placeholder="analyst@ministry.gov.in" required>
+        </div>
+        <div id="passwordFieldGroup">
+          <label>Password</label>
+          <input type="password" id="authPasswordInput" placeholder="••••••••" required>
+        </div>
+        <div id="promoFieldGroup" style="display:none;">
+          <label>Enterprise Activation Code</label>
+          <input type="text" id="authPromoInput" placeholder="BHARAT_PRO_2026">
+          <span style="font-size:11px; color:var(--muted); margin-top:3px; display:block;">Enter <strong>BHARAT_PRO_2026</strong> to unlock Real-Time Neo4j Chunking &amp; 384-d BGE Vectorization.</span>
+        </div>
+        <div id="authErrorMsg" class="auth-error" style="display:none;"></div>
+        <div style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px;">
+          <button type="button" class="btn" id="authCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-accent" id="authSubmitBtn">Sign In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API = `${window.BP_CONFIG.apiBase}/api/rag/ask`;
+    const CACHE_PREFIX = 'bp_rag_cache_v2::';
+
+    const themeBtn = document.getElementById('themeToggle');
+    function syncThemeBtn() {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (themeBtn) {
+        themeBtn.classList.toggle('is-dark', isDark);
+        themeBtn.setAttribute('aria-checked', isDark ? 'true' : 'false');
+        themeBtn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        themeBtn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+      }
+    }
+    syncThemeBtn();
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('bp_theme', isDark ? 'dark' : 'light');
+        syncThemeBtn();
+      });
+    }
+
+    const params = new URLSearchParams(location.search);
+    let ministry = (params.get('ministry') || 'all').toLowerCase();
+    if (ministry === 'both') ministry = 'all';
+    let detailLevel = (params.get('detail') || 'long').toLowerCase() === 'short' ? 'short' : 'long';
+    let reasoningMode = (params.get('reason') || 'auto').toLowerCase();
+    let selectedYears = new Set();
+    const initialQuestion = params.get('q') || '';
+
+    const questionEl = document.getElementById('question');
+    const askButton = document.getElementById('ask');
+    const statusEl = document.getElementById('status');
+    const perfTag = document.getElementById('perfTag');
+    const resultsEl = document.getElementById('results');
+    const modesEl = document.getElementById('modes');
+    const yearModesEl = document.getElementById('yearModes');
+    const detailToggleEl = document.getElementById('detailToggle');
+
+    // BYOD Layer State & Handlers (Max 3 files, 10MB limit per file)
+    const MAX_BYOD_FILES = 3;
+    const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+    let activeByodDocs = []; // [{ doc_id, filename, words }]
+
+    const byodDropZone = document.getElementById('byodDropZone');
+    const byodFileInput = document.getElementById('byodFileInput');
+    const byodPasteBtn = document.getElementById('byodPasteBtn');
+    const byodFileList = document.getElementById('byodFileList');
+
+    function renderByodFileList() {
+      if (!byodFileList) return;
+      if (!activeByodDocs.length) {
+        byodFileList.style.display = 'none';
+        byodFileList.innerHTML = '';
+        return;
+      }
+      byodFileList.style.display = 'flex';
+      byodFileList.innerHTML = activeByodDocs.map((doc, idx) => `
+        <div style="display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1.5px solid var(--accent); padding:4px 10px; border-radius:8px; font-size:11.5px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <span style="color:var(--accent); font-weight:700;">📄 Doc ${idx + 1}:</span>
+          <strong style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(doc.filename)}">${escapeHtml(doc.filename)}</strong>
+          <span style="color:var(--muted);">(${doc.words ? doc.words.toLocaleString() + ' words' : ''})</span>
+          <button type="button" class="byod-item-remove" data-idx="${idx}" style="background:none; border:none; cursor:pointer; font-weight:700; color:var(--danger); font-size:14px; line-height:1; padding:0 3px;" title="Remove this file">&times;</button>
+        </div>
+      `).join('') + `
+        <div style="font-size:11px; color:var(--muted); align-self:center; margin-left:4px;">
+          (${activeByodDocs.length}/3 attached)
+        </div>
+      `;
+
+      byodFileList.querySelectorAll('.byod-item-remove').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const removeIdx = Number(btn.getAttribute('data-idx'));
+          activeByodDocs.splice(removeIdx, 1);
+          renderByodFileList();
+          statusEl.textContent = activeByodDocs.length
+            ? `Private docs updated (${activeByodDocs.length}/3 attached).`
+            : 'All private documents detached. Queries will use official corpus.';
+        });
+      });
+    }
+
+    async function uploadByodFiles(fileList) {
+      if (!fileList || !fileList.length) return;
+      const files = Array.from(fileList);
+
+      for (const file of files) {
+        if (activeByodDocs.length >= MAX_BYOD_FILES) {
+          alert(`Maximum of 3 files allowed. '${file.name}' was not added.`);
+          break;
+        }
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          const mb = (file.size / (1024 * 1024)).toFixed(1);
+          alert(`'${file.name}' (${mb} MB) exceeds the maximum allowed file size of 10 MB per file.`);
+          continue;
+        }
+
+        statusEl.textContent = `Uploading and parsing ${file.name}...`;
+        await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = async () => {
+            try {
+              const b64 = reader.result.split(',')[1];
+              const res = await fetch(`${window.BP_CONFIG.apiBase}/api/byod/upload`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file.name, content_base64: b64, title: file.name }),
+              });
+              const d = await res.json();
+              if (!res.ok) throw new Error(d.detail || 'Upload failed');
+              activeByodDocs.push({
+                doc_id: d.doc_id,
+                filename: d.filename,
+                words: d.words,
+              });
+              renderByodFileList();
+              statusEl.textContent = `Attached '${d.filename}' (${d.words.toLocaleString()} words). Total: ${activeByodDocs.length}/3 private files.`;
+            } catch (err) {
+              alert(`BYOD upload failed for '${file.name}': ${err.message}`);
+            } finally {
+              resolve();
+            }
+          };
+          reader.onerror = () => {
+            alert(`Could not read '${file.name}'`);
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
+    if (byodDropZone && byodFileInput) {
+      byodDropZone.addEventListener('click', (e) => {
+        if (e.target.closest('.byod-item-remove') || e.target.closest('#byodPasteBtn')) return;
+        byodFileInput.click();
+      });
+      byodFileInput.addEventListener('change', (e) => {
+        uploadByodFiles(e.target.files);
+        byodFileInput.value = '';
+      });
+
+      // Visual Drag & Drop listeners
+      ['dragenter', 'dragover'].forEach((name) => {
+        byodDropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          byodDropZone.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach((name) => {
+        byodDropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          byodDropZone.classList.remove('dragover');
+        });
+      });
+      byodDropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) {
+          uploadByodFiles(dt.files);
+        }
+      });
+    }
+
+    // Also allow dropping onto question input
+    if (questionEl && byodDropZone) {
+      ['dragenter', 'dragover'].forEach((name) => {
+        questionEl.addEventListener(name, (e) => {
+          e.preventDefault();
+          byodDropZone.classList.add('dragover');
+        });
+      });
+      ['dragleave'].forEach((name) => {
+        questionEl.addEventListener(name, (e) => {
+          e.preventDefault();
+          byodDropZone.classList.remove('dragover');
+        });
+      });
+      questionEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        byodDropZone.classList.remove('dragover');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+          uploadByodFiles(e.dataTransfer.files);
+        }
+      });
+    }
+
+    if (byodPasteBtn) {
+      byodPasteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (activeByodDocs.length >= MAX_BYOD_FILES) {
+          alert('Maximum of 3 files allowed. Please remove a file before adding another.');
+          return;
+        }
+        const text = prompt('Paste private document or policy notes to analyze:');
+        if (!text || text.trim().length < 5) return;
+        try {
+          const res = await fetch(`${window.BP_CONFIG.apiBase}/api/byod/paste`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: `Pasted Document ${activeByodDocs.length + 1}`, content: text.trim() }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw new Error(d.detail || 'Paste failed');
+          activeByodDocs.push({
+            doc_id: d.doc_id,
+            filename: `Pasted Document ${activeByodDocs.length + 1}`,
+            words: d.words,
+          });
+          renderByodFileList();
+          statusEl.textContent = `Attached pasted text (${d.words} words). Total: ${activeByodDocs.length}/3 private files.`;
+        } catch (err) {
+          alert(`BYOD paste failed: ${err.message}`);
+        }
+      });
+    }
+    const reasonToggleEl = document.getElementById('reasonToggle');
+    const presetBarEl = document.getElementById('presetBar');
+
+    const labelFor = {
+      all: 'All Ministries',
+      education: 'Ministry of Education',
+      home: 'Ministry of Home Affairs',
+      finance: 'Ministry of Finance',
+      health: 'Ministry of Health & Family Welfare',
+      defence: 'Ministry of Defence',
+      rural: 'Ministry of Rural Development',
+      road: 'Ministry of Road Transport & Highways',
+      agriculture: 'Ministry of Agriculture & Farmers Welfare',
+    };
+
+    function setMode(mode) {
+      ministry = mode;
+      [...modesEl.querySelectorAll('.mode')].forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+    }
+    function setDetail(level) {
+      detailLevel = level === 'short' ? 'short' : 'long';
+      [...detailToggleEl.querySelectorAll('.detail-btn')].forEach((b) => b.classList.toggle('active', b.dataset.detail === detailLevel));
+    }
+    function setReasoning(mode) {
+      reasoningMode = ['auto', 'chat', 'reasoner'].includes(mode) ? mode : 'auto';
+      [...reasonToggleEl.querySelectorAll('.detail-btn')].forEach((b) => b.classList.toggle('active', b.dataset.reason === reasoningMode));
+    }
+    function syncYearButtons() {
+      yearModesEl.querySelector('[data-year="all"]').classList.toggle('active', selectedYears.size === 0);
+      [...yearModesEl.querySelectorAll('[data-year]')].forEach((b) => {
+        if (b.dataset.year !== 'all') b.classList.toggle('active', selectedYears.has(b.dataset.year));
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function formatInline(raw) {
+      let s = escapeHtml(raw);
+      s = s.replace(/\[([^\[\]]*?\bp\.\s*\d+[^\[\]]*?)\]/gi, '<span class="cite-pill">[CIT: $1]</span>');
+      s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;!?)]|$)/g, '$1<em>$2</em>');
+      s = s.replace(/`([^`]+)`/g, '<code class="mono">$1</code>');
+      s = s.replace(/\b((?:Rs\.?|₹)\s*[\d,]+(?:\.\d+)?\s*(?:Crore|Cr\.?|Lakh|Lac)?)\b/gi, '<span class="num-hi">$1</span>');
+      return s;
+    }
+
+    function renderStructuredMarkdown(rawAnswer) {
+      if (!rawAnswer) return '<p>No content returned.</p>';
+      let text = String(rawAnswer);
+
+      let r1Html = '';
+      const detailsMatch = text.match(/<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/i);
+      if (detailsMatch) {
+        r1Html = `<section class="audit-section"><h2 class="alert">Audit Reasoning Trace // ${escapeHtml(detailsMatch[1].trim())}</h2><pre class="mono" style="margin:0;white-space:pre-wrap;font-size:12px;">${escapeHtml(detailsMatch[2].trim())}</pre></section>`;
+        text = text.replace(detailsMatch[0], '').trim();
+      }
+
+      const lines = text.split(/\r?\n/);
+      const sections = [];
+      let currentSection = { title: '', isLimitations: false, blocks: [] };
+      let i = 0;
+
+      while (i < lines.length) {
+        const trimmed = lines[i].trim();
+        if (!trimmed) { i++; continue; }
+
+        const hMatch = trimmed.match(/^(#{1,3})\s+(.*)$/);
+        if (hMatch) {
+          if (currentSection.title || currentSection.blocks.length) sections.push(currentSection);
+          const hTitle = hMatch[2].replace(/\*\*/g, '').trim();
+          currentSection = { title: hTitle, isLimitations: /not\s+disclosed|limitation|scope/i.test(hTitle), blocks: [] };
+          i++;
+          continue;
+        }
+
+        if (trimmed.startsWith('|') && trimmed.split('|').length >= 3) {
+          const tableLines = [];
+          while (i < lines.length && lines[i].trim().startsWith('|')) {
+            tableLines.push(lines[i].trim());
+            i++;
+          }
+          const validRows = tableLines.filter((r) => !/^\|[\s\-:|]+\|$/.test(r));
+          if (validRows.length >= 1) {
+            const parseCells = (rowStr) => rowStr.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+            const headerCells = parseCells(validRows[0]);
+            const bodyRows = validRows.slice(1).map(parseCells);
+            let tbl = '<div class="table-wrap"><table class="audit-table"><thead><tr>';
+            headerCells.forEach((h) => { tbl += `<th>${formatInline(h)}</th>`; });
+            tbl += '</tr></thead><tbody>';
+            bodyRows.forEach((row) => {
+              if (row.every((c) => !c)) return;
+              tbl += '<tr>';
+              for (let cIdx = 0; cIdx < headerCells.length; cIdx++) {
+                const cellVal = row[cIdx] ?? '—';
+                const isNum = /(?:Rs\.?|₹|\d+\.\d+|\bCr\b|\bLakh\b|\bBE\b|\bRE\b|%)/i.test(cellVal) && cellVal.length < 48;
+                const isAlert = /shortfall|reduction|decrease|unspent|not\s+disclosed|-\s*\d+(?:\.\d+)?%/i.test(cellVal);
+                tbl += `<td class="${isNum ? 'num-cell' : ''} ${isAlert ? 'alert' : ''}">${formatInline(cellVal)}</td>`;
+              }
+              tbl += '</tr>';
+            });
+            tbl += '</tbody></table></div>';
+            currentSection.blocks.push(tbl);
+            continue;
+          }
+        }
+
+        if (/^(?:[-*•]|\d+[.)])\s+/.test(trimmed)) {
+          const isOrdered = /^\d+[.)]\s+/.test(trimmed);
+          const tag = isOrdered ? 'ol' : 'ul';
+          const items = [];
+          while (i < lines.length && /^(?:[-*•]|\d+[.)])\s+/.test(lines[i].trim())) {
+            const itemTxt = lines[i].trim().replace(/^(?:[-*•]|\d+[.)])\s+/, '');
+            items.push(`<li>${formatInline(itemTxt)}</li>`);
+            i++;
+          }
+          currentSection.blocks.push(`<${tag}>${items.join('')}</${tag}>`);
+          continue;
+        }
+
+        const paraLines = [trimmed];
+        i++;
+        while (i < lines.length && lines[i].trim() && !lines[i].trim().startsWith('#') && !lines[i].trim().startsWith('|') && !/^(?:[-*•]|\d+[.)])\s+/.test(lines[i].trim())) {
+          paraLines.push(lines[i].trim());
+          i++;
+        }
+        currentSection.blocks.push(`<p>${formatInline(paraLines.join(' '))}</p>`);
+      }
+
+      if (currentSection.title || currentSection.blocks.length) sections.push(currentSection);
+
+      const sectionsHtml = sections.map((sec) => {
+        const cls = sec.isLimitations ? 'audit-section limitations' : 'audit-section';
+        const titleHtml = sec.title ? `<h2>${sec.isLimitations ? 'Scope Limitation // ' : ''}${escapeHtml(sec.title)}</h2>` : '';
+        return `<section class="${cls}">${titleHtml}${sec.blocks.join('')}</section>`;
+      }).join('');
+
+      return r1Html + sectionsHtml;
+    }
+
+    function extractAuditKpis(r) {
+      const ans = String(r.answer || '');
+      const sources = r.sources || [];
+      const moneyMatches = [...ans.matchAll(/(?:Rs\.?|₹)\s*([\d,]+(?:\.\d+)?)\s*(Crore|Cr\.?|Lakh|Lac)?/gi)];
+      const primaryFig = moneyMatches.length ? moneyMatches[0][0] : `${sources.length} Passages`;
+      const hasBeRe = /\bBE\b[\s\S]{0,80}\bRE\b/i.test(ans) || /Revised Estimate/i.test(ans);
+      const distinctYears = [...new Set(sources.map((s) => s.year).filter(Boolean))];
+      const distinctPages = [...new Set(sources.map((s) => `p.${s.page}`).filter((x) => x !== 'p.undefined'))];
+      return [
+        { label: 'Primary Audited Allocation', val: primaryFig, sub: `${moneyMatches.length} monetary allocations extracted`, cls: '' },
+        { label: 'Variance / BE vs RE Signal', val: hasBeRe ? 'BE/RE Discrepancy Detected' : 'Audited Baseline Grounded', sub: 'Verbatim official units', cls: hasBeRe ? 'alert' : '' },
+        { label: 'Verified Document Evidence', val: `${sources.length} Certified Sources`, sub: `Years: ${distinctYears.join(', ') || 'FY 2021-2026'}`, cls: '' },
+        { label: 'Intelligence Grounding', val: 'Sovereign Hybrid AI', sub: 'Dual RAG + Verified Web Context', cls: '' },
+      ];
+    }
+
+    /* Clean Lineage Diagram matching 70s Retro Two-Color Theme */
+    function renderSubgraphSvg(r) {
+      const dark = document.documentElement.classList.contains('dark');
+      const strokeColor = dark ? '#D8962E' : '#B7791F';
+      const textColor = dark ? '#FAF5EB' : '#2A1D0F';
+      const bgColor = dark ? '#221A11' : '#FFFFFF';
+      const circleFill = dark ? '#2D2317' : '#FBF4E6';
+      const minLabel = (r.ministry || 'MINISTRY').replace(/^Ministry of\s+/i, '').slice(0, 22);
+      const sources = (r.sources || []).slice(0, 4);
+      const docs = [...new Set(sources.map((s) => `${(s.title || 'REPORT').slice(0, 20)} (${s.year || 'FY'})`))].slice(0, 2);
+      if (!docs.length) docs.push('Annual Report (FY)');
+
+      let edgesSvg = '';
+      let nodesSvg = '';
+
+      // Node 1: Ministry Circle
+      nodesSvg += `
+        <circle cx="90" cy="68" r="22" fill="${circleFill}" stroke="${strokeColor}" stroke-width="2"/>
+        <text x="90" y="72" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="9" font-weight="700">MINISTRY</text>
+        <text x="90" y="106" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="10" font-weight="700">${escapeHtml(minLabel)}</text>
+      `;
+
+      // Node 2..3: Document Circles
+      docs.forEach((dLabel, dIdx) => {
+        const y = docs.length === 1 ? 68 : (dIdx === 0 ? 40 : 96);
+        edgesSvg += `<line x1="112" y1="68" x2="320" y2="${y}" stroke="${strokeColor}" stroke-width="1.2" stroke-dasharray="2 2"/>`;
+        edgesSvg += `<text x="216" y="${(68 + y) / 2 - 4}" text-anchor="middle" fill="${textColor}" font-family="ui-monospace,monospace" font-size="8.5">:PUBLISHED</text>`;
+        nodesSvg += `
+          <circle cx="340" cy="${y}" r="16" fill="${bgColor}" stroke="${strokeColor}" stroke-width="1.8"/>
+          <text x="340" y="${y + 3}" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="8.5" font-weight="700">DOC</text>
+          <text x="340" y="${y + 26}" text-anchor="middle" fill="${textColor}" font-family="system-ui,sans-serif" font-size="9.5" font-weight="600">${escapeHtml(dLabel)}</text>
+        `;
+      });
+
+      // Node 4..7: Chunk Circles
+      sources.forEach((s, sIdx) => {
+        const y = 22 + sIdx * 30;
+        const docY = docs.length === 1 ? 68 : (sIdx % 2 === 0 ? 40 : 96);
+        edgesSvg += `<line x1="358" y1="${docY}" x2="528" y2="${y}" stroke="${strokeColor}" stroke-width="1"/>`;
+        const secShort = (s.section || s.title || 'CHUNK').replace(/^Scheme\/Section:\s*/i, '').slice(0, 28);
+        nodesSvg += `
+          <circle cx="536" cy="${y}" r="7" fill="${strokeColor}" stroke="${bgColor}" stroke-width="1"/>
+          <text x="550" y="${y + 3}" fill="${textColor}" font-family="system-ui,sans-serif" font-size="10" font-weight="600">Chunk p.${escapeHtml(s.page ?? '?')} | ${escapeHtml(secShort)}</text>
+        `;
+      });
+
+      return `
+        <div class="subgraph-box">
+          <div class="subgraph-head">
+            <span>Evidence Graph Lineage (:Ministry → :Document → :Chunk)</span>
+            <span>Hybrid Semantic Graph Index · Certified Official Corpus</span>
+          </div>
+          <svg class="subgraph-svg" viewBox="0 0 820 136" xmlns="http://www.w3.org/2000/svg">
+            ${edgesSvg}
+            ${nodesSvg}
+          </svg>
+        </div>`;
+    }
+
+    function buildRtiDraft(r, qText) {
+      const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+      const minName = r.ministry && r.ministry !== 'All Ministries' ? `Ministry of ${r.ministry.replace(/^Ministry of\s+/i, '')}` : 'The Concerned Union Ministry';
+      const srcLines = (r.sources || []).slice(0, 6).map((s, i) =>
+        `  ${i + 1}. ${s.title || 'Annual Report'} (${s.year || 'FY'}) — Page ${s.page ?? 'N/A'}${s.section ? ` [Section: ${s.section}]` : ''}`
+      ).join('\n') || '  1. Ministry Annual Report (as cited above)';
+      const summarySnippet = String(r.answer || '').replace(/<details>[\s\S]*?<\/details>/gi, '').replace(/[#*|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 460);
+      return [
+        `APPLICATION UNDER SECTION 6(1) OF THE RIGHT TO INFORMATION ACT, 2005`,
+        `Date: ${today}`,
+        ``,
+        `To,`,
+        `The Central Public Information Officer (CPIO),`,
+        `${minName},`,
+        `Government of India, New Delhi`,
+        ``,
+        `Subject: Request for certified financial/physical audit records under Section 6(1) of the RTI Act, 2005 regarding: "${qText}"`,
+        ``,
+        `Sir / Madam,`,
+        `With reference to official disclosures in the published Annual Report(s) of the Ministry:`,
+        srcLines,
+        ``,
+        `Published Finding / Discrepancy Summary:`,
+        `"${summarySnippet}..."`,
+        ``,
+        `Please provide certified information under Section 6(1) of the RTI Act, 2005:`,
+        `1. Scheme-wise and state/institution-wise breakup of Budget Estimates (BE), Revised Estimates (RE), and Actual Releases.`,
+        `2. Official file notings and sanction orders explaining any variance/shortfall between BE and RE / Actual Releases.`,
+        `3. Certified Utilization Certificates (UCs) and physical target vs. achievement tables for the cited fiscal years.`,
+        `4. Disaggregated records absent from the published Annual Report annexures for this query.`,
+        ``,
+        `Fee of Rs. 10/- enclosed. I state that I am a citizen of India.`,
+        ``,
+        `Yours faithfully,`,
+        `[Applicant Name]`,
+        `[Address / Email / Contact]`
+      ].join('\n');
+    }
+
+    function renderResults(results) {
+      if (!results || !results.length) {
+        resultsEl.innerHTML = '<div class="empty">No intelligence report returned.</div>';
+        return;
+      }
+      const qText = questionEl.value.trim();
+      const rtiPortalUrl = 'rti/rti_page.html';
+
+      resultsEl.innerHTML = results.map((r, idx) => {
+        const kpis = extractAuditKpis(r);
+        const kpiCells = kpis.map((k) => `
+          <td>
+            <div class="kpi-label">${escapeHtml(k.label)}</div>
+            <div class="kpi-val ${k.cls}">${escapeHtml(k.val)}</div>
+            <div class="kpi-sub">${escapeHtml(k.sub)}</div>
+          </td>`).join('');
+
+        const sourceRows = (r.sources || []).map((s, sIdx) => `
+          <tr>
+            <td class="num">${sIdx + 1}</td>
+            <td><strong>${escapeHtml(s.title || 'Annual Report')}</strong></td>
+            <td class="mono">${escapeHtml(s.ministry || '—')}</td>
+            <td class="mono">${escapeHtml(s.year || '—')}</td>
+            <td class="num">p.${escapeHtml(s.page ?? '?')}</td>
+            <td class="mono">${escapeHtml(s.section || s.breadcrumb || '—')}</td>
+          </tr>`).join('');
+
+        const minClean = (r.ministry || 'Union Ministry').replace(/^Ministry of\s+/i, '');
+        const reportTitle = minClean.toLowerCase() === 'all ministries' ? 'Inter-Ministerial Policy &amp; Fiscal Intelligence Report' : `Ministry of ${escapeHtml(minClean)} · Policy &amp; Fiscal Intelligence Report`;
+        const rtiDraft = buildRtiDraft(r, qText);
+        const structuredHtml = renderStructuredMarkdown(r.answer);
+        const subgraphHtml = renderSubgraphSvg(r);
+
+        return `
+          <article class="result">
+            <div class="result-head">
+              <span>${reportTitle}</span>
+              <span class="mono" style="color:var(--accent); font-weight:600;">${r.byod_active ? 'Private Document Grounded · ' : ''}${r.sources ? r.sources.length : 0} Verified Citations</span>
+            </div>
+            <table class="kpi-table"><tr>${kpiCells}</tr></table>
+            ${subgraphHtml}
+            <div class="answer">${structuredHtml}</div>
+
+            <div class="flat-block">
+              <div class="flat-block-head">
+                <span>Verified Page Citations Ledger (${(r.sources || []).length} Passages from Neo4j)</span>
+                <span class="mono" style="color:var(--accent);">Evidence Verified</span>
+              </div>
+              <table class="raw-table">
+                <thead><tr><th style="width:45px">#</th><th>Document Title</th><th>Ministry</th><th style="width:90px">Fiscal Yr</th><th style="width:70px">Page</th><th>Section / Breadcrumb</th></tr></thead>
+                <tbody>${sourceRows || '<tr><td colspan="6" class="mono">No citations returned.</td></tr>'}</tbody>
+              </table>
+            </div>
+
+            ${r.graph_context ? `
+              <div class="flat-block">
+                <div class="flat-block-head"><span>Neo4j Graph Governance &amp; Minister Traversal Trace</span><span class="mono">Raw Context</span></div>
+                <pre>${escapeHtml(r.graph_context)}</pre>
+              </div>` : ''}
+
+            <div class="flat-block">
+              <div class="flat-block-head">
+                <span>Section 6(1) RTI Application Draft (Pre-filled with Report Citations)</span>
+                <span class="mono" style="color:var(--accent);">Statutory CPIO Format</span>
+              </div>
+              <div style="padding:14px;">
+                <textarea id="rti-text-${idx}" style="min-height:220px; font-family:var(--font-mono); font-size:12.5px;">${escapeHtml(rtiDraft)}</textarea>
+              </div>
+              <div class="rti-actions">
+                <button type="button" class="btn btn-accent" data-rti-copy="${idx}">Copy RTI Text</button>
+                <button type="button" class="btn" data-rti-download="${idx}">Download .TXT</button>
+                <button type="button" class="btn" data-rti-print="${idx}">Print / Save PDF</button>
+                <a class="btn" href="${rtiPortalUrl}">Open Politician RTI Desk ↗</a>
+              </div>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    async function streamAuditDossier(reqBody, tStart) {
+      const resp = await fetch(`${API}/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+        body: JSON.stringify(reqBody),
+      });
+      if (!resp.ok || !resp.body) throw new Error(`HTTP ${resp.status}`);
+
+      const minLabel = labelFor[reqBody.ministry] || reqBody.ministry || 'All Ministries';
+      let meta = {};
+      let content = '';
+      let finalAnswer = null;
+      let firstTokenMs = null;
+      let lastPaint = 0;
+
+      const paint = (force = false) => {
+        const now = performance.now();
+        if (!force && now - lastPaint < 90) return;
+        lastPaint = now;
+        renderResults([{
+          ministry: minLabel,
+          detail_level: meta.detail_level || reqBody.detail_level,
+          reasoning_mode: meta.reasoning_mode || reqBody.reasoning_mode,
+          answer: content || 'Synthesizing cited audit briefing from retrieved passages...',
+          graph_context: meta.graph_context || '',
+          sources: meta.sources || [],
+          byod_active: meta.byod_active || Boolean(reqBody.byod_doc_id),
+        }]);
+        if (firstTokenMs !== null) {
+          perfTag.textContent = `Streaming · First token: ${firstTokenMs} ms`;
+        } else if (meta.sources) {
+          statusEl.textContent = `Retrieved ${meta.sources.length} passages from Neo4j · Streaming synthesis...`;
+        }
+      };
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buf.indexOf('\n\n')) !== -1) {
+          const frame = buf.slice(0, idx);
+          buf = buf.slice(idx + 2);
+          const line = frame.split('\n').find((l) => l.startsWith('data:'));
+          if (!line) continue;
+          let ev;
+          try { ev = JSON.parse(line.slice(5).trim()); } catch (_) { continue; }
+          if (ev.type === 'meta') {
+            meta = ev;
+            paint(true);
+          } else if (ev.type === 'reasoning' || ev.type === 'content') {
+            if (firstTokenMs === null) firstTokenMs = Math.round(performance.now() - tStart);
+            if (ev.type === 'content') content += ev.delta || '';
+            paint();
+          } else if (ev.type === 'done') {
+            finalAnswer = ev.answer || content;
+          } else if (ev.type === 'error') {
+            throw new Error(ev.detail || 'stream error');
+          }
+        }
+      }
+      if (finalAnswer === null && !content) throw new Error('empty stream');
+      return {
+        results: [{
+          ministry: minLabel,
+          detail_level: meta.detail_level || reqBody.detail_level,
+          reasoning_mode: meta.reasoning_mode || reqBody.reasoning_mode,
+          answer: finalAnswer !== null ? finalAnswer : content,
+          graph_context: meta.graph_context || '',
+          sources: meta.sources || [],
+          first_token_ms: firstTokenMs,
+          byod_active: meta.byod_active || Boolean(reqBody.byod_doc_id || reqBody.byod_doc_ids?.length),
+        }]
+      };
+    }
+
+    async function ask() {
+      const question = questionEl.value.trim();
+      if (!question) {
+        statusEl.textContent = 'Please enter a fiscal or policy question or select a benchmark scenario chip above.';
+        statusEl.classList.add('error');
+        questionEl.focus();
+        return;
+      }
+      const yearsArr = selectedYears.size ? [...selectedYears].sort() : null;
+      const cacheKey = `${CACHE_PREFIX}${ministry}::${detailLevel}::${reasoningMode}::${(yearsArr || []).join(',')}::${question.toLowerCase()}`;
+      if (!activeByodDocs.length) {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            const t0 = performance.now();
+            const payload = JSON.parse(cached);
+            renderResults(payload.results || []);
+            statusEl.classList.remove('error');
+            statusEl.textContent = `Report Loaded (${labelFor[ministry] || ministry} // ${detailLevel.toUpperCase()}).`;
+            perfTag.textContent = `Client Cache Hit: ${(performance.now() - t0).toFixed(1)} ms`;
+            return;
+          } catch {}
+        }
+      }
+
+      statusEl.classList.remove('error');
+      statusEl.textContent = `Analyzing ${labelFor[ministry] || ministry} (${detailLevel.toUpperCase()})...`;
+      perfTag.textContent = '';
+      askButton.disabled = true;
+      askButton.textContent = 'Synthesizing...';
+      resultsEl.innerHTML = '<div class="empty">Querying Sovereign Knowledge Graph + Synthesizing Intelligence...</div>';
+      const t0 = performance.now();
+      const activeDocIds = activeByodDocs.map((d) => d.doc_id);
+      const reqBody = {
+        question,
+        ministry,
+        detail_level: detailLevel,
+        reasoning_mode: reasoningMode,
+        years: yearsArr,
+        byod_doc_id: activeDocIds[0] || null,
+        byod_doc_ids: activeDocIds.length ? activeDocIds : null,
+      };
+      try {
+        let payload;
+        try {
+          payload = await streamAuditDossier(reqBody, t0);
+        } catch (streamErr) {
+          const response = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reqBody),
+          });
+          payload = await response.json();
+          if (!response.ok) throw new Error(payload.detail || 'Query failed.');
+        }
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(payload)); } catch {}
+        renderResults(payload.results || []);
+        const ttft = payload.results?.[0]?.first_token_ms;
+        statusEl.textContent = `Intelligence Synthesis Complete (${payload.results?.[0]?.sources?.length || 0} verified source citations).`;
+        perfTag.textContent = ttft ? `First token: ${ttft} ms · Total: ${Math.round(performance.now() - t0)} ms` : `Latency: ${Math.round(performance.now() - t0)} ms`;
+      } catch (err) {
+        statusEl.textContent = `Query Failed: ${err.message}`;
+        statusEl.classList.add('error');
+        resultsEl.innerHTML = '<div class="empty alert">API or Database Unreachable. Check that the service is running.</div>';
+      } finally {
+        askButton.disabled = false;
+        askButton.textContent = 'Run Intelligence Query ↵';
+      }
+    }
+
+    resultsEl.addEventListener('click', (event) => {
+      const copyBtn = event.target.closest('[data-rti-copy]');
+      if (copyBtn) {
+        const ta = document.getElementById(`rti-text-${copyBtn.dataset.rtiCopy}`);
+        if (ta) {
+          navigator.clipboard.writeText(ta.value);
+          copyBtn.textContent = 'Copied to Clipboard!';
+          setTimeout(() => { copyBtn.textContent = 'Copy RTI Text'; }, 1500);
+        }
+        return;
+      }
+      const dlBtn = event.target.closest('[data-rti-download]');
+      if (dlBtn) {
+        const ta = document.getElementById(`rti-text-${dlBtn.dataset.rtiDownload}`);
+        if (ta) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([ta.value], { type: 'text/plain;charset=utf-8' }));
+          a.download = `Bharat_Praman_RTI_Draft_${dlBtn.dataset.rtiDownload}.txt`;
+          a.click();
+        }
+        return;
+      }
+      const printBtn = event.target.closest('[data-rti-print]');
+      if (printBtn) {
+        const ta = document.getElementById(`rti-text-${printBtn.dataset.rtiPrint}`);
+        if (ta) {
+          const w = window.open('', '_blank');
+          if (w) {
+            w.document.write(`<pre style="font:13px/1.6 Consolas,monospace;white-space:pre-wrap;padding:28px;">${escapeHtml(ta.value)}</pre>`);
+            w.document.close();
+            w.print();
+          }
+        }
+      }
+    });
+
+    presetBarEl.addEventListener('click', (event) => {
+      const chip = event.target.closest('.preset-chip');
+      if (!chip) return;
+      questionEl.value = chip.dataset.q || '';
+      if (chip.dataset.min) setMode(chip.dataset.min);
+      ask();
+    });
+    modesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mode');
+      if (!btn) return;
+      setMode(btn.dataset.mode);
+      const url = new URL(location.href);
+      url.searchParams.set('ministry', ministry);
+      history.replaceState(null, '', url);
+    });
+    yearModesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mode');
+      if (!btn) return;
+      const yr = btn.dataset.year;
+      if (yr === 'all') selectedYears.clear();
+      else if (selectedYears.has(yr)) selectedYears.delete(yr);
+      else selectedYears.add(yr);
+      syncYearButtons();
+    });
+    detailToggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.detail-btn');
+      if (btn) setDetail(btn.dataset.detail);
+    });
+    reasonToggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.detail-btn');
+      if (btn) setReasoning(btn.dataset.reason);
+    });
+    askButton.addEventListener('click', ask);
+    questionEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); ask(); }
+    });
+
+    setMode(labelFor[ministry] ? ministry : 'all');
+    setDetail(detailLevel);
+    setReasoning(reasoningMode);
+    syncYearButtons();
+    if (initialQuestion) {
+      questionEl.value = initialQuestion;
+      ask();
+    }
+  </script>
+</body>
+</html>
+

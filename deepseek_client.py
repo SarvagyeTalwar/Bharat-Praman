@@ -28,7 +28,12 @@ from urllib3.util.retry import Retry
 logger = logging.getLogger("bharat_praman.deepseek")
 
 DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").rstrip("/")
-DEEPSEEK_API_KEY = (os.getenv("DEEPSEEK_API_KEY") or "").split("DEEPSEEK_API_KEY=")[-1].strip()
+def _clean_sk(raw: str | None) -> str:
+    s = (raw or "").strip()
+    matches = re.findall(r"sk-[A-Za-z0-9]{20,}", s)
+    return matches[-1] if matches else s.split("DEEPSEEK_API_KEY=")[-1].strip()
+
+DEEPSEEK_API_KEY = _clean_sk(os.getenv("DEEPSEEK_API_KEY"))
 DEEPSEEK_CHAT_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 DEEPSEEK_REASONER_MODEL = os.getenv("DEEPSEEK_REASONER_MODEL", "deepseek-reasoner")
 
@@ -236,8 +241,8 @@ def stream_deepseek_chat(
     try:
         with session.post(url, json=payload, headers=headers, stream=True, timeout=req_timeout) as resp:
             if resp.status_code != 200:
-                yield {"type": "content", "text": f"DeepSeek error HTTP {resp.status_code}: {resp.text[:200]}"}
-                return
+                logger.error("DeepSeek streaming error HTTP %d: %s", resp.status_code, resp.text[:300])
+                raise RuntimeError(f"DeepSeek HTTP {resp.status_code}: {resp.text[:200]}")
 
             for line in resp.iter_lines(decode_unicode=True):
                 if not line or not line.startswith("data:"):
